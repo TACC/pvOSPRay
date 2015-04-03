@@ -1,18 +1,18 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="camera">
-    <CameraProxy name="MantaCamera" class="vtkOSPRayCamera"
+    <CameraProxy name="OSPRayCamera" class="vtkOSPRayCamera"
       processes="client|dataserver|renderserver"
       base_proxygroup="camera" base_proxyname="Camera">
     </CameraProxy>
   </ProxyGroup>
 
   <ProxyGroup name="views">
-    <MantaViewProxy name="MantaView" class="vtkPVMantaView"
+    <OSPRayViewProxy name="OSPRayView" class="vtkPVOSPRayView"
         processes="client|renderserver|dataserver"
         base_proxygroup="views" base_proxyname="RenderView">
 
      <SubProxy>
-       <Proxy name="ActiveCamera" proxyname="MantaCamera" proxygroup="camera"
+       <Proxy name="ActiveCamera" proxyname="OSPRayCamera" proxygroup="camera"
               override="1">
        </Proxy>
        <ExposedProperties>
@@ -87,11 +87,11 @@
         </Documentation>
       </IntVectorProperty>
 
-    </MantaViewProxy>
+    </OSPRayViewProxy>
   </ProxyGroup>
 
   <ProxyGroup name="camera">
-    <CameraProxy name="MantaCamera" class="vtkOSPRayCamera"
+    <CameraProxy name="OSPRayCamera" class="vtkOSPRayCamera"
       processes="client|dataserver|renderserver"
       base_proxygroup="camera" base_proxyname="Camera" >
     </CameraProxy>
@@ -99,12 +99,12 @@
 
   <ProxyGroup name="representations">
 
-    <RepresentationProxy name="MantaSurfaceRepresentation"
+    <RepresentationProxy name="OSPRaySurfaceRepresentation"
                          class="vtkPVOSPRayRepresentation"
                          processes="client|renderserver|dataserver"
                          base_proxygroup="representations"
                          base_proxyname="SurfaceRepresentation">
-    <!-- proxy that sets up manta display pipeline at vtk level -->
+    <!-- proxy that sets up OSPRay display pipeline at vtk level -->
 
       <StringVectorProperty name="MaterialType"
         command="SetMaterialType"
@@ -154,21 +154,21 @@
 
     </RepresentationProxy>
 
-    <PVRepresentationProxy name="MantaGeometryRepresentation"
+    <PVRepresentationProxy name="OSPRayGeometryRepresentation"
                            class="vtkPVCompositeRepresentation"
                            processes="client|renderserver|dataserver">
 
 
       <!--
       This is all a copy of representations/GeometryRepresentation (and its parent).
-      All I do differently is instantiate the above manta surface representation.
+      All I do differently is instantiate the above OSPRay surface representation.
       The hack is necessary since xml overrides didn't work
       (shared properties I think), and because at the C++
       level it is too late to change them by the time the subclass is created.
       -->
 
       <Documentation>
-        Top level representation for objects shown in a manta view.
+        Top level representation for objects shown in a OSPRay view.
       </Documentation>
 
       <IntVectorProperty name="Visibility"
@@ -299,7 +299,7 @@
       <SubProxy>
         <Proxy name="SurfaceRepresentation"
           proxygroup="representations"
-          proxyname="MantaSurfaceRepresentation"> <!-- this is the only thing different -->
+          proxyname="OSPRaySurfaceRepresentation"> <!-- this is the only thing different -->
         </Proxy>
         <ExposedProperties>
           <Property name="Ambient" />
@@ -331,7 +331,7 @@
           <Property name="StaticMode" />
           <Property name="SuppressLOD" />
           <Property name="Texture" />
-          <!-- manta specific properties -->
+          <!-- OSPRay specific properties -->
           <Property name="MaterialType" />
           <Property name="Reflectance" />
           <Property name="Thickness" />

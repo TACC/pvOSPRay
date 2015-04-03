@@ -58,11 +58,11 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-// .NAME vtkPVOSPRayRepresentation - representation for manta views
+// .NAME vtkPVOSPRayRepresentation - representation for OSPRay views
 // .SECTION Description
 // This replaces the GL mapper, actor and property for a display pipline
-// with the manta versions of those so that the object can be drawn
-// in a manta renderer within a PVMantaView
+// with the OSPRay versions of those so that the object can be drawn
+// in an OSPRay renderer within a pvOSPRay view
 
 #ifndef __vtkPVOSPRayRepresentation_h
 #define __vtkPVOSPRayRepresentation_h
