@@ -1,3 +1,20 @@
+## ======================================================================================= ##
+## Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  ##
+##                                                                                         ##
+## Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     ##
+## except in compliance with the License.                                                  ##
+## A copy of the License is included with this software in the file LICENSE.               ##
+## If your copy does not contain the License, you may obtain a copy of the License at:     ##
+##                                                                                         ##
+##     http://opensource.org/licenses/BSD-3-Clause                                         ##
+##                                                                                         ##
+## Unless required by applicable law or agreed to in writing, software distributed under   ##
+## the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY ##
+## KIND, either express or implied.                                                        ##
+## See the License for the specific language governing permissions and limitations under   ##
+## limitations under the License.                                                          ##
+## ======================================================================================= ##
+
 ###############################################################################
 # Find OSPRay
 # defines:
@@ -5,36 +22,55 @@
 # OSPRAY_INCLUDE_DIRS
 # OSPRAY_LIBRARIES
 
+# guess that OSPRay is installed in a peer directory
+FIND_PATH(OSPRAY_DIR ospray
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay 
+  DOC "OSPRay base directory"
+  )
+IF(NOT OSPRAY_DIR)
+  MESSAGE("Could not find OSPRay base directory. Please set OSPRAY_DIR to the root of your local OSPRay git repository.")
+ENDIF(NOT OSPRAY_DIR)
 
-#SET(EMBREE_DIR "" CACHE PATH "base Embree directory")
-SET(OSPRAY_DIR "" CACHE PATH "base OSPRay directory")
-SET(OSPRAY_BUILD_DIR "" CACHE PATH "OSPRay build directory")
-#SET(EMBREE_BUILD_DIR "" CACHE PATH "base RIVL directory")
+FIND_PATH(OSPRAY_CMAKE_DIR ospray.cmake
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/cmake
+  DOC "OSPRay cmake directory"
+  )
+IF(NOT OSPRAY_CMAKE_DIR)
+  MESSAGE("Could not find OSPRay cmake directory. Please set OSPRAY_CMAKE_DIR to the cmake directory of your local OSPRay git repository, usually <root>/cmake.")
+ENDIF(NOT OSPRAY_CMAKE_DIR)
+
+FIND_PATH(OSPRAY_BUILD_DIR ospModelViewer
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/build ${PROJECT_SOURCE_DIR}/../OSPRay
+  DOC "OSPRay build directory"
+  )
+IF(NOT OSPRAY_BUILD_DIR)
+  MESSAGE("Could not find OSPRay build directory. Please set OSPRAY_BUILD_DIR to the directory where OSPRay was built.")
+ENDIF(NOT OSPRAY_BUILD_DIR)
+
+LOAD_CACHE(${OSPRAY_BUILD_DIR} READ_WITH_PREFIX OSP_ 
+  OSPRAY_BUILD_MIC_SUPPORT
+  OSPRAY_BUILD_MPI_DEVICE
+  OSPRAY_COMPILER
+  OSPRAY_XEON_TARGET
+  )
+
 SET(OSPRAY_INCLUDE_DIRS
-  #${EMBREE_DIR}
-  #${EMBREE_DIR}/embree
-  #${EMBREE_DIR}/common
-  #${EMBREE_DIR}/examples/common 
-  #${EMBREE_DIR}/examples/renderer
-  #${EMBREE_DIR}/examples/renderer/renderer
-  #${EMBREE_DIR}/examples/tutorials
   ${OSPRAY_DIR}
   ${OSPRAY_DIR}/ospray
   ${OSPRAY_DIR}/ospray/embree/common
   ${OSPRAY_DIR}/ospray/embree
   ${OSPRAY_DIR}/ospray/include
   )
-#INCLUDE_DIRECTORIES(${RIVL_DIR}/../host)
 
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${OSPRAY_DIR}/cmake ${OSPRAY_DIR})
-# whether to use ICC (vs GCC) for the non-MIC part
-SET(OSPRAY_ICC ON CACHE BOOL "Use Intel Compiler?")
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${OSPRAY_CMAKE_DIR} ${OSPRAY_DIR})
+# which compiler was used to build OSPRay
+SET(OSPRAY_CC ${OSP_OSPRAY_COMPILER} CACHE STRING "OSPRay Compiler (ICC, GCC, CLANG)")
 # whehter to build in MIC/xeon phi support
-SET(OSPRAY_MIC ON CACHE BOOL "Build OSPRay with MIC Support?")
+SET(OSPRAY_MIC ${OSP_OSPRAY_BUILD_MIC_SUPPORT} CACHE BOOL "Was OSPRay buit with Xeon Phi Support?")
 # whehter to build in MIC/xeon phi support
-SET(OSPRAY_MPI OFF CACHE BOOL "Add MPI Remote/Distributed rendering support?")
+SET(OSPRAY_MPI ${OSP_OSPRAY_BUILD_MPI_DEVICE} CACHE BOOL "Was OSPRay built with MPI Remote/Distributed rendering support?")
 # the arch we're targeting for the non-MIC/non-xeon phi part of ospray
-SET(OSPRAY_XEON_TARGET "AVX" CACHE STRING "Target ISA on host (SSE,AVX,AVX2)")
+SET(OSPRAY_XEON_TARGET ${OSP_OSPRAY_XEON_TARGET} CACHE STRING "OSPRay target ISA on host (SSE,AVX,AVX2)")
 
 ADD_DEFINITIONS(${OSPRAY_EMBREE_CXX_FLAGS})
 MESSAGE("ospray_dir ${OSPRAY_DIR}")
@@ -44,40 +80,16 @@ SET(OSPRAY_DIR ${OSPRAY_DIR2})
 MESSAGE("ospray_dir ${OSPRAY_DIR}")
 INCLUDE(${OSPRAY_DIR}/cmake/mpi.cmake)
 
-#FIND_LIBRARY(LIB_RIVL_HOST rivl_host ${RIVL_DIR}/bin)
-#SET(LIB_EMBREE_DEVICE LIB_EMBREE_DEVICE-NOTFOUND)
 SET(LIB_OSPRAY_EMBREE LIB_OSPRAY_EMBREE-NOTFOUND)
-#SET(LIB_OSPRAY_LOADERS LIB_EMBREE_LOADERS-NOTFOUND)
-# SET(LIB_OSPRAY_SYS LIB_OSPRAY_SYS-NOTFOUND)
-#SET(LIB_OSPRAY_GLUT3D LIB_OSPRAY_GLUT3D-NOTFOUND)
-#SET(LIB_OSPRAY_MINISG LIB_OSPRAY_MINISG-NOTFOUND)
 SET(LIB_OSPRAY LIB_OSPRAY-NOTFOUND)
-#SET(LIB_OSPRAY_MIC LIB_OSPRAY_MIC-NOTFOUND)
-#SET(LIB_OSPRAY_LEXERS LIB_EMBREE_LEXERS-NOTFOUND)
-# SET(LIB_EMBREE_DEVICE_SINGLERAY LIB_EMBREE_DEVICE_SINGLERAY-NOTFOUND)
-#FIND_LIBRARY(LIB_EMBREE_DEVICE device ${OSPRAY_BUILD_DIR})
 FIND_LIBRARY(LIB_OSPRAY_EMBREE ospray_embree ${OSPRAY_BUILD_DIR})
-#FIND_LIBRARY(LIB_EMBREE_LOADERS loaders ${OSPRAY_BUILD_DIR})
-# FIND_LIBRARY(LIB_OSPRAY_SYS sys ${OSPRAY_BUILD_DIR})
 FIND_LIBRARY(LIB_OSPRAY ospray ${OSPRAY_BUILD_DIR})
-#FIND_LIBRARY(LIB_OSPRAY_GLUT3D ospray_glut3d ${OSPRAY_BUILD_DIR})
-#FIND_LIBRARY(LIB_OSPRAY_MINISG ospray_minisg ${OSPRAY_BUILD_DIR})
 IF (OSPRAY_MIC)
-#FIND_LIBRARY(LIB_OSPRAY_MIC ospray_mic ${OSPRAY_BUILD_DIR})
+  # Xeon Phi specific build ops here
 ENDIF(OSPRAY_MIC)
-#FIND_LIBRARY(LIB_EMBREE_LEXERS lexers ${EMBREE_BUILD_DIR})
-# FIND_LIBRARY(LIB_EMBREE_DEVICE_SINGLERAY device_singleray ${EMBREE_BUILD_DIR})
 
 SET(OSPRAY_LIBRARIES
-  #${LIB_EMBREE_DEVICE}
   ${LIB_OSPRAY_EMBREE}
-  #${LIB_EMBREE_LOADERS}
-  # ${LIB_OSPRAY_SYS}
   ${LIB_OSPRAY}
-  #${LIB_OSPRAY_GLUT3D}
-  #${LIB_OSPRAY_MINISG}
-  #${LIB_OSPRAY_MIC}
-  #${LIB_EMBREE_LEXERS}
-  #${LIB_EMBREE_DEVICE_SINGLERAY}
   )
 
