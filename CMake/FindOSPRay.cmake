@@ -22,9 +22,9 @@
 # OSPRAY_INCLUDE_DIRS
 # OSPRAY_LIBRARIES
 
-# guess that OSPRay is installed in a peer directory
+# guess that OSPRay is installed in a peer directory (if in dev) or in a peer to the ParaView source
 FIND_PATH(OSPRAY_DIR ospray
-  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay 
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay  ${PROJECT_SOURCE_DIR}/../../../OSPRay
   DOC "OSPRay base directory"
   )
 IF(NOT OSPRAY_DIR)
@@ -32,7 +32,7 @@ IF(NOT OSPRAY_DIR)
 ENDIF(NOT OSPRAY_DIR)
 
 FIND_PATH(OSPRAY_CMAKE_DIR ospray.cmake
-  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/cmake
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/cmake ${PROJECT_SOURCE_DIR}/../../../OSPRay/cmake
   DOC "OSPRay cmake directory"
   )
 IF(NOT OSPRAY_CMAKE_DIR)
@@ -40,45 +40,52 @@ IF(NOT OSPRAY_CMAKE_DIR)
 ENDIF(NOT OSPRAY_CMAKE_DIR)
 
 FIND_PATH(OSPRAY_BUILD_DIR ospModelViewer
-  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/build ${PROJECT_SOURCE_DIR}/../OSPRay
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/build ${PROJECT_SOURCE_DIR}/../OSPRay ${PROJECT_SOURCE_DIR}/../../../OSPRay/build ${PROJECT_SOURCE_DIR}/../../../OSPRay
   DOC "OSPRay build directory"
   )
 IF(NOT OSPRAY_BUILD_DIR)
   MESSAGE("Could not find OSPRay build directory. Please set OSPRAY_BUILD_DIR to the directory where OSPRay was built.")
 ENDIF(NOT OSPRAY_BUILD_DIR)
 
-LOAD_CACHE(${OSPRAY_BUILD_DIR} READ_WITH_PREFIX OSP_ 
-  OSPRAY_BUILD_MIC_SUPPORT
-  OSPRAY_BUILD_MPI_DEVICE
-  OSPRAY_COMPILER
-  OSPRAY_XEON_TARGET
-  )
+if (OSPRAY_BUILD_DIR)
+  LOAD_CACHE(${OSPRAY_BUILD_DIR} READ_WITH_PREFIX OSP_ 
+    OSPRAY_BUILD_MIC_SUPPORT
+    OSPRAY_BUILD_MPI_DEVICE
+    OSPRAY_COMPILER
+    OSPRAY_XEON_TARGET
+    )
 
-SET(OSPRAY_INCLUDE_DIRS
-  ${OSPRAY_DIR}
-  ${OSPRAY_DIR}/ospray
-  ${OSPRAY_DIR}/ospray/embree/common
-  ${OSPRAY_DIR}/ospray/embree
-  ${OSPRAY_DIR}/ospray/include
-  )
+  SET(OSPRAY_INCLUDE_DIRS
+    ${OSPRAY_DIR}
+    ${OSPRAY_DIR}/ospray
+    ${OSPRAY_DIR}/ospray/embree/common
+    ${OSPRAY_DIR}/ospray/embree
+    ${OSPRAY_DIR}/ospray/include
+    )
 
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${OSPRAY_CMAKE_DIR} ${OSPRAY_DIR})
-# which compiler was used to build OSPRay
-SET(OSPRAY_CC ${OSP_OSPRAY_COMPILER} CACHE STRING "OSPRay Compiler (ICC, GCC, CLANG)")
-# whehter to build in MIC/xeon phi support
-SET(OSPRAY_MIC ${OSP_OSPRAY_BUILD_MIC_SUPPORT} CACHE BOOL "Was OSPRay buit with Xeon Phi Support?")
-# whehter to build in MIC/xeon phi support
-SET(OSPRAY_MPI ${OSP_OSPRAY_BUILD_MPI_DEVICE} CACHE BOOL "Was OSPRay built with MPI Remote/Distributed rendering support?")
-# the arch we're targeting for the non-MIC/non-xeon phi part of ospray
-SET(OSPRAY_XEON_TARGET ${OSP_OSPRAY_XEON_TARGET} CACHE STRING "OSPRay target ISA on host (SSE,AVX,AVX2)")
+  SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${OSPRAY_CMAKE_DIR} ${OSPRAY_DIR})
+  # which compiler was used to build OSPRay
+  SET(OSPRAY_CC ${OSP_OSPRAY_COMPILER} CACHE STRING "OSPRay Compiler (ICC, GCC, CLANG)")
+  # whehter to build in MIC/xeon phi support
+  SET(OSPRAY_MIC ${OSP_OSPRAY_BUILD_MIC_SUPPORT} CACHE BOOL "Was OSPRay buit with Xeon Phi Support?")
+  # whehter to build in MIC/xeon phi support
+  SET(OSPRAY_MPI ${OSP_OSPRAY_BUILD_MPI_DEVICE} CACHE BOOL "Was OSPRay built with MPI Remote/Distributed rendering support?")
+  # the arch we're targeting for the non-MIC/non-xeon phi part of ospray
+  SET(OSPRAY_XEON_TARGET ${OSP_OSPRAY_XEON_TARGET} CACHE STRING "OSPRay target ISA on host (SSE,AVX,AVX2)")
 
-ADD_DEFINITIONS(${OSPRAY_EMBREE_CXX_FLAGS})
-MESSAGE("ospray_dir ${OSPRAY_DIR}")
-SET(OSPRAY_DIR2 ${OSPRAY_DIR})
-INCLUDE(${OSPRAY_DIR}/cmake/ospray.cmake)
-SET(OSPRAY_DIR ${OSPRAY_DIR2})
-MESSAGE("ospray_dir ${OSPRAY_DIR}")
-INCLUDE(${OSPRAY_DIR}/cmake/mpi.cmake)
+  ADD_DEFINITIONS(${OSPRAY_EMBREE_CXX_FLAGS})
+endif(OSPRAY_BUILD_DIR)
+
+# MESSAGE("ospray_dir ${OSPRAY_DIR}")
+# SET(OSPRAY_DIR2 ${OSPRAY_DIR})
+# INCLUDE(${OSPRAY_DIR}/cmake/ospray.cmake)
+# SET(OSPRAY_DIR ${OSPRAY_DIR2})
+# MESSAGE("ospray_dir ${OSPRAY_DIR}")
+
+if(OSPRAY_CMAKE_DIR)
+  INCLUDE(${OSPRAY_CMAKE_DIR}/ospray.cmake)
+  INCLUDE(${OSPRAY_CMAKE_DIR}/mpi.cmake)
+endif(OSPRAY_CMAKE_DIR)
 
 SET(LIB_OSPRAY_EMBREE LIB_OSPRAY_EMBREE-NOTFOUND)
 SET(LIB_OSPRAY LIB_OSPRAY-NOTFOUND)
