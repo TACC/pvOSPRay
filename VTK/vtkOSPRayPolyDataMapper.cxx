@@ -59,6 +59,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
+
 #include "vtkOSPRay.h"
 #include "vtkOSPRayActor.h"
 #include "vtkOSPRayManager.h"
@@ -108,17 +111,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // #include <Core/Geometry/Vector.h>
 #include <vector>
-
-
-
-
-//
-//ospray
-//
-#if USE_OSPRAY
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-#endif
 
 #include <math.h>
 #include <algorithm>

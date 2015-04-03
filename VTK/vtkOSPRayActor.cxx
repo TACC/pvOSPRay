@@ -86,7 +86,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
-     #define GL_GLEXT_PROTOTYPES
+#include "ospray/ospray.h"
+
+#define GL_GLEXT_PROTOTYPES
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayActor.h"
@@ -107,14 +109,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include <Model/Groups/RecursiveGrid.h>
 // #include <Model/Groups/Group.h>
 // #include <Core/Geometry/AffineTransform.h>
-
-//
-//ospray
-//
-#if USE_OSPRAY
-#include "ospray/ospray.h"
-// #include "ospray/common/OspCommon.h"
-#endif
 
 //VBO includes
 #include <X11/Xlib.h>

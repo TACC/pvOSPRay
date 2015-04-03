@@ -59,6 +59,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
+
 #include "vtkOSPRay.h"
 #include "vtkOSPRayCamera.h"
 #include "vtkOSPRayManager.h"
@@ -94,14 +97,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "vtkImageData.h"
 #include "vtkPNGWriter.h"
-
-//
-//ospray
-//
-#if USE_OSPRAY
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-#endif
 
 //
 //  VBOs

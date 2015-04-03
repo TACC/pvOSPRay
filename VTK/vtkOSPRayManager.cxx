@@ -13,6 +13,7 @@
 
 =========================================================================*/
 
+#include "ospray/ospray.h"
 
 #include "vtkOSPRayManager.h"
 #include "vtkObjectFactory.h"
@@ -37,14 +38,6 @@
 // #include <Model/Groups/Group.h>
 // #include <Model/Lights/HeadLight.h>
 
-#if USE_OSPRAY
-//
-//ospray
-//
-#include "ospray/ospray.h"
-// #include "ospray/common/ospcommon.h"
-// #include "ospray/common/OspCommon.h"
-     #endif
 
 // #include <typeinfo.h>
 

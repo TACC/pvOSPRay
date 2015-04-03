@@ -59,6 +59,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
+
 #include "vtkOSPRay.h"
 #include "vtkOSPRayManager.h"
 #include "vtkOSPRayProperty.h"
@@ -81,12 +84,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
 
-
-//
-//ospray
-//
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #if 0
 //============================================================================

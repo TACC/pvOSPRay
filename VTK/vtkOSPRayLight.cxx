@@ -59,6 +59,9 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
 
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
+
 #include "vtkOSPRay.h"
 #include "vtkOSPRayLight.h"
 #include "vtkOSPRayManager.h"
@@ -72,13 +75,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include <Engine/Control/RTRT.h>
 // #include <Model/Lights/PointLight.h>
 // #include <Model/Lights/DirectionalLight.h>
-
-//
-//ospray
-//
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-
 
 #include <math.h>
 
