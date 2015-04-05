@@ -1,33 +1,40 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   ParaView
-  Module:    $RCSfile$
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-  Copyright (c) Kitware, Inc.
-  All rights reserved.
-  See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-// .NAME vtkPVMantaView VTK level view that uses Manta instead of GL
+// .NAME vtkPVOSPRayView VTK level view that uses OSPRay instead of GL
 // .SECTION Description
-// A 3D view that uses the manta ray tracer instead of openGL for rendering
+// A 3D view that uses the OSPRay ray tracer instead of openGL for rendering
 
-#ifndef __vtkPVMantaView_h
-#define __vtkPVMantaView_h
+#ifndef __vtkPVOSPRayView_h
+#define __vtkPVOSPRayView_h
 
 #include "vtkPVRenderView.h"
 
 class vtkDataRepresentation;
 
-class VTK_EXPORT vtkPVMantaView : public vtkPVRenderView
+class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {
 public:
-  static vtkPVMantaView* New();
-  vtkTypeMacro(vtkPVMantaView, vtkPVRenderView);
+  static vtkPVOSPRayView* New();
+  vtkTypeMacro(vtkPVOSPRayView, vtkPVRenderView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -59,8 +66,8 @@ public:
 
 //BTX
 protected:
-  vtkPVMantaView();
-  ~vtkPVMantaView();
+  vtkPVOSPRayView();
+  ~vtkPVOSPRayView();
 
   int EnableShadows;
   int EnableAO;
@@ -69,9 +76,9 @@ protected:
   int MaxDepth;
 
 private:
-  vtkPVMantaView(const vtkPVMantaView&); // Not implemented
-  void operator=(const vtkPVMantaView&); // Not implemented
+  vtkPVOSPRayView(const vtkPVOSPRayView&); // Not implemented
+  void operator=(const vtkPVOSPRayView&); // Not implemented
 //ETX
 };
 
-#endif
+#endif // __vtkPVOSPRayView_h

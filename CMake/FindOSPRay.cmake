@@ -1,5 +1,6 @@
 ## ======================================================================================= ##
 ## Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  ##
+## All rights reserved.                                                                    ##
 ##                                                                                         ##
 ## Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     ##
 ## except in compliance with the License.                                                  ##
@@ -14,6 +15,7 @@
 ## See the License for the specific language governing permissions and limitations under   ##
 ## limitations under the License.                                                          ##
 ## ======================================================================================= ##
+
 
 ###############################################################################
 # Find OSPRay

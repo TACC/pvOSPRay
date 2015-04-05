@@ -1,11 +1,29 @@
-#vtkOSPRay is an interface from VTK's rendering classes to Manta,
-#a "real time" Ray Tracer.
+## ======================================================================================= ##
+## Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  ##
+## All rights reserved.                                                                    ##
+##                                                                                         ##
+## Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     ##
+## except in compliance with the License.                                                  ##
+## A copy of the License is included with this software in the file LICENSE.               ##
+## If your copy does not contain the License, you may obtain a copy of the License at:     ##
+##                                                                                         ##
+##     http://opensource.org/licenses/BSD-3-Clause                                         ##
+##                                                                                         ##
+## Unless required by applicable law or agreed to in writing, software distributed under   ##
+## the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY ##
+## KIND, either express or implied.                                                        ##
+## See the License for the specific language governing permissions and limitations under   ##
+## limitations under the License.                                                          ##
+## ======================================================================================= ##
 
-#It creates a library that includes Manta specific subclasses
-#of VTK's rendering classes, Renderer, Camera, etc.
-#These can be instantiated by name, or by using object factory overloading
-#at post compile time (ie, set VTK_AUTOLOAD_PATH to vtkOSPRay's build
-#directory and run a normal vtk app)
+# vtkOSPRay is an interface from VTK's rendering classes to OSPRay,
+# a "real time" Ray Tracer.
+
+# It creates a library that includes OSPRay specific subclasses
+# of VTK's rendering classes, Renderer, Camera, etc.
+# These can be instantiated by name, or by using object factory overloading
+# at post compile time (ie, set VTK_AUTOLOAD_PATH to vtkOSPRay's build
+# directory and run a normal vtk app)
 
 project(vtkOSPRay)
 
@@ -24,14 +42,14 @@ endif()
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
-message("cmake_current_binary_dir: " ${CMAKE_CURRENT_BINARY_DIR})
-message("project source dir: " ${PROJECT_SOURCE_DIR})
-message("project binary dir: " ${PROJECT_BINARY_DIR})
+# message("cmake_current_binary_dir: " ${CMAKE_CURRENT_BINARY_DIR})
+# message("project source dir: " ${PROJECT_SOURCE_DIR})
+# message("project binary dir: " ${PROJECT_BINARY_DIR})
 
 
 
 # Set vtkOSPRay source files.
-SET ( MANTA_CLASSES
+SET ( OSPRAY_CLASSES
   vtkOSPRayActor.cxx
   vtkOSPRayCamera.cxx
   vtkOSPRayLight.cxx
@@ -46,26 +64,26 @@ SET ( MANTA_CLASSES
 
 IF (BUILD_AGAINST_PARAVIEW)
   # paraview uses its own LOD actor, put it in here
-  SET ( MANTA_CLASSES ${MANTA_CLASSES}
+  SET ( OSPRAY_CLASSES ${OSPRAY_CLASSES}
     vtkOSPRayLODActor.cxx
     vtkPVOSPRayRepresentation.cxx
     vtkOSPRayCompositeMapper.cxx)
 ENDIF (BUILD_AGAINST_PARAVIEW)
 
-SET ( MANTA_SRCS
-  ${MANTA_CLASSES}
+SET ( OSPRAY_SRCS
+  ${OSPRAY_CLASSES}
   vtkOSPRayObjectFactory.cxx
   )
 
 set (${vtk-module}_NO_HeaderTest 1)
 
-vtk_module_library(${vtk-module} ${MANTA_SRCS})
+vtk_module_library(${vtk-module} ${OSPRAY_SRCS})
 find_package(OSPRay)
-MESSAGE("ospray libs:" + ${OSPRAY_LIBRARIES})
-MESSAGE("vtk-module: " + ${vtk-module})
+# MESSAGE("ospray libs:" + ${OSPRAY_LIBRARIES})
+# MESSAGE("vtk-module: " + ${vtk-module})
 TARGET_LINK_LIBRARIES (${vtk-module} LINK_PRIVATE ${OSPRAY_LIBRARIES})
 
-# Manta_Core uses MMTime which is in it's own special library.
+# OSPRay_Core uses MMTime which is in it's own special library.
 if(WIN32)
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} LINK_PRIVATE Winmm)
 endif()

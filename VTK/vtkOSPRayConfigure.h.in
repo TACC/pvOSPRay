@@ -11,7 +11,7 @@ wishing to create their own VTK classes locally.
 #endif
 
 #if @BUILD_AGAINST_PARAVIEW@
-# define VTKMANTA_FOR_PARAVIEW
+# define VTKOSPRAY_FOR_PARAVIEW
 #endif
 
 // Disable warning caused from static VTK and shared @PROJECT_NAME@.

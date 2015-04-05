@@ -1,63 +1,23 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   Visualization Toolkit
-  Module:    vtkOSPRayTexture.cxx
-
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-/*=========================================================================
-
-  Program:   VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
-  Module:    vtkOSPRayTexture.cxx
-
-Copyright (c) 2007, Los Alamos National Security, LLC
-
-All rights reserved.
-
-Copyright 2007. Los Alamos National Security, LLC.
-This software was produced under U.S. Government contract DE-AC52-06NA25396
-for Los Alamos National Laboratory (LANL), which is operated by
-Los Alamos National Security, LLC for the U.S. Department of Energy.
-The U.S. Government has rights to use, reproduce, and distribute this software.
-NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY,
-EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.
-If software is modified to produce derivative works, such modified software
-should be clearly marked, so as not to confuse it with the version available
-from LANL.
-
-Additionally, redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following conditions
-are met:
--   Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
--   Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
--   Neither the name of Los Alamos National Security, LLC, Los Alamos National
-    Laboratory, LANL, the U.S. Government, nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL LOS ALAMOS NATIONAL SECURITY, LLC OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-=========================================================================*/
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
 #include "ospray/ospray.h"
 #include "ospray/common/OSPCommon.h"
@@ -83,20 +43,20 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <math.h>
 
 //==============================================================================
-//This is a helper that exists just to hold on to manta side resources
-//long enough for the manta thread to destroy them, whenever that
+//This is a helper that exists just to hold on to OSPRay side resources
+//long enough for the OSPRay thread to destroy them, whenever that
 //threads gets around to it (in a callback)
 // class vtkOSPRayTextureThreadCache
 // {
 // public:
-//   vtkOSPRayTextureThreadCache(Manta::Texture<Manta::Color> *mt)
-//     : MantaTexture(mt)
+//   vtkOSPRayTextureThreadCache(OSPRay::Texture<OSPRay::Color> *mt)
+//     : OSPRayTexture(mt)
 //   {
 //   }
 
-//   void FreeMantaResources()
+//   void FreeOSPRayResources()
 //   {
-//     delete MantaTexture;
+//     delete OSPRayTexture;
 //     //WARNING: this class must never be instantiated on the stack.
 //     //Therefore, it has private unimplemented copy/contructors.
 //     delete this;
@@ -108,7 +68,7 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //   void operator=(const vtkOSPRayTextureThreadCache&);
 //   // Not implemented.
 
-//   Manta::Texture<Manta::Color> *MantaTexture;
+//   OSPRay::Texture<OSPRay::Color> *OSPRayTexture;
 // };
 
 //==============================================================================
@@ -122,7 +82,7 @@ vtkOSPRayTexture::vtkOSPRayTexture()
 {
   //cerr << "MT( " << this << ") CREATE " << endl;
   this->OSPRayManager = NULL;
-  // this->MantaTexture = NULL;
+  // this->OSPRayTexture = NULL;
   this->OSPRayTexture = NULL;
 }
 
@@ -132,7 +92,7 @@ vtkOSPRayTexture::~vtkOSPRayTexture()
   //cerr << "MT( " << this << ") DESTROY " << endl;
   if (this->OSPRayManager)
   {
-    this->DeleteMantaTexture();
+    this->DeleteOSPRayTexture();
 
     //cerr << "MT(" << this << ") DESTROY " << this->OSPRayManager << " "
     //     << this->OSPRayManager->GetReferenceCount() << endl;
@@ -141,25 +101,25 @@ vtkOSPRayTexture::~vtkOSPRayTexture()
 }
 
 //-----------------------------------------------------------------------------
-void vtkOSPRayTexture::DeleteMantaTexture()
+void vtkOSPRayTexture::DeleteOSPRayTexture()
 {
   if (!this->OSPRayTexture)
   {
     return;
   }
 
-  //save off the pointers for the manta thread
+  //save off the pointers for the OSPRay thread
   // vtkOSPRayTextureThreadCache *R =
-  //   new vtkOSPRayTextureThreadCache(this->MantaTexture);
+  //   new vtkOSPRayTextureThreadCache(this->OSPRayTexture);
 
   // //make no further references to them in this thread
   this->OSPRayTexture = NULL;
 
-  //ask the manta thread to free them when it can
-  // this->OSPRayManager->GetMantaEngine()->
+  //ask the OSPRay thread to free them when it can
+  // this->OSPRayManager->GetOSPRayEngine()->
     // addTransaction("cleanup texture",
-                   // Manta::Callback::create
-                   // (R, &vtkOSPRayTextureThreadCache::FreeMantaResources));
+                   // OSPRay::Callback::create
+                   // (R, &vtkOSPRayTextureThreadCache::FreeOSPRayResources));
 }
 
 //-----------------------------------------------------------------------------
@@ -173,7 +133,7 @@ void vtkOSPRayTexture::ReleaseGraphicsResources(vtkWindow *win)
     return;
   }
 
-  this->DeleteMantaTexture();
+  this->DeleteOSPRayTexture();
 }
 
 //----------------------------------------------------------------------------
@@ -283,13 +243,13 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
       }
       printf("\n\ncolor values: \n");
 
-    // Create Manta Image from input
-    // Manta::Image *image =
-      // new Manta::SimpleImage<Manta::RGB8Pixel> (false, xsize, ysize);
-    // Manta::RGB8Pixel *pixels =
-      // dynamic_cast<Manta::SimpleImage<Manta::RGB8Pixel> const*>(image)->
+    // Create OSPRay Image from input
+    // OSPRay::Image *image =
+      // new OSPRay::SimpleImage<OSPRay::RGB8Pixel> (false, xsize, ysize);
+    // OSPRay::RGB8Pixel *pixels =
+      // dynamic_cast<OSPRay::SimpleImage<OSPRay::RGB8Pixel> const*>(image)->
       // getRawPixels(0);
-    // Manta::RGB8Pixel pixel;
+    // OSPRay::RGB8Pixel pixel;
         struct OColor { unsigned char r,g,b; };
         OColor* pixels = new OColor[xsize*ysize];
         for (int v = 0; v < ysize; v++)
@@ -307,15 +267,15 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
           // printf("\n");
         }
 
-    // create Manta texture from the image
-    // Manta::ImageTexture<Manta::Color> *imgtexture =
-      // new Manta::ImageTexture<Manta::Color>(image, false);
+    // create OSPRay texture from the image
+    // OSPRay::ImageTexture<OSPRay::Color> *imgtexture =
+      // new OSPRay::ImageTexture<OSPRay::Color>(image, false);
     // imgtexture->setInterpolationMethod(1);
 
-    // this->DeleteMantaTexture();
-    // this->MantaTexture = imgtexture;
+    // this->DeleteOSPRayTexture();
+    // this->OSPRayTexture = imgtexture;
 
-    // Manta image is copied and converted to internal buffer in the texture,
+    // OSPRay image is copied and converted to internal buffer in the texture,
     // delete the image
     // delete image;
 

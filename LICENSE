@@ -15,7 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-Portions of this code are derived from the MantaView module developed at Los Alamos National Laboratory, which is licensed as follows:
+Portions of this code are derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL), developed at Los Alamos National Laboratory, which is licensed as follows:
 /*=========================================================================
 
 Copyright (c) 2007, Los Alamos National Security, LLC

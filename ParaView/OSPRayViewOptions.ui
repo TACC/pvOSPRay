@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MantaViewOptions</class>
- <widget class="QWidget" name="MantaViewOptions">
+ <class>OSPRayViewOptions</class>
+ <widget class="QWidget" name="OSPRayViewOptions">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -29,7 +29,7 @@
      <item>
       <widget class="QSpinBox" name="threads">
        <property name="toolTip">
-        <string>Controls the number of manta rendering threads.</string>
+        <string>Controls the number of OSPRay rendering threads.</string>
        </property>
        <property name="minimum">
         <number>1</number>

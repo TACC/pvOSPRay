@@ -1,36 +1,26 @@
-/*=========================================================================
-
-   Program: ParaView
-   Module:    MantaDisplay.cxx
-
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
    All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2.
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-========================================================================*/
-#include "MantaDisplay.h"
-#include "ui_MantaDisplay.h"
+#include "OSPRayDisplay.h"
+#include "ui_OSPRayDisplay.h"
 
 // Qt Includes.
 #include <QVBoxLayout>
@@ -41,20 +31,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMPVRepresentationProxy.h"
 #include "pqSignalAdaptors.h"
 #include "pqActiveObjects.h"
-#include "MantaView.h"
+#include "OSPRayView.h"
 
 #include <iostream>
 
-class MantaDisplay::pqInternal
+class OSPRayDisplay::pqInternal
 {
 public:
-  Ui::MantaDisplay ui;
+  Ui::OSPRayDisplay ui;
   pqPropertyLinks links;
   pqSignalAdaptorComboBox *strAdapt;
 };
 
 //-----------------------------------------------------------------------------
-MantaDisplay::MantaDisplay(pqDisplayPanel* panel)
+OSPRayDisplay::OSPRayDisplay(pqDisplayPanel* panel)
   : Superclass(panel)
 {
   QWidget* frame = new QWidget(panel);
@@ -66,7 +56,7 @@ MantaDisplay::MantaDisplay(pqDisplayPanel* panel)
   this->Internal->strAdapt =
     new pqSignalAdaptorComboBox(this->Internal->ui.material);
 
-  MantaView* mView = qobject_cast<MantaView*>
+  OSPRayView* mView = qobject_cast<OSPRayView*>
     (pqActiveObjects::instance().activeView());
   if (!mView)
     {
@@ -134,7 +124,7 @@ MantaDisplay::MantaDisplay(pqDisplayPanel* panel)
 }
 
 //-----------------------------------------------------------------------------
-MantaDisplay::~MantaDisplay()
+OSPRayDisplay::~OSPRayDisplay()
 {
   delete this->Internal->strAdapt;
   delete this->Internal;
