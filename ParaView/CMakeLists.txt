@@ -1,7 +1,7 @@
 include_directories(
   ${VTK_INCLUDE_DIRS}
-  ${OSPRayView_SOURCE_DIR}/VTK
-  ${OSPRayView_BINARY_DIR}/VTK
+  ${pvOSPRay_SOURCE_DIR}/VTK
+  ${pvOSPRay_BINARY_DIR}/VTK
 )
 
 IF(PARAVIEW_BUILD_QT_GUI)
@@ -44,7 +44,7 @@ ENDIF()
 LINK_DIRECTORIES ( ${MANTA_BUILD_LIB} )
 
 add_paraview_plugin(
-  OSPRayView "2.0"
+  pvOSPRay "2.0"
   REQUIRED_ON_SERVER
   REQUIRED_ON_CLIENT
   SERVER_MANAGER_SOURCES
