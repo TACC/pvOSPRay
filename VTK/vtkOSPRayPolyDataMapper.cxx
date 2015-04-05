@@ -1254,7 +1254,7 @@ if (!ospMaterial)
   }
   // OSPRayActor->ospMesh = ospMesh;
   // OSPRayActor->OSPRayModel = ((osp::Model*)ospModel);
-  printf("added osp mesh num triangles: %d\n", numTriangles);
+  printf("added osp mesh num triangles: %lu\n", numTriangles);
   #endif
 
 

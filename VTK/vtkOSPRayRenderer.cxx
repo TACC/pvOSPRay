@@ -337,9 +337,9 @@ int vtkOSPRayRenderer::UpdateLights()
       this->DefaultLight = NULL;
       }
     }
+  #endif
 
   return 0;
-  #endif
 }
 
 //----------------------------------------------------------------------------

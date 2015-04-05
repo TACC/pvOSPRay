@@ -33,7 +33,7 @@ project(vtkOSPRay)
 # Define a flag
 if (BUILD_AGAINST_PARAVIEW)
   add_definitions(-DVTKOSPRAY_FOR_PARAVIEW)
-endif()
+endif(BUILD_AGAINST_PARAVIEW)
 
 
 

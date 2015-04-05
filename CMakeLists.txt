@@ -20,8 +20,19 @@ cmake_minimum_required(VERSION 2.8.8)
 # MESSAGE("pvOSPRay")
 project(pvOSPRay)
 
-# FIXME: this is ABSURD!!! Needs to be removed. I don't have time right now.
 set (BUILD_AGAINST_PARAVIEW 1)
+
+
+if(NOT ParaView_SOURCE_DIR)
+  find_package(ParaView)
+  include("${PARAVIEW_USE_FILE}")
+  include (ParaViewPlugins)
+
+  # Load information about VTK/ParaView modules loaded/available.
+  pv_setup_module_environment("pvOSPRay")
+else()
+  # we're building from within ParaView Source.
+endif()
 
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 #   ${CMAKE_SOURCE_DIR}/Plugins/pvOSPRay/CMake)
@@ -33,9 +44,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
   )
 # MESSAGE("pvOSPRay CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH})
 
-if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the build type: Debug Release RelWithDebInfo MinSizeRel." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+# if(NOT CMAKE_BUILD_TYPE)
+#   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the build type: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+# endif(NOT CMAKE_BUILD_TYPE)
 
 
 #
