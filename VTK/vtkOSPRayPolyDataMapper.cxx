@@ -1035,7 +1035,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
     std::vector<ospray::vec3fa> slVertex;
     std::vector<int> slIndex;
-    std::vector<int> slBounds;
     float slRadius;
 
     //convert VTK_LINE type cells to OSPRay cylinders
@@ -1050,40 +1049,20 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         double coord1[3];
         vtkIdType cell;
 
-#define SGLOBAL_POINTS
-#ifdef SGLOBAL_POINTS
-        for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
-            ptarray->GetPoint(ii, coord0);
-            slVertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
-        }
-#else
+
         std::vector<ospray::vec3fa> tmpPoints;
         for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
             ptarray->GetPoint(ii, coord0);
             tmpPoints.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
         }
-#endif
-
         slRadius = this->LineWidth / 0.005;
-
         while((cell = ca->GetNextCell(npts, pts))) {
             if(npts <= 2) continue;
-#ifdef SGLOBAL_POINTS
-            slIndex.push_back(pts[0]);
-#else
             slVertex.push_back(tmpPoints[pts[0]]);
-            slIndex.push_back(0);
-#endif
-            slBounds.push_back(slIndex.size()-1);
 
             for (vtkIdType i = 1; i < npts; i++) {
-#ifdef SGLOBAL_POINTS
-                slIndex.push_back(pts[i]);
-#else
+                slIndex.push_back(slVertex.size()-1);
                 slVertex.push_back(tmpPoints[pts[i]]);
-                slIndex.push_back(i);
-#endif
-
                 //     //TODO: Make option to scale linewidth by scalar
                 //     OSPRay::TextureCoordinateCylinder *segment =
                 //       new OSPRay::TextureCoordinateCylinder
@@ -1097,7 +1076,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
                 //         texCoords[(this->CellScalarColor?cell:pts[1])] : noTC)
                 //        );
             }
-            slBounds.push_back(slIndex.size()-1);
         }
     }
 
@@ -1284,18 +1262,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
                     ospSet3f(slMat,"kd",1.0,0.0,0.0);
                     ospCommit(slMat);
                 }
-            for(int ii =0 ; ii < slBounds.size() ; ii +=2 ) {
-                int size = slBounds[ii+1] - slBounds[ii];
-                int lower = slBounds[ii];
-
                 OSPGeometry slGeometry = ospNewGeometry("streamlines");
                 Assert(slGeometry);
-#ifdef SGLOBAL_POINTS
                 OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
-#else
-                OSPData vertex = ospNewData(size,OSP_FLOAT3A,&slVertex[lower]);
-#endif
-                OSPData index = ospNewData(size,OSP_INT,&slIndex[lower]);
+                OSPData index = ospNewData(slIndex.size(),OSP_INT,&slIndex[0]);
                 ospSetObject(slGeometry,"vertex",vertex);
                 ospSetObject(slGeometry,"index",index);
                 ospSet1f(slGeometry,"radius",slRadius);
@@ -1305,7 +1275,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
                 ospCommit(slGeometry); 
                 ospAddGeometry(OSPRayActor->OSPRayModel,slGeometry);
-            }
         }
 
         ospCommit(OSPRayActor->OSPRayModel);
