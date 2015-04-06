@@ -1035,6 +1035,8 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
     std::vector<ospray::vec3fa> slVertex;
     std::vector<int> slIndex;
+    std::vector<int> slBounds;
+    float slRadius;
 
     //convert VTK_LINE type cells to OSPRay cylinders
     if ( input->GetNumberOfLines() > 0 )
@@ -1047,15 +1049,42 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         double coord0[3];
         double coord1[3];
         vtkIdType cell;
-        while ((cell = ca->GetNextCell(npts, pts))) {
-            ptarray->GetPoint(pts[0], coord0);
+
+#define SGLOBAL_POINTS
+#ifdef SGLOBAL_POINTS
+        for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
+            ptarray->GetPoint(ii, coord0);
             slVertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
+        }
+#else
+        std::vector<ospray::vec3fa> tmpPoints;
+        for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
+            ptarray->GetPoint(ii, coord0);
+            tmpPoints.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
+        }
+#endif
+
+        slRadius = this->LineWidth / 0.005;
+
+        while((cell = ca->GetNextCell(npts, pts))) {
+            if(npts <= 2) continue;
+#ifdef SGLOBAL_POINTS
+            slIndex.push_back(pts[0]);
+#else
+            slVertex.push_back(tmpPoints[pts[0]]);
+            slIndex.push_back(0);
+#endif
+            slBounds.push_back(slIndex.size()-1);
+
             for (vtkIdType i = 1; i < npts; i++) {
+#ifdef SGLOBAL_POINTS
+                slIndex.push_back(pts[i]);
+#else
+                slVertex.push_back(tmpPoints[pts[i]]);
+                slIndex.push_back(i);
+#endif
+
                 //     //TODO: Make option to scale linewidth by scalar
-                slIndex.push_back(slVertex.size()-1);
-                ptarray->GetPoint(pts[i], coord0);
-                slVertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
-                slIndex.push_back(slVertex.size()-1);
                 //     OSPRay::TextureCoordinateCylinder *segment =
                 //       new OSPRay::TextureCoordinateCylinder
                 //       (material,
@@ -1067,11 +1096,8 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
                 //        (texCoords.size()?
                 //         texCoords[(this->CellScalarColor?cell:pts[1])] : noTC)
                 //        );
-                //     tubeGroup->add(segment);
-                //     coord0[0] = coord1[0];
-                //     coord0[1] = coord1[1];
-                //     coord0[2] = coord1[2];
             }
+            slBounds.push_back(slIndex.size()-1);
         }
     }
 
@@ -1253,23 +1279,33 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         }
 
         if(slVertex.size()) {
-            OSPGeometry slGeometry = ospNewGeometry("streamlines");
-            Assert(slGeometry);
-            OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
-            OSPData index = ospNewData(slIndex.size(),OSP_INT,&slIndex[0]);
-            ospSetObject(slGeometry,"vertex",vertex);
-            ospSetObject(slGeometry,"index",index);
-            ospSet1f(slGeometry,"radius",1.0);
+                OSPMaterial slMat = ospNewMaterial(renderer,"default");
+                if(slMat) {
+                    ospSet3f(slMat,"kd",1.0,0.0,0.0);
+                    ospCommit(slMat);
+                }
+            for(int ii =0 ; ii < slBounds.size() ; ii +=2 ) {
+                int size = slBounds[ii+1] - slBounds[ii];
+                int lower = slBounds[ii];
 
-            OSPMaterial slMat = ospNewMaterial(renderer,"default");
-            if(slMat) {
-                ospSet3f(slMat,"kd",1.0,1.0,1.0);
-                ospCommit(slMat);
-                ospSetMaterial(slGeometry,slMat);
+                OSPGeometry slGeometry = ospNewGeometry("streamlines");
+                Assert(slGeometry);
+#ifdef SGLOBAL_POINTS
+                OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
+#else
+                OSPData vertex = ospNewData(size,OSP_FLOAT3A,&slVertex[lower]);
+#endif
+                OSPData index = ospNewData(size,OSP_INT,&slIndex[lower]);
+                ospSetObject(slGeometry,"vertex",vertex);
+                ospSetObject(slGeometry,"index",index);
+                ospSet1f(slGeometry,"radius",slRadius);
+
+                if(slMat)
+                    ospSetMaterial(slGeometry,slMat);
+
+                ospCommit(slGeometry); 
+                ospAddGeometry(OSPRayActor->OSPRayModel,slGeometry);
             }
-
-            ospCommit(slGeometry); 
-            ospAddGeometry(OSPRayActor->OSPRayModel,slGeometry);
         }
 
         ospCommit(OSPRayActor->OSPRayModel);
