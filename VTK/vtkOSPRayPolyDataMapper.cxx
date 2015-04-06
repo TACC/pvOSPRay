@@ -1199,6 +1199,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
   //   {
   //   // delete tubeGroup;
   //   }
+  
   if (mesh->size())
     {
     //cerr << "MM(" << this << ")   polygons " << mesh->size() << endl;
@@ -1312,15 +1313,5 @@ if (!ospMaterial)
     delete mesh;
     }
 
-  // if (group->size())
-  //   {
-  //   mantaActor->SetGroup(group);
-  //   }
-  // else
-  //   {
-  //   mantaActor->SetGroup(NULL);
-  //   delete group;
-  //   //cerr << "NOTHING TO SEE" << endl;
-  //   }
     #endif
 }

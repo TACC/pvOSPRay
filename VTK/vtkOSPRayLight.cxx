@@ -136,6 +136,7 @@ void vtkOSPRayLight::Render(vtkRenderer *ren, int /* not used */)
 // called in Transaction context, it is safe to modify the engine state here
 void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   vtkOSPRayRenderer *mantaRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
   if (!mantaRenderer)
     {

@@ -110,6 +110,7 @@ void vtkSMMantaViewProxy::CreateVTKObjects()
 vtkSMRepresentationProxy* vtkSMMantaViewProxy::CreateDefaultRepresentation(
   vtkSMProxy* source, int opport)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   if (!source)
     {
     return 0;
