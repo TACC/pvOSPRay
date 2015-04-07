@@ -228,10 +228,6 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act)
     this->OSPRayManager->Register(this);
     }
 
-
-
-
-
   // write geometry, first ask the pipeline to update data
   vtkPolyData *input = this->GetInput();
   // std::cerr << "polydata input: " << input << std::endl;
@@ -1203,8 +1199,12 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             size_t numPositions = mesh->vertices.size();
             size_t numTriangles = mesh->vertex_indices.size()/3;
 
+            std::cout << "normals: " << numNormals << " normal indices: " << mesh->normal_indices.size()
+             << " numPositions: " << numPositions << " numTriangles: " << numTriangles << std::endl;
+
             ospray::vec3fa* vertices = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*numPositions);
             ospray::vec3i* triangles = (ospray::vec3i*)embree::alignedMalloc(sizeof(ospray::vec3i)*numTriangles);
+            ospray::vec3fa* normals = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*numNormals);
 
             for(size_t i = 0; i < numPositions; i++)
             {
@@ -1226,6 +1226,12 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
                 // printf("indices: %d %d %d\n",mesh->vertex_indices[mi+0], mesh->vertex_indices[mi+1], mesh->vertex_indices[mi+2]);
             }
 
+            for(size_t i = 0; i < numNormals; i++)
+            {
+                normals[i] = ospray::vec3fa(mesh->vertexNormals[i].x(), mesh->vertexNormals[i].y(),  mesh->vertexNormals[i].z());
+                // vertices[i] = ospray::vec3fa(float(i)*.01,float(i)*.01,float(i)*.01);
+                // printf("vert: %f %f %f\n",mesh->vertices[i].x(), mesh->vertices[i].y(), mesh->vertices[i].z());
+            }
 
             OSPGeometry ospMesh = ospNewTriangleMesh();
             OSPData position = ospNewData(numPositions,OSP_FLOAT3A,
@@ -1234,9 +1240,9 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
             if (!mesh->normal_indices.empty())
             {
-                // OSPData normal = ospNewData(normals.size(),OSP_vec3fa,
-                // &normals[0]);
-                // ospSetData(ospMesh,"vertex.normal",normal);
+                OSPData normal = ospNewData(mesh->vertexNormals.size(),OSP_FLOAT3A,
+                &normals[0]);
+                ospSetData(ospMesh,"vertex.normal",normal);
             }
 
 
@@ -1276,16 +1282,12 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             // OSPModel ospModel = ospNewModel();
             ospAddGeometry(OSPRayActor->OSPRayModel,ospMesh);
 
-	    
-
-
             // OSPRayActor->ospMesh = ospMesh;
             // OSPRayActor->OSPRayModel = ((osp::Model*)ospModel);
             printf("added osp mesh num triangles: %lu\n", numTriangles);
         }
 
 	if(mesh->wireframe_vertex.size()) {
-
 		double edgeColor[3];
 		OSPRayProperty->GetEdgeColor(edgeColor);
 		OSPMaterial wireMat = ospNewMaterial(renderer,"default");
@@ -1306,8 +1308,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
 		ospCommit(wireGeometry); 
 		ospAddGeometry(OSPRayActor->OSPRayModel,wireGeometry);
-
-
 	}
 
 
