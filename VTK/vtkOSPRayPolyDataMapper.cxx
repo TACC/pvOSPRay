@@ -145,6 +145,8 @@ namespace vtkosp
     std::vector<size_t> texture_indices;
     std::vector<size_t> normal_indices;
     std::vector<Vec4> colors;
+    std::vector<ospray::vec3fa> wireframe_vertex;
+    std::vector<int> wireframe_index;
   };
 }
 
@@ -324,6 +326,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
   vtkCellArray *cells = polys->GetPolys();
   vtkIdType npts = 0, *index = 0, cellNum = 0;
 
+  cerr << this->Representation << endl;
   switch (this->Representation) {
   case VTK_POINTS:
     {
@@ -355,14 +358,17 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
   case VTK_WIREFRAME:
     {
     double coord0[3];
-    double coord1[3];
     // OSPRay::Vector noTC(0.0,0.0,0.0);
     // OSPRay::TextureCoordinateCylinder *segment;
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       ptarray->GetPoint(index[0], coord0);
+      mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
       for (vtkIdType i = 1; i < npts; i++)
         {
+	mesh->wireframe_index.push_back(mesh->wireframe_vertex.size()-1);
+      	ptarray->GetPoint(index[i], coord0);
+      	mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
         //TODO: Make option to scale linewidth by scalar
           /*
         ptarray->GetPoint(index[i], coord1);
@@ -383,7 +389,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
         coord0[2] = coord1[2];
         */
         }
-      ptarray->GetPoint(index[0], coord1);
+      //ptarray->GetPoint(index[0], coord1);
       /*
       segment =
         new OSPRay::TextureCoordinateCylinder
@@ -482,9 +488,23 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     //cerr << "polygons: # of triangles = " << total_triangles << endl;
 
     for ( int i = 0; i < total_triangles; i ++ )
-      {
-      // mesh->addTriangle( new OSPRay::WaldTriangle );
-      }
+    {
+	    // mesh->addTriangle( new OSPRay::WaldTriangle );
+    }
+
+    for ( cells->InitTraversal(); this->Edges && cells->GetNextCell(npts, index); cellNum++ )
+    {
+	    double coord0[3];
+	    ptarray->GetPoint(index[0], coord0);
+	    mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
+	    for (vtkIdType i = 1; i < npts; i++)
+	    {
+		    mesh->wireframe_index.push_back(mesh->wireframe_vertex.size()-1);
+		    ptarray->GetPoint(index[i], coord0);
+		    mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
+	    }
+    }
+
 #if 0
        ospray::vec3fa* vertices = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*mesh->vertices.size());
   ospray::vec3i* triangles = (ospray::vec3i*)embree::alignedMalloc(sizeof(ospray::vec3i)*mesh->vertex_indices.size()/3);
@@ -541,6 +561,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
   vtkCellArray *cells = polys->GetStrips();
   vtkIdType npts = 0, *index = 0, cellNum = 0;;
 
+  cerr << this->Representation << endl;
   switch (this->Representation) {
   case VTK_POINTS:
     {
@@ -591,9 +612,13 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
       //     texCoords[(this->CellScalarColor?cellNum:index[1])] : noTC)
       //    );
       // lines->add(segment);
+      ptarray->GetPoint(index[0], coord0);
+      mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
       for (vtkIdType i = 2; i < npts; i++)
         {
-        ptarray->GetPoint(index[i], coord2);
+	mesh->wireframe_index.push_back(mesh->wireframe_vertex.size()-1);
+      	ptarray->GetPoint(index[0], coord0);
+      	mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
         // segment =
         //   new OSPRay::TextureCoordinateCylinder
         //   (material,
@@ -618,12 +643,6 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
         //     texCoords[(this->CellScalarColor?cellNum:index[i-2])] : noTC)
         //    );
         // lines->add(segment);
-        coord0[0] = coord1[0];
-        coord0[1] = coord1[1];
-        coord0[2] = coord1[2];
-        coord1[0] = coord2[0];
-        coord1[1] = coord2[1];
-        coord1[2] = coord2[2];
         }
       }
     } //VTK_WIREFRAME:
@@ -820,6 +839,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
     // Compute we need to for color
     this->Representation = OSPRayProperty->GetRepresentation();
+    this->Edges = OSPRayProperty->GetEdgeVisibility();
 
     this->CellScalarColor = false;
     if (( this->ScalarMode == VTK_SCALAR_MODE_USE_CELL_DATA ||
@@ -1159,7 +1179,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
     //   {
     //   // delete tubeGroup;
     //   }
-    if (mesh->size() || slVertex.size())
+    if (mesh->size() || mesh->wireframe_vertex.size() || slVertex.size())
     {
         //cerr << "MM(" << this << ")   polygons " << mesh->size() << endl;
         // group->add(mesh);
@@ -1251,10 +1271,39 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             // static OSPModel ospModel;
             // OSPModel ospModel = ospNewModel();
             ospAddGeometry(OSPRayActor->OSPRayModel,ospMesh);
+
+	    
+
+
             // OSPRayActor->ospMesh = ospMesh;
             // OSPRayActor->OSPRayModel = ((osp::Model*)ospModel);
             printf("added osp mesh num triangles: %lu\n", numTriangles);
         }
+
+	if(mesh->wireframe_vertex.size()) {
+
+		OSPMaterial wireMat = ospNewMaterial(renderer,"default");
+		if(wireMat) {
+			ospSet3f(wireMat,"kd",0.0,0.0,1.0);
+			ospCommit(wireMat);
+		}
+		OSPGeometry wireGeometry = ospNewGeometry("streamlines");
+		Assert(wireGeometry);
+		OSPData vertex = ospNewData(mesh->wireframe_vertex.size(),OSP_FLOAT3A,&mesh->wireframe_vertex[0]);
+		OSPData index = ospNewData(mesh->wireframe_index.size(),OSP_INT,&mesh->wireframe_index[0]);
+		ospSetObject(wireGeometry,"vertex",vertex);
+		ospSetObject(wireGeometry,"index",index);
+		ospSet1f(wireGeometry,"radius",this->LineWidth);
+
+		if(wireMat)
+			ospSetMaterial(wireGeometry,wireMat);
+
+		ospCommit(wireGeometry); 
+		ospAddGeometry(OSPRayActor->OSPRayModel,wireGeometry);
+
+
+	}
+
 
         if(slVertex.size()) {
                 OSPMaterial slMat = ospNewMaterial(renderer,"default");

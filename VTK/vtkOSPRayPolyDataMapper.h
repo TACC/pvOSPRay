@@ -104,6 +104,7 @@ private:
 
   vtkOSPRayTexture* InternalColorTexture;
   int Representation;
+  int Edges;
   double PointSize;
   double LineWidth;
   std::map<int, osp::Model*> cache;
