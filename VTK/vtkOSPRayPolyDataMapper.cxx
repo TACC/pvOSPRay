@@ -869,10 +869,14 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
     else
         ospMaterial = ((OSPMaterial)osmat);
 
+
+
+
+
     if ( !this->ScalarVisibility || (!this->Colors && !this->ColorCoordinates))
     {
         cerr << "poly colors: Solid color from actor's property" << endl;
-
+	
         /*
            material = OSPRayProperty->GetOSPRayMaterial();
            if(!material)
@@ -1282,9 +1286,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
 	if(mesh->wireframe_vertex.size()) {
 
+		double edgeColor[3];
+		OSPRayProperty->GetEdgeColor(edgeColor);
 		OSPMaterial wireMat = ospNewMaterial(renderer,"default");
 		if(wireMat) {
-			ospSet3f(wireMat,"kd",0.0,0.0,1.0);
+			ospSet3f(wireMat,"kd",edgeColor[0],edgeColor[1],edgeColor[2]);
 			ospCommit(wireMat);
 		}
 		OSPGeometry wireGeometry = ospNewGeometry("streamlines");
@@ -1305,12 +1311,14 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 	}
 
 
-        if(slVertex.size()) {
-                OSPMaterial slMat = ospNewMaterial(renderer,"default");
-                if(slMat) {
-                    ospSet3f(slMat,"kd",1.0,0.0,0.0);
-                    ospCommit(slMat);
-                }
+	if(slVertex.size()) {
+		double solidColor[3];
+		OSPRayProperty->GetDiffuseColor(solidColor);
+		OSPMaterial slMat = ospNewMaterial(renderer,"default");
+		if(slMat) {
+			ospSet3f(slMat,"kd",solidColor[0],solidColor[1],solidColor[2]);
+			ospCommit(slMat);
+		}
                 OSPGeometry slGeometry = ospNewGeometry("streamlines");
                 Assert(slGeometry);
                 OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
