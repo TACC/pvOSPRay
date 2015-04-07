@@ -19,38 +19,48 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
-// .NAME vtkOSPRayCompositeMapper - OSPRayMapper for composite data
-// .SECTION Description
-// This class is an adapter between composite data produced by the data
-// processing pipeline and the non composite capable vtkOSPRayPolyDataMapper.
+#ifndef _OSPRayViewOptions_h
+#define _OSPRayViewOptions_h
 
-#ifndef __vtkOSPRayCompositeMapper_h
-#define __vtkOSPRayCompositeMapper_h
+#include "pqOptionsContainer.h"
+#include <QPointer>
 
-#include "vtkCompositePolyDataMapper.h"
-#include "vtkOSPRayModule.h"
-class vtkPolyDataMapper;
+class pqView;
+class pqOSPRayView;
 
-class VTKOSPRAY_EXPORT vtkOSPRayCompositeMapper :
-  public vtkCompositePolyDataMapper
+/// options container for pages of my view options
+class OSPRayViewOptions : public pqOptionsContainer
 {
+  Q_OBJECT
 
 public:
-  static vtkOSPRayCompositeMapper *New();
-  vtkTypeMacro(vtkOSPRayCompositeMapper, vtkCompositePolyDataMapper);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  OSPRayViewOptions(QWidget *parent=0);
+  virtual ~OSPRayViewOptions();
+
+  // set the view to show options for
+  void setView(pqView* view);
+
+  // set the current page
+  virtual void setPage(const QString &page);
+  // return a list of strings for pages we have
+  virtual QStringList getPageList();
+
+  // apply the changes
+  virtual void applyChanges();
+  // reset the changes
+  virtual void resetChanges();
+
+  // tell pqOptionsDialog that we want an apply button
+  virtual bool isApplyUsed() const { return true; }
 
 protected:
-  vtkOSPRayCompositeMapper();
-  ~vtkOSPRayCompositeMapper();
 
-  // Description:
-  // Need to define the type of data handled by this mapper.
-  virtual vtkPolyDataMapper * MakeAMapper();
+  QPointer<pqOSPRayView> View;
 
 private:
-  vtkOSPRayCompositeMapper(const vtkOSPRayCompositeMapper&);  // Not implemented.
-  void operator=(const vtkOSPRayCompositeMapper&);    // Not implemented.
+  class pqInternal;
+  pqInternal* Internal;
 };
+
 
 #endif

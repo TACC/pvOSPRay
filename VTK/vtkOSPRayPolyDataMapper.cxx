@@ -1,63 +1,26 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   Visualization Toolkit
-  Module:    vtkOSPRayPolyDataMapper.cxx
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-/*=========================================================================
-
-  Program:   VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
-  Module:    vtkOSPRayPolyDataMapper.cxx
-
-Copyright (c) 2007, Los Alamos National Security, LLC
-
-All rights reserved.
-
-Copyright 2007. Los Alamos National Security, LLC.
-This software was produced under U.S. Government contract DE-AC52-06NA25396
-for Los Alamos National Laboratory (LANL), which is operated by
-Los Alamos National Security, LLC for the U.S. Department of Energy.
-The U.S. Government has rights to use, reproduce, and distribute this software.
-NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY,
-EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.
-If software is modified to produce derivative works, such modified software
-should be clearly marked, so as not to confuse it with the version available
-from LANL.
-
-Additionally, redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following conditions
-are met:
--   Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
--   Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
--   Neither the name of Los Alamos National Security, LLC, Los Alamos National
-    Laboratory, LANL, the U.S. Government, nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL LOS ALAMOS NATIONAL SECURITY, LLC OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-=========================================================================*/
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayActor.h"
@@ -109,17 +72,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include <Core/Geometry/Vector.h>
 #include <vector>
 
-
-
-
-//
-//ospray
-//
-#if USE_OSPRAY
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-#endif
-
 #include <math.h>
 #include <algorithm>
 
@@ -128,8 +80,8 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //   Helper() {}
 //   ~Helper() {}
 
-//   Manta::Material *material;
-//   std::vector<Manta::Vector> texCoords;
+//   OSPRay::Material *material;
+//   std::vector<OSPRay::Vector> texCoords;
 // };
 
 vtkStandardNewMacro(vtkOSPRayPolyDataMapper);
@@ -260,15 +212,15 @@ void vtkOSPRayPolyDataMapper::ReleaseGraphicsResources(vtkWindow *win)
 void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act)
 {
   #if 1
-  vtkOSPRayRenderer* mantaRenderer =
+  vtkOSPRayRenderer* OSPRayRenderer =
     vtkOSPRayRenderer::SafeDownCast(ren);
-  if (!mantaRenderer)
+  if (!OSPRayRenderer)
     {
     return;
     }
   if (!this->OSPRayManager)
     {
-    this->OSPRayManager = mantaRenderer->GetOSPRayManager();
+    this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
     //cerr << "MM(" << this << ") REGISTER " << this->OSPRayManager << " "
     //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
@@ -330,7 +282,7 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act)
     this->InternalColorTexture->SetInputData(this->ColorTextureMap);
     }
 
-  // if something has changed, regenerate Manta primitives if required
+  // if something has changed, regenerate OSPRay primitives if required
   if ( this->GetMTime()  > this->BuildTime ||
        input->GetMTime() > this->BuildTime ||
        //act->GetMTime()   > this->BuildTime ||
@@ -361,12 +313,12 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
                                           vtkPoints *ptarray,
                                           vtkosp::Mesh *mesh
                                           /*,
-                                          Manta::Group *points,
-                                          Manta::Group *lines*/)
+                                          OSPRay::Group *points,
+                                          OSPRay::Group *lines*/)
 {
 
-  // Manta::Material *material = this->MyHelper->material;
-  // std::vector<Manta::Vector> &texCoords = this->MyHelper->texCoords;
+  // OSPRay::Material *material = this->MyHelper->material;
+  // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
   int total_triangles = 0;
   vtkCellArray *cells = polys->GetPolys();
@@ -378,16 +330,16 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       double coord[3];
-      // Manta::Vector noTC(0.0,0.0,0.0);
+      // OSPRay::Vector noTC(0.0,0.0,0.0);
       for (int i = 0; i < npts; i++)
         {
         //TODO: Make option to scale pointsize by scalar
           /*
         ptarray->GetPoint(index[i], coord);
-        Manta::TextureCoordinateSphere *sphere =
-          new Manta::TextureCoordinateSphere
+        OSPRay::TextureCoordinateSphere *sphere =
+          new OSPRay::TextureCoordinateSphere
           (material,
-           Manta::Vector(coord[0], coord[1], coord[2]),
+           OSPRay::Vector(coord[0], coord[1], coord[2]),
            this->PointSize,
            (texCoords.size()?
             texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC)
@@ -404,8 +356,8 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     {
     double coord0[3];
     double coord1[3];
-    // Manta::Vector noTC(0.0,0.0,0.0);
-    // Manta::TextureCoordinateCylinder *segment;
+    // OSPRay::Vector noTC(0.0,0.0,0.0);
+    // OSPRay::TextureCoordinateCylinder *segment;
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       ptarray->GetPoint(index[0], coord0);
@@ -415,10 +367,10 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
           /*
         ptarray->GetPoint(index[i], coord1);
         segment =
-          new Manta::TextureCoordinateCylinder
+          new OSPRay::TextureCoordinateCylinder
           (material,
-           Manta::Vector(coord0[0], coord0[1], coord0[2]),
-           Manta::Vector(coord1[0], coord1[1], coord1[2]),
+           OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
+           OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
            this->LineWidth,
            (texCoords.size()?
             texCoords[(this->CellScalarColor?cellNum:index[i-1])] : noTC),
@@ -434,10 +386,10 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
       ptarray->GetPoint(index[0], coord1);
       /*
       segment =
-        new Manta::TextureCoordinateCylinder
+        new OSPRay::TextureCoordinateCylinder
         (material,
-         Manta::Vector(coord0[0], coord0[1], coord0[2]),
-         Manta::Vector(coord1[0], coord1[1], coord1[2]),
+         OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
+         OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
          this->LineWidth,
          (texCoords.size()?
           texCoords[(this->CellScalarColor?cellNum:index[npts-1])] : noTC),
@@ -531,7 +483,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
 
     for ( int i = 0; i < total_triangles; i ++ )
       {
-      // mesh->addTriangle( new Manta::WaldTriangle );
+      // mesh->addTriangle( new OSPRay::WaldTriangle );
       }
 #if 0
        ospray::vec3fa* vertices = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*mesh->vertices.size());
@@ -576,12 +528,12 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
 void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
                                          vtkPoints *ptarray,
                                           vtkosp::Mesh *mesh)
-                                         // Manta::Mesh *mesh,
-                                         // Manta::Group *points,
-                                         // Manta::Group *lines)
+                                         // OSPRay::Mesh *mesh,
+                                         // OSPRay::Group *points,
+                                         // OSPRay::Group *lines)
 {
-  // Manta::Material *material = this->MyHelper->material;
-  // std::vector<Manta::Vector> &texCoords = this->MyHelper->texCoords;
+  // OSPRay::Material *material = this->MyHelper->material;
+  // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
   // total number of triangles
   int total_triangles = 0;
@@ -595,15 +547,15 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       double coord[3];
-      // Manta::Vector noTC(0.0,0.0,0.0);
+      // OSPRay::Vector noTC(0.0,0.0,0.0);
       for (int i = 0; i < npts; i++)
         {
         //TODO: Make option to scale pointsize by scalar
         ptarray->GetPoint(index[i], coord);
-        // Manta::TextureCoordinateSphere *sphere =
-        //   new Manta::TextureCoordinateSphere
+        // OSPRay::TextureCoordinateSphere *sphere =
+        //   new OSPRay::TextureCoordinateSphere
         //   (material,
-        //    Manta::Vector(coord[0], coord[1], coord[2]),
+        //    OSPRay::Vector(coord[0], coord[1], coord[2]),
         //    this->PointSize,
         //    (texCoords.size()?
         //     texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC)
@@ -620,18 +572,18 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     double coord0[3];
     double coord1[3];
     double coord2[3];
-    // Manta::Vector noTC(0.0,0.0,0.0);
-    // Manta::TextureCoordinateCylinder *segment;
+    // OSPRay::Vector noTC(0.0,0.0,0.0);
+    // OSPRay::TextureCoordinateCylinder *segment;
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       //TODO: Make option to scale linewidth by scalar
       // ptarray->GetPoint(index[0], coord0);
       // ptarray->GetPoint(index[1], coord1);
       // segment =
-      //   new Manta::TextureCoordinateCylinder
+      //   new OSPRay::TextureCoordinateCylinder
       //   (material,
-      //    Manta::Vector(coord0[0], coord0[1], coord0[2]),
-      //    Manta::Vector(coord1[0], coord1[1], coord1[2]),
+      //    OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
+      //    OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
       //    this->LineWidth,
       //    (texCoords.size()?
       //     texCoords[(this->CellScalarColor?cellNum:index[0])] : noTC),
@@ -643,10 +595,10 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
         {
         ptarray->GetPoint(index[i], coord2);
         // segment =
-        //   new Manta::TextureCoordinateCylinder
+        //   new OSPRay::TextureCoordinateCylinder
         //   (material,
-        //    Manta::Vector(coord1[0], coord1[1], coord1[2]),
-        //    Manta::Vector(coord2[0], coord2[1], coord2[2]),
+        //    OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
+        //    OSPRay::Vector(coord2[0], coord2[1], coord2[2]),
         //    this->LineWidth,
         //    (texCoords.size()?
         //     texCoords[(this->CellScalarColor?cellNum:index[i-1])] : noTC),
@@ -655,10 +607,10 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
         //    );
         // lines->add(segment);
         // segment =
-        //   new Manta::TextureCoordinateCylinder
+        //   new OSPRay::TextureCoordinateCylinder
         //   (material,
-        //    Manta::Vector(coord2[0], coord2[1], coord2[2]),
-        //    Manta::Vector(coord0[0], coord0[1], coord0[2]),
+        //    OSPRay::Vector(coord2[0], coord2[1], coord2[2]),
+        //    OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
         //    this->LineWidth,
         //    (texCoords.size()?
         //     texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC),
@@ -784,7 +736,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
 
     // for ( int i = 0; i < total_triangles; i++ )
       // {
-      // mesh->addTriangle( new Manta::WaldTriangle );
+      // mesh->addTriangle( new OSPRay::WaldTriangle );
       // }
 
 
@@ -794,523 +746,587 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
 
 
 //----------------------------------------------------------------------------
-// Draw method for Manta.
+// Draw method for OSPRay.
 void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 {
-  #if 1
-  // printf("ospPolyDataMapper::Draw\n");
-  vtkOSPRayActor *mantaActor =
-    vtkOSPRayActor::SafeDownCast(actor);
-  if (!mantaActor)
+#if 1
+    // printf("ospPolyDataMapper::Draw\n");
+    vtkOSPRayActor *OSPRayActor =
+        vtkOSPRayActor::SafeDownCast(actor);
+    if (!OSPRayActor)
     {
-    return;
+        return;
     }
-  vtkOSPRayProperty *mantaProperty =
-    vtkOSPRayProperty::SafeDownCast( mantaActor->GetProperty() );
-  if (!mantaProperty)
+    vtkOSPRayProperty *OSPRayProperty =
+        vtkOSPRayProperty::SafeDownCast( OSPRayActor->GetProperty() );
+    if (!OSPRayProperty)
     {
-    return;
+        return;
     }
-  vtkPolyData *input = this->GetInput();
+    vtkPolyData *input = this->GetInput();
 
 
-  vtkInformation* inputInfo = this->GetInput()->GetInformation();
-  // // vtkInformation* outputInfo = outputVector->GetInformationObject(0);
+    vtkInformation* inputInfo = this->GetInput()->GetInformation();
+    // // vtkInformation* outputInfo = outputVector->GetInformationObject(0);
 
-// std::cerr << "ospPDM Actor: " << actor << std::endl; 
-  if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())
-    )
+    // std::cerr << "ospPDM Actor: " << actor << std::endl; 
+    if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())
+       )
     {
-    double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-    // cerr << "MA time: " << time << std::endl;
-    timestep = time;
-    if (mantaActor->cache[time] != NULL)
-    {
-      std::cerr << "using cache at time " << time << "\n";
-      // this->OSPRayModel = cache[time];
+        double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
+        // cerr << "MA time: " << time << std::endl;
+        timestep = time;
+        if (OSPRayActor->cache[time] != NULL)
+        {
+            std::cerr << "using cache at time " << time << "\n";
+            // this->OSPRayModel = cache[time];
 
-  mantaActor->OSPRayModel = mantaActor->cache[time];     
-  return;
-      
-      // this->MeshMTime.Modified();
-      // UpdateObjects(ren);
+            OSPRayActor->OSPRayModel = OSPRayActor->cache[time];     
+            return;
+
+            // this->MeshMTime.Modified();
+            // UpdateObjects(ren);
+        }
+        // return;
+
     }
-    // return;
-
-  }
-  else if (!inputInfo)
-  {
-    cerr << "MA time: didn't have info\n";
-  }
-  else
-  {
-    // cerr << "MA time: didn't have time\n";
-    if (mantaActor->cache[timestep] != NULL)
+    else if (!inputInfo)
     {
-      // std::cerr << "using nontime actor at timestep: " << timestep << std::endl;
-      // mantaActor->OSPRayModel = mantaActor->cache[timestep];   
-      // return;
+        cerr << "MA time: didn't have info\n";
     }
-    // if (mantaActor->OSPRayModel)
-    // {
-    //   //     if (!(
-    //   // this->GetInput()->GetMTime() > mantaActor->MeshMTime ||
-    //   // mantaActor->GetMTime() > mantaActor->MeshMTime ||
-    //   // mantaActor->GetProperty()->GetMTime() > mantaActor->MeshMTime ||
-    //   // mantaActor->GetMTime() > mantaActor->MeshMTime))
-    //     return;
-    // }
-  }
-    mantaActor->MeshMTime.Modified();
+    else
+    {
+        // cerr << "MA time: didn't have time\n";
+        if (OSPRayActor->cache[timestep] != NULL)
+        {
+            // std::cerr << "using nontime actor at timestep: " << timestep << std::endl;
+            // OSPRayActor->OSPRayModel = OSPRayActor->cache[timestep];   
+            // return;
+        }
+        // if (OSPRayActor->OSPRayModel)
+        // {
+        //   //     if (!(
+        //   // this->GetInput()->GetMTime() > OSPRayActor->MeshMTime ||
+        //   // OSPRayActor->GetMTime() > OSPRayActor->MeshMTime ||
+        //   // OSPRayActor->GetProperty()->GetMTime() > OSPRayActor->MeshMTime ||
+        //   // OSPRayActor->GetMTime() > OSPRayActor->MeshMTime))
+        //     return;
+        // }
+    }
+    OSPRayActor->MeshMTime.Modified();
 
 
 
 
-  // Compute we need to for color
-  this->Representation = mantaProperty->GetRepresentation();
+    // Compute we need to for color
+    this->Representation = OSPRayProperty->GetRepresentation();
 
-  this->CellScalarColor = false;
-  if (( this->ScalarMode == VTK_SCALAR_MODE_USE_CELL_DATA ||
-        this->ScalarMode == VTK_SCALAR_MODE_USE_CELL_FIELD_DATA ||
-        this->ScalarMode == VTK_SCALAR_MODE_USE_FIELD_DATA ||
-        !input->GetPointData()->GetScalars()
+    this->CellScalarColor = false;
+    if (( this->ScalarMode == VTK_SCALAR_MODE_USE_CELL_DATA ||
+                this->ScalarMode == VTK_SCALAR_MODE_USE_CELL_FIELD_DATA ||
+                this->ScalarMode == VTK_SCALAR_MODE_USE_FIELD_DATA ||
+                !input->GetPointData()->GetScalars()
         )
-      && this->ScalarMode != VTK_SCALAR_MODE_USE_POINT_FIELD_DATA
-      )
+            && this->ScalarMode != VTK_SCALAR_MODE_USE_POINT_FIELD_DATA
+       )
     {
-    this->CellScalarColor = true;
+        this->CellScalarColor = true;
     }
 
-  // this->MyHelper->material = NULL;
-  // this->MyHelper->texCoords.clear();
-  // Manta::Material *&material = this->MyHelper->material;
-  OSPMaterial ospMaterial = NULL;
-  vtkosp::Mesh* mesh = new vtkosp::Mesh();
-  // std::vector<Manta::Vector> &texCoords = this->MyHelper->texCoords;
+    // this->MyHelper->material = NULL;
+    // this->MyHelper->texCoords.clear();
+    // OSPRay::Material *&material = this->MyHelper->material;
+    OSPMaterial ospMaterial = NULL;
+    vtkosp::Mesh* mesh = new vtkosp::Mesh();
+    // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
-      osp::Material* osmat = mantaProperty->GetOSPRayMaterial();
-      if (!osmat)
-      {
-        mantaProperty->CreateMantaProperty();
-      ospMaterial = ((OSPMaterial)mantaProperty->GetOSPRayMaterial());
-      }
-      else
+    osp::Material* osmat = OSPRayProperty->GetOSPRayMaterial();
+    if (!osmat)
+    {
+        OSPRayProperty->CreateOSPRayProperty();
+        ospMaterial = ((OSPMaterial)OSPRayProperty->GetOSPRayMaterial());
+    }
+    else
         ospMaterial = ((OSPMaterial)osmat);
 
-  if ( !this->ScalarVisibility || (!this->Colors && !this->ColorCoordinates))
+    if ( !this->ScalarVisibility || (!this->Colors && !this->ColorCoordinates))
     {
-    cerr << "poly colors: Solid color from actor's property" << endl;
+        cerr << "poly colors: Solid color from actor's property" << endl;
 
-      /*
-    material = mantaProperty->GetMantaMaterial();
-    if(!material)
-      {
-      mantaProperty->CreateMantaProperty();
-      material = mantaProperty->GetMantaMaterial();
+        /*
+           material = OSPRayProperty->GetOSPRayMaterial();
+           if(!material)
+           {
+           OSPRayProperty->CreateOSPRayProperty();
+           material = OSPRayProperty->GetOSPRayMaterial();
 
-      //TODO: the leaks
-      mantaProperty->SetMantaMaterial(NULL);
-      mantaProperty->SetSpecularTexture(NULL);
-      mantaProperty->SetDiffuseTexture(NULL);
-      }
-      */
-    }
-  else if (this->Colors)
-    {
-    cerr << "poly colors: Color scalar values directly (interpolation in color space)" << endl;
-    // Manta::Texture<Manta::Color> *texture = new Manta::TexCoordTexture();
-    if ( mantaProperty->GetInterpolation() == VTK_FLAT )
-      {
-      //cerr << "Flat" << endl;
-      // material = new Manta::Flat(texture);
-      }
-    else
-      {
-      if ( mantaProperty->GetOpacity() < 1.0 )
-        {
-        //cerr << "Translucent" << endl;
-        // material = new Manta::Transparent(texture,
-                                          // mantaProperty->GetOpacity());
+        //TODO: the leaks
+        OSPRayProperty->SetOSPRayMaterial(NULL);
+        OSPRayProperty->SetSpecularTexture(NULL);
+        OSPRayProperty->SetDiffuseTexture(NULL);
         }
-      else
+        */
+    }
+    else if (this->Colors)
+    {
+        cerr << "poly colors: Color scalar values directly (interpolation in color space)" << endl;
+        // OSPRay::Texture<OSPRay::Color> *texture = new OSPRay::TexCoordTexture();
+        if ( OSPRayProperty->GetInterpolation() == VTK_FLAT )
         {
-        if ( mantaProperty->GetSpecular() == 0 )
-          {
-          //cerr << "non specular" << endl;
-          // material = new Manta::Lambertian(texture);
-          }
+            //cerr << "Flat" << endl;
+            // material = new OSPRay::Flat(texture);
+        }
         else
-          {
-          //cerr << "phong" << endl;
-          // double *specular = mantaProperty->GetSpecularColor();
-          // Manta::Texture<Manta::Color> *specularTexture =
-          //   new Manta::Constant<Manta::Color>
-          //   (Manta::Color(Manta::RGBColor(specular[0],
-          //                                 specular[1],
-          //                                 specular[2])));
-          // material =
-          //   new Manta::Phong
-          //   (texture,
-          //    specularTexture,
-          //    static_cast<int> (mantaProperty->GetSpecularPower()),
-          //    NULL);
-          }
+        {
+            if ( OSPRayProperty->GetOpacity() < 1.0 )
+            {
+                //cerr << "Translucent" << endl;
+                // material = new OSPRay::Transparent(texture,
+                // OSPRayProperty->GetOpacity());
+            }
+            else
+            {
+                if ( OSPRayProperty->GetSpecular() == 0 )
+                {
+                    //cerr << "non specular" << endl;
+                    // material = new OSPRay::Lambertian(texture);
+                }
+                else
+                {
+                    //cerr << "phong" << endl;
+                    // double *specular = OSPRayProperty->GetSpecularColor();
+                    // OSPRay::Texture<OSPRay::Color> *specularTexture =
+                    //   new OSPRay::Constant<OSPRay::Color>
+                    //   (OSPRay::Color(OSPRay::RGBColor(specular[0],
+                    //                                 specular[1],
+                    //                                 specular[2])));
+                    // material =
+                    //   new OSPRay::Phong
+                    //   (texture,
+                    //    specularTexture,
+                    //    static_cast<int> (OSPRayProperty->GetSpecularPower()),
+                    //    NULL);
+                }
+            }
         }
-      }
 
-    //this table has one RGBA for every point (or cell) in object
-    for ( int i = 0; i < this->Colors->GetNumberOfTuples(); i ++ )
-      {
-        unsigned char *color = this->Colors->GetPointer(4*i);
-      // texCoords.push_back
-        // (Manta::Vector(color[0]/255.0, color[1]/255.0, color[2]/255.0) );
-      // mesh->texCoords.push_back(vtkosp::Vec3(color[0]/255.0, color[1]/255.0, color[2]/255.0));
-        mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
-      }
-      // printf("texture coords: using rgba every point\n");
+        //this table has one RGBA for every point (or cell) in object
+        for ( int i = 0; i < this->Colors->GetNumberOfTuples(); i ++ )
+        {
+            unsigned char *color = this->Colors->GetPointer(4*i);
+            // texCoords.push_back
+            // (OSPRay::Vector(color[0]/255.0, color[1]/255.0, color[2]/255.0) );
+            // mesh->texCoords.push_back(vtkosp::Vec3(color[0]/255.0, color[1]/255.0, color[2]/255.0));
+            mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
+        }
+        // printf("texture coords: using rgba every point\n");
 
     }
-  else if (this->ColorCoordinates)
+    else if (this->ColorCoordinates)
     {
-      printf("poly colors: texture coords: using color coordinates for a texture\n");
-    //cerr << "interpolate in data space, then color map each pixel" << endl;
-    // Manta::Texture<Manta::Color> *texture =
-    //   this->InternalColorTexture->GetMantaTexture();
-      osp::Texture2D* texture = this->InternalColorTexture->GetOSPRayTexture();
-      // PRINT((OSPTexture2D)texture);
-      Assert(texture);
-      ospSetParam(ospMaterial,"map_Kd",((OSPTexture2D)(texture)));
-      ospCommit(ospMaterial);
+        printf("poly colors: texture coords: using color coordinates for a texture\n");
+        //cerr << "interpolate in data space, then color map each pixel" << endl;
+        // OSPRay::Texture<OSPRay::Color> *texture =
+        //   this->InternalColorTexture->GetOSPRayTexture();
+        osp::Texture2D* texture = this->InternalColorTexture->GetOSPRayTexture();
+        // PRINT((OSPTexture2D)texture);
+        Assert(texture);
+        ospSetParam(ospMaterial,"map_Kd",((OSPTexture2D)(texture)));
+        ospCommit(ospMaterial);
 
-    // material = new Manta::Lambertian(texture);
+        // material = new OSPRay::Lambertian(texture);
 
-    // //this table is a color transfer function with colors that cover the scalar range
-    // //I think
-    for (int i = 0; i < this->ColorCoordinates->GetNumberOfTuples(); i++)
-      {
-      double *tcoord = this->ColorCoordinates->GetTuple(i);
-    //   texCoords.push_back( Manta::Vector(tcoord[0], 0, 0) );
-      mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0],0));
-        // mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
-      // printf("texCoord: %f %f\n", tcoord[0], 0);
-      }
+        // //this table is a color transfer function with colors that cover the scalar range
+        // //I think
+        for (int i = 0; i < this->ColorCoordinates->GetNumberOfTuples(); i++)
+        {
+            double *tcoord = this->ColorCoordinates->GetTuple(i);
+            //   texCoords.push_back( OSPRay::Vector(tcoord[0], 0, 0) );
+            mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0],0));
+            // mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
+            // printf("texCoord: %f %f\n", tcoord[0], 0);
+        }
 
-      // printf("NEED TO IMPLEMENT COLORCOORDINATES\n");
+        // printf("NEED TO IMPLEMENT COLORCOORDINATES\n");
     }
-  else if (input->GetPointData()->GetTCoords() && actor->GetTexture() )
+    else if (input->GetPointData()->GetTCoords() && actor->GetTexture() )
     {
-      printf("poly colors: texture coords: using texture\n");
-      #if 1
-    //cerr << "color using actor's texture" << endl;
-    vtkOSPRayTexture *osprayTexture =
-      vtkOSPRayTexture::SafeDownCast(actor->GetTexture());
-    if (osprayTexture)
-      {
-    //   Manta::Texture<Manta::Color> *texture =
-    //     mantaTexture->GetMantaTexture();
-    //   material = new Manta::Lambertian(texture);
+        printf("poly colors: texture coords: using texture\n");
+#if 1
+        //cerr << "color using actor's texture" << endl;
+        vtkOSPRayTexture *osprayTexture =
+            vtkOSPRayTexture::SafeDownCast(actor->GetTexture());
+        if (osprayTexture)
+        {
+            //   OSPRay::Texture<OSPRay::Color> *texture =
+            //     OSPRayTexture->GetOSPRayTexture();
+            //   material = new OSPRay::Lambertian(texture);
             ospSetParam(ospMaterial,"map_Kd",((OSPTexture2D)(osprayTexture->GetOSPRayTexture())));
             ospCommit(ospMaterial);
-      }
+        }
 
-    // // convert texture coordinates to manta format
-    vtkDataArray *tcoords = input->GetPointData()->GetTCoords();
-    for (int i = 0; i < tcoords->GetNumberOfTuples(); i++)
-      {
-      double *tcoord = tcoords->GetTuple(i);
-      mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0],tcoord[1]));
-    //     ( Manta::Vector(tcoord[0], tcoord[1], tcoord[2]) );
-      }
+        // // convert texture coordinates to OSPRay format
+        vtkDataArray *tcoords = input->GetPointData()->GetTCoords();
+        for (int i = 0; i < tcoords->GetNumberOfTuples(); i++)
+        {
+            double *tcoord = tcoords->GetTuple(i);
+            mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0],tcoord[1]));
+            //     ( OSPRay::Vector(tcoord[0], tcoord[1], tcoord[2]) );
+        }
 #endif
-      // printf("NEED TO IMPLEMENT TEXTURES\n");
+        // printf("NEED TO IMPLEMENT TEXTURES\n");
     }
 
-  // transform point coordinates according to actor's transformation matrix
-  //TODO: Use manta instancing to transform instead of doing it brute force here
-  //to reduce number of copies
-  vtkTransform *transform = vtkTransform::New();
-  transform->SetMatrix( actor->GetMatrix() );
-  vtkPoints *points = vtkPoints::New();
-  transform->TransformPoints( input->GetPoints(), points );
+    // transform point coordinates according to actor's transformation matrix
+    //TODO: Use OSPRay instancing to transform instead of doing it brute force here
+    //to reduce number of copies
+    vtkTransform *transform = vtkTransform::New();
+    transform->SetMatrix( actor->GetMatrix() );
+    vtkPoints *points = vtkPoints::New();
+    transform->TransformPoints( input->GetPoints(), points );
 
-  // obtain the OpenGL-based point size and line width
-  // that are specified through vtkProperty
-  this->PointSize = mantaProperty->GetPointSize();
-  this->LineWidth = mantaProperty->GetLineWidth();
-  if (this->PointSize < 1.0)
+    // obtain the OpenGL-based point size and line width
+    // that are specified through vtkProperty
+    this->PointSize = OSPRayProperty->GetPointSize();
+    this->LineWidth = OSPRayProperty->GetLineWidth();
+    if (this->PointSize < 1.0)
     {
-    this->PointSize = 1.0;
+        this->PointSize = 1.0;
     }
-  if (this->LineWidth < 1.0)
+    if (this->LineWidth < 1.0)
     {
-    this->LineWidth = 1.0;
+        this->LineWidth = 1.0;
     }
-  this->PointSize = sqrt(this->PointSize) * 0.010;
-  this->LineWidth = sqrt(this->LineWidth) * 0.005;
+    this->PointSize = sqrt(this->PointSize) * 0.010;
+    this->LineWidth = sqrt(this->LineWidth) * 0.005;
 
-  //containers for the manta primitives we are going to produce
-  // Manta::Group *sphereGroup = new Manta::Group();
-  // Manta::Group *tubeGroup = new Manta::Group();
-  // Manta::Mesh *mesh = new Manta::Mesh();
+    //containers for the OSPRay primitives we are going to produce
+    // OSPRay::Group *sphereGroup = new OSPRay::Group();
+    // OSPRay::Group *tubeGroup = new OSPRay::Group();
+    // OSPRay::Mesh *mesh = new OSPRay::Mesh();
 
-  //convert VTK_VERTEX cells to manta spheres
-  if ( input->GetNumberOfVerts() > 0 )
+    //convert VTK_VERTEX cells to OSPRay spheres
+    if ( input->GetNumberOfVerts() > 0 )
     {
-    vtkCellArray *ca = input->GetVerts();
-    ca->InitTraversal();
-    vtkIdType npts;
-    vtkIdType *pts;
-    vtkPoints *ptarray = points;
-    double coord[3];
-    vtkIdType cell;
-    // Manta::Vector noTC(0.0,0.0,0.0);
-    while ((cell = ca->GetNextCell(npts, pts)))
-      {
-      //TODO: Make option to scale pointsize by scalar
+        vtkCellArray *ca = input->GetVerts();
+        ca->InitTraversal();
+        vtkIdType npts;
+        vtkIdType *pts;
+        vtkPoints *ptarray = points;
+        double coord[3];
+        vtkIdType cell;
+        // OSPRay::Vector noTC(0.0,0.0,0.0);
+        while ((cell = ca->GetNextCell(npts, pts)))
+        {
+            //TODO: Make option to scale pointsize by scalar
 
-      // ptarray->GetPoint(pts[0], coord);
-      // Manta::TextureCoordinateSphere *sphere =
-      //   new Manta::TextureCoordinateSphere
-      //   (material,
-      //    Manta::Vector(coord[0], coord[1], coord[2]),
-      //    this->PointSize,
-      //    (texCoords.size()?
-      //     texCoords[(this->CellScalarColor?cell:pts[0])] : noTC)
-      //    );
-      // sphereGroup->add(sphere);
-      }
+            // ptarray->GetPoint(pts[0], coord);
+            // OSPRay::TextureCoordinateSphere *sphere =
+            //   new OSPRay::TextureCoordinateSphere
+            //   (material,
+            //    OSPRay::Vector(coord[0], coord[1], coord[2]),
+            //    this->PointSize,
+            //    (texCoords.size()?
+            //     texCoords[(this->CellScalarColor?cell:pts[0])] : noTC)
+            //    );
+            // sphereGroup->add(sphere);
+        }
     }
 
-  //convert VTK_LINE type cells to manta cylinders
-  if ( input->GetNumberOfLines() > 0 )
+    std::vector<ospray::vec3fa> slVertex;
+    std::vector<int> slIndex;
+    std::vector<int> slBounds;
+    float slRadius;
+
+    //convert VTK_LINE type cells to OSPRay cylinders
+    if ( input->GetNumberOfLines() > 0 )
     {
-    // vtkCellArray *ca = input->GetLines();
-    // ca->InitTraversal();
-    // vtkIdType npts;
-    // vtkIdType *pts;
-    // vtkPoints *ptarray = points;
-    // double coord0[3];
-    // double coord1[3];
-    // vtkIdType cell;
-    // Manta::Vector noTC(0.0,0.0,0.0);
-    // while ((cell = ca->GetNextCell(npts, pts)))
+        vtkCellArray *ca = input->GetLines();
+        ca->InitTraversal();
+        vtkIdType npts;
+        vtkIdType *pts;
+        vtkPoints *ptarray = points;
+        double coord0[3];
+        double coord1[3];
+        vtkIdType cell;
+
+#define SGLOBAL_POINTS
+#ifdef SGLOBAL_POINTS
+        for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
+            ptarray->GetPoint(ii, coord0);
+            slVertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
+        }
+#else
+        std::vector<ospray::vec3fa> tmpPoints;
+        for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
+            ptarray->GetPoint(ii, coord0);
+            tmpPoints.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
+        }
+#endif
+
+        slRadius = this->LineWidth / 0.005;
+
+        while((cell = ca->GetNextCell(npts, pts))) {
+            if(npts <= 2) continue;
+#ifdef SGLOBAL_POINTS
+            slIndex.push_back(pts[0]);
+#else
+            slVertex.push_back(tmpPoints[pts[0]]);
+            slIndex.push_back(0);
+#endif
+            slBounds.push_back(slIndex.size()-1);
+
+            for (vtkIdType i = 1; i < npts; i++) {
+#ifdef SGLOBAL_POINTS
+                slIndex.push_back(pts[i]);
+#else
+                slVertex.push_back(tmpPoints[pts[i]]);
+                slIndex.push_back(i);
+#endif
+
+                //     //TODO: Make option to scale linewidth by scalar
+                //     OSPRay::TextureCoordinateCylinder *segment =
+                //       new OSPRay::TextureCoordinateCylinder
+                //       (material,
+                //        OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
+                //        OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
+                //        this->LineWidth,
+                //        (texCoords.size()?
+                //         texCoords[(this->CellScalarColor?cell:pts[0])] : noTC),
+                //        (texCoords.size()?
+                //         texCoords[(this->CellScalarColor?cell:pts[1])] : noTC)
+                //        );
+            }
+            slBounds.push_back(slIndex.size()-1);
+        }
+    }
+
+    //convert coordinates to OSPRay format
+    //TODO: eliminate the copy
+    for ( int i = 0; i < points->GetNumberOfPoints(); i++ )
+    {
+        double *pos = points->GetPoint(i);
+        bool wasNan=false;
+        int fixIndex = i-1;
+        do {
+            wasNan = false;
+            for(int j=0;j<3;j++)
+            {
+                if (isnan(pos[j]))
+                {
+                    wasNan=true;
+                }
+            }
+            if (wasNan && fixIndex >= 0)
+                pos = points->GetPoint(fixIndex--);
+        } while(wasNan == true && fixIndex >= 0);
+        mesh->vertices.push_back( vtkosp::Vec3(pos[0], pos[1], pos[2]) );
+    }
+
+    // Do flat shading by not supplying vertex normals to OSPRay
+    if ( OSPRayProperty->GetInterpolation() != VTK_FLAT )
+    {
+        vtkPointData *pointData = input->GetPointData();
+        if ( pointData->GetNormals() )
+        {
+            vtkDataArray *normals = vtkFloatArray::New();
+            normals->SetNumberOfComponents(3);
+            transform->TransformNormals( pointData->GetNormals(), normals );
+            for ( int i = 0; i < normals->GetNumberOfTuples(); i ++ )
+            {
+                double *normal = normals->GetTuple(i);
+                mesh->vertexNormals.push_back( vtkosp::Vec3(normal[0], normal[1], normal[2]) );
+            }
+            normals->Delete();
+        }
+    }
+
+    // mesh->materials.push_back(material);
+    // mesh->texCoords = texCoords;
+    // texCoords.clear();
+
+    // convert polygons to OSPRay format
+    if ( input->GetNumberOfPolys() > 0 )
+    {
+        this->DrawPolygons(input, points, mesh/*, sphereGroup, tubeGroup*/);
+    }
+
+    // convert triangle strips to OSPRay format
+    if ( input->GetNumberOfStrips() > 0 )
+    {
+        this->DrawTStrips(input, points, mesh/*, sphereGroup, tubeGroup*/);
+    }
+
+    //delete transformed point coordinates
+    transform->Delete();
+    points->Delete();
+
+    //put everything together into one group
+    // OSPRay::Group *group = new OSPRay::Group();
+    // if(sphereGroup->size())
     //   {
-    //   ptarray->GetPoint(pts[0], coord0);
-    //   for (vtkIdType i = 1; i < npts; i++)
-    //     {
-    //     //TODO: Make option to scale linewidth by scalar
-    //     ptarray->GetPoint(pts[i], coord1);
-    //     Manta::TextureCoordinateCylinder *segment =
-    //       new Manta::TextureCoordinateCylinder
-    //       (material,
-    //        Manta::Vector(coord0[0], coord0[1], coord0[2]),
-    //        Manta::Vector(coord1[0], coord1[1], coord1[2]),
-    //        this->LineWidth,
-    //        (texCoords.size()?
-    //         texCoords[(this->CellScalarColor?cell:pts[0])] : noTC),
-    //        (texCoords.size()?
-    //         texCoords[(this->CellScalarColor?cell:pts[1])] : noTC)
-    //        );
-    //     tubeGroup->add(segment);
-    //     coord0[0] = coord1[0];
-    //     coord0[1] = coord1[1];
-    //     coord0[2] = coord1[2];
-    //     }
+    //   //cerr << "MM(" << this << ")   points " << sphereGroup->size() << endl;
+    //   // group->add(sphereGroup);
     //   }
-    }
-
-  //convert coordinates to manta format
-  //TODO: eliminate the copy
-  for ( int i = 0; i < points->GetNumberOfPoints(); i++ )
+    // else
+    //   {
+    //   // delete sphereGroup;
+    //   }
+    // // if(tubeGroup->size())
+    //   {
+    //   //cerr << "MM(" << this << ")   lines " << tubeGroup->size() << endl;
+    //   // group->add(tubeGroup);
+    //   }
+    // else
+    //   {
+    //   // delete tubeGroup;
+    //   }
+    if (mesh->size() || slVertex.size())
     {
-    double *pos = points->GetPoint(i);
-    bool wasNan=false;
-    int fixIndex = i-1;
-    do {
-      wasNan = false;
-      for(int j=0;j<3;j++)
-      {
-        if (isnan(pos[j]))
-        {
-          wasNan=true;
+        //cerr << "MM(" << this << ")   polygons " << mesh->size() << endl;
+        // group->add(mesh);
+
+        //
+        // ospray
+        //
+
+#if USE_OSPRAY
+        OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
+        OSPRayActor->OSPRayModel = ospNewModel();
+
+        if(mesh->size()) {
+
+            size_t numNormals = mesh->vertexNormals.size();
+            size_t numTexCoords = mesh->texCoords.size();
+            size_t numPositions = mesh->vertices.size();
+            size_t numTriangles = mesh->vertex_indices.size()/3;
+
+            ospray::vec3fa* vertices = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*numPositions);
+            ospray::vec3i* triangles = (ospray::vec3i*)embree::alignedMalloc(sizeof(ospray::vec3i)*numTriangles);
+
+            for(size_t i = 0; i < numPositions; i++)
+            {
+                vertices[i] = ospray::vec3fa(mesh->vertices[i].x(), mesh->vertices[i].y(),  mesh->vertices[i].z());
+                // vertices[i] = ospray::vec3fa(float(i)*.01,float(i)*.01,float(i)*.01);
+                // printf("vert: %f %f %f\n",mesh->vertices[i].x(), mesh->vertices[i].y(), mesh->vertices[i].z());
+            }
+            // normals.resize(numNormals);
+            // for(size_t i = 0; i < numNormals; i++)
+            // normals[i] = ospray::vec3fa(mesh->vertexNormals[i].x(), mesh->vertexNormals[i].y(), mesh->vertexNormals[i].z());
+
+
+            // embree::Vec3i* vertex_indices = (embree::Vec3i*)alignedMalloc(sizeof(embree::Vec3i)*numTriangles);
+            // triangles.resize(numTriangles);
+            for(size_t i = 0, mi = 0; i < numTriangles; i++, mi+=3)
+            {
+                triangles[i] = embree::Vec3i(mesh->vertex_indices[mi+0], mesh->vertex_indices[mi+1], mesh->vertex_indices[mi+2]);
+                // triangles[i] = embree::Vec3i(0,1,2);
+                // printf("indices: %d %d %d\n",mesh->vertex_indices[mi+0], mesh->vertex_indices[mi+1], mesh->vertex_indices[mi+2]);
+            }
+
+
+            OSPGeometry ospMesh = ospNewTriangleMesh();
+            OSPData position = ospNewData(numPositions,OSP_FLOAT3A,
+                    &vertices[0]);
+            ospSetData(ospMesh,"position",position);
+
+            if (!mesh->normal_indices.empty())
+            {
+                // OSPData normal = ospNewData(normals.size(),OSP_vec3fa,
+                // &normals[0]);
+                // ospSetData(ospMesh,"vertex.normal",normal);
+            }
+
+
+            OSPData index = ospNewData(numTriangles,OSP_INT3,
+                    &triangles[0]);
+            ospSetData(ospMesh,"index",index);
+
+
+            if (!mesh->texCoords.empty()) {
+                OSPData texcoord = ospNewData(mesh->texCoords.size(), OSP_FLOAT2,
+                        &mesh->texCoords[0]);
+                assert(mesh->texCoords.size() > 0);
+                ospSetData(ospMesh,"vertex.texcoord",texcoord);
+            }
+            if (!mesh->colors.empty())
+            {
+                std::cerr << "using color coordinates\n";
+                // note: to share data use OSP_DATA_SHARED_BUFFER
+                OSPData colors =ospNewData(mesh->colors.size(), OSP_FLOAT4,
+                        &mesh->colors[0]); 
+                ospSetData(ospMesh,"vertex.color",colors);
+            }
+
+
+            if (!ospMaterial)
+            {
+                // printf("no material specification used, using default\n");
+                OSPRayProperty->CreateOSPRayProperty();
+                ospMaterial = ((OSPMaterial)OSPRayProperty->GetOSPRayMaterial());
+            }
+            // PRINT(ospMaterial);
+
+            ospSetMaterial(ospMesh,ospMaterial);
+            ospCommit(ospMesh);
+
+            // static OSPModel ospModel;
+            // OSPModel ospModel = ospNewModel();
+            ospAddGeometry(OSPRayActor->OSPRayModel,ospMesh);
+            // OSPRayActor->ospMesh = ospMesh;
+            // OSPRayActor->OSPRayModel = ((osp::Model*)ospModel);
+            printf("added osp mesh num triangles: %lu\n", numTriangles);
         }
-      }
-      if (wasNan && fixIndex >= 0)
-      pos = points->GetPoint(fixIndex--);
-  } while(wasNan == true && fixIndex >= 0);
-    mesh->vertices.push_back( vtkosp::Vec3(pos[0], pos[1], pos[2]) );
-    }
 
-  // Do flat shading by not supplying vertex normals to manta
-  if ( mantaProperty->GetInterpolation() != VTK_FLAT )
-    {
-    vtkPointData *pointData = input->GetPointData();
-    if ( pointData->GetNormals() )
-      {
-      vtkDataArray *normals = vtkFloatArray::New();
-      normals->SetNumberOfComponents(3);
-      transform->TransformNormals( pointData->GetNormals(), normals );
-      for ( int i = 0; i < normals->GetNumberOfTuples(); i ++ )
-        {
-        double *normal = normals->GetTuple(i);
-        mesh->vertexNormals.push_back( vtkosp::Vec3(normal[0], normal[1], normal[2]) );
+        if(slVertex.size()) {
+                OSPMaterial slMat = ospNewMaterial(renderer,"default");
+                if(slMat) {
+                    ospSet3f(slMat,"kd",1.0,0.0,0.0);
+                    ospCommit(slMat);
+                }
+            for(int ii =0 ; ii < slBounds.size() ; ii +=2 ) {
+                int size = slBounds[ii+1] - slBounds[ii];
+                int lower = slBounds[ii];
+
+                OSPGeometry slGeometry = ospNewGeometry("streamlines");
+                Assert(slGeometry);
+#ifdef SGLOBAL_POINTS
+                OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
+#else
+                OSPData vertex = ospNewData(size,OSP_FLOAT3A,&slVertex[lower]);
+#endif
+                OSPData index = ospNewData(size,OSP_INT,&slIndex[lower]);
+                ospSetObject(slGeometry,"vertex",vertex);
+                ospSetObject(slGeometry,"index",index);
+                ospSet1f(slGeometry,"radius",slRadius);
+
+                if(slMat)
+                    ospSetMaterial(slGeometry,slMat);
+
+                ospCommit(slGeometry); 
+                ospAddGeometry(OSPRayActor->OSPRayModel,slGeometry);
+            }
         }
-      normals->Delete();
-      }
-    }
 
-  // mesh->materials.push_back(material);
-  // mesh->texCoords = texCoords;
-  // texCoords.clear();
+        ospCommit(OSPRayActor->OSPRayModel);
+        if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP()))
+        {
+            double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
+            OSPRayActor->cache[time] = OSPRayActor->OSPRayModel;
+        }
+        else
+        {
+            OSPRayActor->cache[timestep] = OSPRayActor->OSPRayModel;
+            std::cerr << "added nontime actor at timestep" << timestep << "\n";
+        }
 
-  // convert polygons to manta format
-  if ( input->GetNumberOfPolys() > 0 )
-    {
-    this->DrawPolygons(input, points, mesh/*, sphereGroup, tubeGroup*/);
-    }
-
-  // convert triangle strips to manta format
-  if ( input->GetNumberOfStrips() > 0 )
-    {
-    this->DrawTStrips(input, points, mesh/*, sphereGroup, tubeGroup*/);
-    }
-
-  //delete transformed point coordinates
-  transform->Delete();
-  points->Delete();
-
-  //put everything together into one group
-  // Manta::Group *group = new Manta::Group();
-  // if(sphereGroup->size())
-  //   {
-  //   //cerr << "MM(" << this << ")   points " << sphereGroup->size() << endl;
-  //   // group->add(sphereGroup);
-  //   }
-  // else
-  //   {
-  //   // delete sphereGroup;
-  //   }
-  // // if(tubeGroup->size())
-  //   {
-  //   //cerr << "MM(" << this << ")   lines " << tubeGroup->size() << endl;
-  //   // group->add(tubeGroup);
-  //   }
-  // else
-  //   {
-  //   // delete tubeGroup;
-  //   }
-  
-  if (mesh->size())
-    {
-    //cerr << "MM(" << this << ")   polygons " << mesh->size() << endl;
-      // group->add(mesh);
-
-    //
-    // ospray
-    //
-
-      size_t numNormals = mesh->vertexNormals.size();
-  size_t numTexCoords = mesh->texCoords.size();
-      size_t numPositions = mesh->vertices.size();
-      size_t numTriangles = mesh->vertex_indices.size()/3;
-  #if USE_OSPRAY
-
-  ospray::vec3fa* vertices = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*numPositions);
-  ospray::vec3i* triangles = (ospray::vec3i*)embree::alignedMalloc(sizeof(ospray::vec3i)*numTriangles);
-
-    for(size_t i = 0; i < numPositions; i++)
-  {
-    vertices[i] = ospray::vec3fa(mesh->vertices[i].x(), mesh->vertices[i].y(),  mesh->vertices[i].z());
-    // vertices[i] = ospray::vec3fa(float(i)*.01,float(i)*.01,float(i)*.01);
-    // printf("vert: %f %f %f\n",mesh->vertices[i].x(), mesh->vertices[i].y(), mesh->vertices[i].z());
-  }
-  // normals.resize(numNormals);
-  // for(size_t i = 0; i < numNormals; i++)
-    // normals[i] = ospray::vec3fa(mesh->vertexNormals[i].x(), mesh->vertexNormals[i].y(), mesh->vertexNormals[i].z());
-
-
-      // embree::Vec3i* vertex_indices = (embree::Vec3i*)alignedMalloc(sizeof(embree::Vec3i)*numTriangles);
-  // triangles.resize(numTriangles);
-  for(size_t i = 0, mi = 0; i < numTriangles; i++, mi+=3)
-  {
-    triangles[i] = embree::Vec3i(mesh->vertex_indices[mi+0], mesh->vertex_indices[mi+1], mesh->vertex_indices[mi+2]);
-    // triangles[i] = embree::Vec3i(0,1,2);
-    // printf("indices: %d %d %d\n",mesh->vertex_indices[mi+0], mesh->vertex_indices[mi+1], mesh->vertex_indices[mi+2]);
-  }
-
-
-  OSPGeometry ospMesh = ospNewTriangleMesh();
-  OSPData position = ospNewData(numPositions,OSP_FLOAT3A,
-    &vertices[0]);
-  ospSetData(ospMesh,"position",position);
-
-if (!mesh->normal_indices.empty())
-{
-  // OSPData normal = ospNewData(normals.size(),OSP_vec3fa,
-    // &normals[0]);
-  // ospSetData(ospMesh,"vertex.normal",normal);
-}
-
-
-  OSPData index = ospNewData(numTriangles,OSP_INT3,
-   &triangles[0]);
-  ospSetData(ospMesh,"index",index);
-
-  OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
-
-  if (!mesh->texCoords.empty()) {
-    OSPData texcoord = ospNewData(mesh->texCoords.size(), OSP_FLOAT2,
-      &mesh->texCoords[0]);
-    assert(mesh->texCoords.size() > 0);
-    ospSetData(ospMesh,"vertex.texcoord",texcoord);
-  }
-  if (!mesh->colors.empty())
-  {
-    std::cerr << "using color coordinates\n";
-    // note: to share data use OSP_DATA_SHARED_BUFFER
-    OSPData colors =ospNewData(mesh->colors.size(), OSP_FLOAT4,
-      &mesh->colors[0]); 
-    ospSetData(ospMesh,"vertex.color",colors);
-  }
-
-
-if (!ospMaterial)
-{
-  // printf("no material specification used, using default\n");
-      mantaProperty->CreateMantaProperty();
-      ospMaterial = ((OSPMaterial)mantaProperty->GetOSPRayMaterial());
-}
-// PRINT(ospMaterial);
-
-  ospSetMaterial(ospMesh,ospMaterial);
-  ospCommit(ospMesh);
-
-  // static OSPModel ospModel;
-  // OSPModel ospModel = ospNewModel();
-  mantaActor->OSPRayModel = ospNewModel();
-  ospAddGeometry(mantaActor->OSPRayModel,ospMesh);
-  ospCommit(mantaActor->OSPRayModel);
-    if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())
-    )
-    {
-    double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-    mantaActor->cache[time] = mantaActor->OSPRayModel;
-  }
-  else
-  {
-    mantaActor->cache[timestep] = mantaActor->OSPRayModel;
-    std::cerr << "added nontime actor at timestep" << timestep << "\n";
-  }
-  // mantaActor->ospMesh = ospMesh;
-  // mantaActor->OSPRayModel = ((osp::Model*)ospModel);
-  printf("added osp mesh num triangles: %d\n", numTriangles);
-  #endif
+#endif
 
 
     }
-  else
+    else
     {
-    delete mesh;
+        delete mesh;
     }
 
     #endif

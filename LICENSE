@@ -1,21 +1,22 @@
 /*=========================================================================
+Copyright (c) 2014 - 2015, Texas Advanced Computing Center, The University of Texas at Austin.
+All rights reserved.
 
-  Program:   Visualization Toolkit
-  Module:    MantaView.h
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
 
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
-/*=========================================================================
 
-  Program:   VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
-  Module:    MantaView.h
+
+
+Portions of this code are derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL), developed at Los Alamos National Laboratory, which is licensed as follows:
+/*=========================================================================
 
 Copyright (c) 2007, Los Alamos National Security, LLC
 
@@ -58,40 +59,19 @@ OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-// .NAME MantaView - QT GUI interface to a Manta Rendered 3D View
-// .SECTION Description
-// This is the Qt layer interface to the Manta Rendered 3D view.
 
-#ifndef _MantaView_h
-#define _MantaView_h
 
-#include "pqRenderView.h"
 
-class MantaView : public pqRenderView
-{
-  Q_OBJECT
-  typedef pqRenderView Superclass;
-public:
-  static QString mantaViewType() { return "OSPRayView"; }
-  static QString mantaViewTypeName() { return "Manta Rendered 3D View"; }
 
-  /// constructor takes a bunch of init stuff and must have this signature to
-  /// satisfy pqView
-  MantaView(
-         const QString& viewtype,
-         const QString& group,
-         const QString& name,
-         vtkSMViewProxy* viewmodule,
-         pqServer* server,
-         QObject* p);
-  ~MantaView();
+Portions of this code utilize the Visualization Toolkit (VTK) interface, which is licensed as follows:
+/*=========================================================================
 
-protected:
+  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+  All rights reserved.
+  See http://www.kitware.com/Copyright.htm for details.
 
-private:
-  MantaView(const MantaView&); // Not implemented.
-  void operator=(const MantaView&); // Not implemented.
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notice for more information.
 
-};
-
-#endif // _MantaView_h
+=========================================================================*/

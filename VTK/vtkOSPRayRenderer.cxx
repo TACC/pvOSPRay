@@ -1,63 +1,26 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   Visualization Toolkit
-  Module:    vtkOSPRayRenderer.cxx
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-/*=========================================================================
-
-  Program:   VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
-  Module:    vtkOSPRayRenderer.cxx
-
-Copyright (c) 2007, Los Alamos National Security, LLC
-
-All rights reserved.
-
-Copyright 2007. Los Alamos National Security, LLC.
-This software was produced under U.S. Government contract DE-AC52-06NA25396
-for Los Alamos National Laboratory (LANL), which is operated by
-Los Alamos National Security, LLC for the U.S. Department of Energy.
-The U.S. Government has rights to use, reproduce, and distribute this software.
-NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY,
-EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.
-If software is modified to produce derivative works, such modified software
-should be clearly marked, so as not to confuse it with the version available
-from LANL.
-
-Additionally, redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following conditions
-are met:
--   Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
--   Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
--   Neither the name of Los Alamos National Security, LLC, Los Alamos National
-    Laboratory, LANL, the U.S. Government, nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL LOS ALAMOS NATIONAL SECURITY, LLC OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-=========================================================================*/
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayCamera.h"
@@ -96,14 +59,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPNGWriter.h"
 
 //
-//ospray
-//
-#if USE_OSPRAY
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-#endif
-
-//
 //  VBOs
 //
 #if USE_VBOS
@@ -121,8 +76,8 @@ vtkStandardNewMacro(vtkOSPRayRenderer);
 vtkOSPRayRenderer::vtkOSPRayRenderer()
 //:
   //EngineInited( false ), EngineStarted( false ),
-  //IsStereo( false ), MantaScene( 0 ), MantaWorldGroup( 0 ),
-  //MantaLightSet( 0 ), MantaCamera( 0 ), SyncDisplay( 0 )
+  //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
+  //OSPRayLightSet( 0 ), OSPRayCamera( 0 ), SyncDisplay( 0 )
 {
   //cerr << "MR(" << this << ") CREATE" << endl;
 
@@ -179,45 +134,45 @@ vtkOSPRayRenderer::vtkOSPRayRenderer()
   PRINT(oCamera);
   #if 1
 
-  // this->MantaEngine = this->OSPRayManager->GetMantaEngine();
-  // this->MantaEngine->changeNumWorkers( this->NumberOfWorkers );
+  // this->OSPRayEngine = this->OSPRayManager->GetOSPRayEngine();
+  // this->OSPRayEngine->changeNumWorkers( this->NumberOfWorkers );
 
-  // this->MantaFactory = this->OSPRayManager->GetMantaFactory();
+  // this->OSPRayFactory = this->OSPRayManager->GetOSPRayFactory();
 
   this->ColorBuffer = NULL;
   this->DepthBuffer = NULL;
   this->ImageSize = -1;
 
-  // this->MantaFactory->selectImageType( "rgba8zfloat" );
+  // this->OSPRayFactory->selectImageType( "rgba8zfloat" );
 
-  // this->MantaFactory->selectImageTraverser( "tiled(-square)" );
-  // //this->MantaFactory->selectImageTraverser( "deadline()" );
+  // this->OSPRayFactory->selectImageTraverser( "tiled(-square)" );
+  // //this->OSPRayFactory->selectImageTraverser( "deadline()" );
 
-  // this->MantaFactory->selectLoadBalancer( "workqueue" );
+  // this->OSPRayFactory->selectLoadBalancer( "workqueue" );
 
   // if (this->EnableShadows)
   //   {
-  //   this->MantaFactory->selectShadowAlgorithm( "hard(-attenuateShadows)" );
+  //   this->OSPRayFactory->selectShadowAlgorithm( "hard(-attenuateShadows)" );
   //   }
   // else
   //   {
-  //   this->MantaFactory->selectShadowAlgorithm( "noshadows" );
+  //   this->OSPRayFactory->selectShadowAlgorithm( "noshadows" );
   //   }
 
   // if (this->Samples <= 1)
   //   {
-  //   this->MantaFactory->selectPixelSampler( "singlesample" );
+  //   this->OSPRayFactory->selectPixelSampler( "singlesample" );
   //   }
   // else
   //   {
   //   char buff[80];
   //   sprintf(buff, "regularsample(-numberOfSamples %d)", this->Samples);
-  //   this->MantaFactory->selectPixelSampler(buff);
-  //   //this->MantaFactory->selectPixelSampler(
+  //   this->OSPRayFactory->selectPixelSampler(buff);
+  //   //this->OSPRayFactory->selectPixelSampler(
   //   //"jittersample(-numberOfSamples 16)");
   //   }
 
-  // this->MantaFactory->selectRenderer( "raytracer" );
+  // this->OSPRayFactory->selectRenderer( "raytracer" );
 
   // this->DefaultLight = NULL;
   #endif
@@ -229,9 +184,9 @@ vtkOSPRayRenderer::~vtkOSPRayRenderer()
   //cerr << "MR(" << this << ") DESTROY " << this->OSPRayManager << " "
   //     << this->OSPRayManager->GetReferenceCount() << endl;
 
-  // if (this->DefaultLight && this->MantaLightSet)
+  // if (this->DefaultLight && this->OSPRayLightSet)
   //   {
-  //   // Manta::Callback::create( this->MantaLightSet, &Manta::LightSet::remove,
+  //   // OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::remove,
   //                            // this->DefaultLight );
   //   this->DefaultLight = NULL;
   //   }
@@ -260,10 +215,10 @@ void vtkOSPRayRenderer::InitEngine()
                                   this->IsStereo,
                                   this->GetSize());
 
-  this->MantaScene = this->OSPRayManager->GetMantaScene();
-  this->MantaWorldGroup = this->OSPRayManager->GetMantaWorldGroup();
-  this->MantaLightSet = this->OSPRayManager->GetMantaLightSet();
-  this->MantaCamera = this->OSPRayManager->GetMantaCamera();
+  this->OSPRayScene = this->OSPRayManager->GetOSPRayScene();
+  this->OSPRayWorldGroup = this->OSPRayManager->GetOSPRayWorldGroup();
+  this->OSPRayLightSet = this->OSPRayManager->GetOSPRayLightSet();
+  this->OSPRayCamera = this->OSPRayManager->GetOSPRayCamera();
   this->SyncDisplay = this->OSPRayManager->GetSyncDisplay();
   this->ChannelId = this->OSPRayManager->GetChannelId();
 
@@ -281,9 +236,9 @@ void vtkOSPRayRenderer::SetBackground(double r, double g, double b)
   //     (this->Background[2] != b))
   // {
   // this->Superclass::SetBackground(r,g,b);
-  // this->MantaEngine->addTransaction
+  // this->OSPRayEngine->addTransaction
     // ( "set background",
-      // Manta::Callback::create(this, &vtkOSPRayRenderer::InternalSetBackground));
+      // OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetBackground));
   // };
 }
 
@@ -291,19 +246,19 @@ void vtkOSPRayRenderer::SetBackground(double r, double g, double b)
 void vtkOSPRayRenderer::InternalSetBackground()
 {
   // double *color = this->GetBackground();
-  // Manta::ConstantBackground * background = new Manta::ConstantBackground(
-  //   Manta::Color(  Manta::RGBColor( color[0], color[1], color[2] )  )  );
+  // OSPRay::ConstantBackground * background = new OSPRay::ConstantBackground(
+  //   OSPRay::Color(  OSPRay::RGBColor( color[0], color[1], color[2] )  )  );
 
-  // delete this->MantaScene->getBackground();
-  // this->MantaScene->setBackground( background );
+  // delete this->OSPRayScene->getBackground();
+  // this->OSPRayScene->setBackground( background );
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::ClearLights(void)
 {
-  // this->MantaEngine->addTransaction
+  // this->OSPRayEngine->addTransaction
   //   ( "clear lights",
-  //     Manta::Callback::create( this, &vtkOSPRayRenderer::InternalClearLights));
+  //     OSPRay::Callback::create( this, &vtkOSPRayRenderer::InternalClearLights));
 }
 
 //----------------------------------------------------------------------------
@@ -315,21 +270,21 @@ void vtkOSPRayRenderer::Clear()
   // ospSetParam(this->OSPRayManager->OSPRayRenderer,"model", this->OSPRayManager->OSPRayModel);
   // ospCommit(this->OSPRayManager->OSPRayModel);
   // ospCommit(this->OSPRayManager->OSPRayRenderer);
-  // this->MantaEngine->addTransaction
+  // this->OSPRayEngine->addTransaction
   //   ( "clear lights",
-  //     Manta::Callback::create( this, &vtkOSPRayRenderer::InternalClearLights));
+  //     OSPRay::Callback::create( this, &vtkOSPRayRenderer::InternalClearLights));
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::InternalClearLights(void)
 {
-  // if (this->MantaLightSet)
+  // if (this->OSPRayLightSet)
   //   {
-  //   delete this->MantaLightSet->getAmbientLight();
-  //   for ( unsigned int i = 0; i < this->MantaLightSet->numLights(); i ++ )
+  //   delete this->OSPRayLightSet->getAmbientLight();
+  //   for ( unsigned int i = 0; i < this->OSPRayLightSet->numLights(); i ++ )
   //     {
-  //     Manta::Light *light = this->MantaLightSet->getLight( i );
-  //     this->MantaLightSet->remove( light );
+  //     OSPRay::Light *light = this->OSPRayLightSet->getLight( i );
+  //     this->OSPRayLightSet->remove( light );
   //     delete light;
   //     }
   //   }
@@ -340,7 +295,7 @@ void vtkOSPRayRenderer::InternalClearLights(void)
 int vtkOSPRayRenderer::UpdateLights()
 {
   #if 0
-  // convert VTK lights into Manta lights
+  // convert VTK lights into OSPRay lights
   vtkCollectionSimpleIterator sit;
   this->Lights->InitTraversal( sit );
 
@@ -354,22 +309,22 @@ int vtkOSPRayRenderer::UpdateLights()
       {
       noneOn = false;
       }
-    //manta lights set intensity to 0.0 if switched off, so render regardless
+    //OSPRay lights set intensity to 0.0 if switched off, so render regardless
     vLight->Render( this, 0 /* not used */ );
     }
 
   if (noneOn)
     {
-    if (this->MantaLightSet->numLights()==0 )
+    if (this->OSPRayLightSet->numLights()==0 )
       {
-      // there is no VTK light nor MantaLight defined, create a Manta headlight
+      // there is no VTK light nor OSPRayLight defined, create a OSPRay headlight
       cerr
         << "No light defined, creating a headlight at camera position" << endl;
       this->DefaultLight =
-        new Manta::HeadLight( 0, Manta::Color( Manta::RGBColor( 1, 1, 1 ) ) );
-      this->MantaEngine->addTransaction
+        new OSPRay::HeadLight( 0, OSPRay::Color( OSPRay::RGBColor( 1, 1, 1 ) ) );
+      this->OSPRayEngine->addTransaction
         ("add headlight",
-         Manta::Callback::create( this->MantaLightSet, &Manta::LightSet::add,
+         OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::add,
                                   this->DefaultLight ) );
       }
     }
@@ -377,14 +332,14 @@ int vtkOSPRayRenderer::UpdateLights()
     {
     if (this->DefaultLight)
       {
-      Manta::Callback::create( this->MantaLightSet, &Manta::LightSet::remove,
+      OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::remove,
                                this->DefaultLight );
       this->DefaultLight = NULL;
       }
     }
+  #endif
 
   return 0;
-  #endif
 }
 
 //----------------------------------------------------------------------------
@@ -399,29 +354,29 @@ void vtkOSPRayRenderer::UpdateSize()
   #if 0
   if (this->EngineStarted)
     {
-    int     mantaSize[2];
+    int     OSPRaySize[2];
     int*    renderSize  = NULL;
     bool    stereoDummyArg;
 
     renderSize = this->GetSize();
     this->GetSyncDisplay()->getCurrentImage()->
-      getResolution( stereoDummyArg, mantaSize[0], mantaSize[1] );
+      getResolution( stereoDummyArg, OSPRaySize[0], OSPRaySize[1] );
 
-    if (mantaSize[0] != renderSize[0] ||
-        mantaSize[1] != renderSize[1])
+    if (OSPRaySize[0] != renderSize[0] ||
+        OSPRaySize[1] != renderSize[1])
       {
       /*
       cerr << "MR(" << this << ") "
            << "Layer: " << this->GetLayer() << ", "
            << "Props: " << this->NumberOfPropsRendered << endl
-           << "  MantaSize: " << mantaSize[0] << ", " << mantaSize[1] << ", "
+           << "  OSPRaySize: " << OSPRaySize[0] << ", " << OSPRaySize[1] << ", "
            << "  renderSize: " << renderSize[0] << ", " << renderSize[1] << endl;
       */
-      this->GetMantaEngine()->addTransaction
+      this->GetOSPRayEngine()->addTransaction
         ("resize",
-         Manta::Callback::create
-         (this->GetMantaEngine(),
-          &Manta::MantaInterface::changeResolution,
+         OSPRay::Callback::create
+         (this->GetOSPRayEngine(),
+          &OSPRay::OSPRayInterface::changeResolution,
           0, renderSize[0], renderSize[1],
           true));
       this->GetSyncDisplay()->doneRendering();
@@ -447,7 +402,7 @@ void vtkOSPRayRenderer::DeviceRender()
     return;
     }
 
-  vtkTimerLog::MarkStartEvent("Manta Dev Render");
+  vtkTimerLog::MarkStartEvent("OSPRay Dev Render");
 
   if (!this->EngineInited )
     {
@@ -488,7 +443,7 @@ void vtkOSPRayRenderer::DeviceRender()
 
   // if (!this->EngineStarted)
   //   {
-  //   this->MantaEngine->beginRendering( false );
+  //   this->OSPRayEngine->beginRendering( false );
   //   this->EngineStarted = true;
   //   this->GetSyncDisplay()->waitOnFrameReady();
   //   }
@@ -505,7 +460,7 @@ void vtkOSPRayRenderer::DeviceRender()
 
   vtkTimerLog::MarkEndEvent("Total LayerRender");
 
-  vtkTimerLog::MarkEndEvent("Manta Dev Render");
+  vtkTimerLog::MarkEndEvent("OSPRay Dev Render");
 }
 
 //----------------------------------------------------------------------------
@@ -517,19 +472,19 @@ void vtkOSPRayRenderer::LayerRender()
 
   //TODO:
   //this needs to be simplified. Now that UpdateSize happens before this
-  //vtk's size and manta's size should always be the same so the ugly
+  //vtk's size and OSPRay's size should always be the same so the ugly
   //conversion and minsize safety check should go away
   int     i, j;
-  int     rowLength,  mantaSize[2];
+  int     rowLength,  OSPRaySize[2];
   int     minWidth,   minHeight;
-  int     hMantaDiff, hRenderDiff;
+  int     hOSPRayDiff, hRenderDiff;
   int     renderPos0[2];
   int*    renderSize  = NULL;
   int*    renWinSize  = NULL;
   bool    stereoDumy;
-  float*  mantaBuffer = NULL;
+  float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
-  // const   Manta::SimpleImageBase* mantaBase = NULL;
+  // const   OSPRay::SimpleImageBase* OSPRayBase = NULL;
 
   // collect some useful info
   renderSize = this->GetSize();
@@ -538,21 +493,21 @@ void vtkOSPRayRenderer::LayerRender()
   renderPos0[0] = int( renViewport[0] * renWinSize[0] + 0.5f );
   renderPos0[1] = int( renViewport[1] * renWinSize[1] + 0.5f );
   // this->GetSyncDisplay()->getCurrentImage()->
-    // getResolution( stereoDumy, mantaSize[0], mantaSize[1] );
-  // mantaBase = dynamic_cast< const Manta::SimpleImageBase * >
+    // getResolution( stereoDumy, OSPRaySize[0], OSPRaySize[1] );
+  // OSPRayBase = dynamic_cast< const OSPRay::SimpleImageBase * >
     // ( this->GetSyncDisplay()->getCurrentImage() );
-  // rowLength = mantaBase->getRowLength();
+  // rowLength = OSPRayBase->getRowLength();
 
   // for window re-sizing
-  // minWidth    = ( mantaSize[0] < renderSize[0] )
-    // ? mantaSize[0] : renderSize[0];
-  // minHeight   = ( mantaSize[1] < renderSize[1] )
+  // minWidth    = ( OSPRaySize[0] < renderSize[0] )
+    // ? OSPRaySize[0] : renderSize[0];
+  // minHeight   = ( OSPRaySize[1] < renderSize[1] )
   minWidth = renderSize[0];
   minHeight =renderSize[1];
-  hMantaDiff = 0;
+  hOSPRayDiff = 0;
   hRenderDiff = 0;
-    // ? mantaSize[1] : renderSize[1];
-  // hMantaDiff  = mantaSize[1] - minHeight;
+    // ? OSPRaySize[1] : renderSize[1];
+  // hOSPRayDiff  = OSPRaySize[1] - minHeight;
   // hRenderDiff = renderSize[1] - minHeight;
 
   // vtkTimerLog::MarkStartEvent("ThreadSync");
@@ -568,7 +523,7 @@ void vtkOSPRayRenderer::LayerRender()
     // if (framebuffer) ospFreeFrameBuffer(framebuffer);
 // printf("setSize 3");
   static OSPFrameBuffer framebuffer = ospNewFrameBuffer(newSize,OSP_RGBA_I8);
-  // memory allocation and acess to the Manta image
+  // memory allocation and acess to the OSPRay image
   int size = renderSize[0]*renderSize[1];
  static  ospray::vec2i oldSize(renderSize[0],renderSize[1]);
   if (this->ImageSize != size)
@@ -590,9 +545,9 @@ void vtkOSPRayRenderer::LayerRender()
     }
     oldSize = newSize;
     //TODO: save framebuffer
-  // mantaBuffer = static_cast< float * >( mantaBase->getRawData(0) );
+  // OSPRayBuffer = static_cast< float * >( OSPRayBase->getRawData(0) );
 
-  // update this->ColorBuffer and this->DepthBuffer from the Manta
+  // update this->ColorBuffer and this->DepthBuffer from the OSPRay
   // RGBA8ZfloatPixel array
   double *clipValues = this->GetActiveCamera()->GetClippingRange();
   double depthScale  = 1.0f / ( clipValues[1] - clipValues[0] );
@@ -653,15 +608,15 @@ void vtkOSPRayRenderer::LayerRender()
   vtkTimerLog::MarkStartEvent("Image Conversion");
   for ( j = 0; j < minHeight; j ++ )
     {
-    // there are two floats in each pixel in Manta buffer
-    int mantaIndex = ( ( j + hMantaDiff  ) * rowLength     ) * 2;
+    // there are two floats in each pixel in OSPRay buffer
+    int OSPRayIndex = ( ( j + hOSPRayDiff  ) * rowLength     ) * 2;
     // there is only one float in each pixel in the GL RGBA or Z buffer
     int tupleIndex = ( ( j + hRenderDiff ) * renderSize[0] ) * 1;
 
     for ( i = 0; i < minWidth; i ++ )
       {
       // this->ColorBuffer[ tupleIndex + i ]
-                         // = mantaBuffer[ mantaIndex + i*2     ];
+                         // = OSPRayBuffer[ OSPRayIndex + i*2     ];
                          #if USE_OSPRAY
       this->ColorBuffer[ tupleIndex + i ]
                          = ospBuffer[ tupleIndex + i  ];
@@ -669,7 +624,7 @@ void vtkOSPRayRenderer::LayerRender()
                          // this->ColorBuffer[ tupleIndex + i ]
                          // = *((float*)testBuff);
                          #endif
-      // float depthValue   = mantaBuffer[ mantaIndex + i*2 + 1 ];
+      // float depthValue   = OSPRayBuffer[ OSPRayIndex + i*2 + 1 ];
       // normalize the depth values to [ 0.0f, 1.0f ], since we are using a
       // software buffer for Z values and never write them to OpenGL buffers,
       // we don't have to clamp them any more
@@ -778,9 +733,9 @@ void vtkOSPRayRenderer::SetNumberOfWorkers( int newval )
     return;
     }
   this->NumberOfWorkers = newval;
-  this->MantaEngine->addTransaction
+  this->OSPRayEngine->addTransaction
     ( "set max depth",
-      Manta::Callback::create
+      OSPRay::Callback::create
       (this, &vtkOSPRayRenderer::InternalSetNumberOfWorkers));
   this->Modified();
   #endif
@@ -789,7 +744,7 @@ void vtkOSPRayRenderer::SetNumberOfWorkers( int newval )
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::InternalSetNumberOfWorkers()
 {
-  // this->MantaEngine->changeNumWorkers( this->NumberOfWorkers );
+  // this->OSPRayEngine->changeNumWorkers( this->NumberOfWorkers );
 }
 
 //----------------------------------------------------------------------------
@@ -802,9 +757,9 @@ void vtkOSPRayRenderer::SetEnableShadows( int newval )
     }
 
   this->EnableShadows = newval;
-  this->MantaEngine->addTransaction
+  this->OSPRayEngine->addTransaction
     ( "set shadows",
-      Manta::Callback::create(this, &vtkOSPRayRenderer::InternalSetShadows));
+      OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetShadows));
   this->Modified();
   #endif
 }
@@ -815,11 +770,11 @@ void vtkOSPRayRenderer::InternalSetShadows()
   #if 0
   if (this->EnableShadows)
     {
-    this->MantaFactory->selectShadowAlgorithm( "hard(-attenuateShadows)" );
+    this->OSPRayFactory->selectShadowAlgorithm( "hard(-attenuateShadows)" );
     }
   else
     {
-    this->MantaFactory->selectShadowAlgorithm( "noshadows" );
+    this->OSPRayFactory->selectShadowAlgorithm( "noshadows" );
     }
     #endif
 }
@@ -850,9 +805,9 @@ void vtkOSPRayRenderer::SetSamples( int newval )
   ospSet1i(renderer,"spp",Samples);
   ospCommit(renderer);
 
-  // this->MantaEngine->addTransaction
+  // this->OSPRayEngine->addTransaction
     // ( "set samples",
-      // Manta::Callback::create(this, &vtkOSPRayRenderer::InternalSetSamples));
+      // OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetSamples));
   // this->Modified();
   #endif
 }
@@ -918,9 +873,9 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
   // ospSet1i(renderer,"spp",Samples);
   ospCommit(oRenderer);
 
-  // this->MantaEngine->addTransaction
+  // this->OSPRayEngine->addTransaction
     // ( "set samples",
-      // Manta::Callback::create(this, &vtkOSPRayRenderer::InternalSetSamples));
+      // OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetSamples));
   // this->Modified();
   #endif
 }
@@ -932,14 +887,14 @@ void vtkOSPRayRenderer::InternalSetSamples()
   #if 0
   if (this->Samples <= 1)
     {
-    this->MantaFactory->selectPixelSampler( "singlesample" );
+    this->OSPRayFactory->selectPixelSampler( "singlesample" );
     }
   else
     {
     char buff[80];
     sprintf(buff, "regularsample(-numberOfSamples %d)", this->Samples);
-    this->MantaFactory->selectPixelSampler(buff);
-    //this->MantaFactory->selectPixelSampler(
+    this->OSPRayFactory->selectPixelSampler(buff);
+    //this->OSPRayFactory->selectPixelSampler(
     //"jittersample(-numberOfSamples 16)");
     }
     #endif
@@ -955,9 +910,9 @@ void vtkOSPRayRenderer::SetMaxDepth( int newval )
     }
 
   this->MaxDepth = newval;
-  this->MantaEngine->addTransaction
+  this->OSPRayEngine->addTransaction
     ( "set max depth",
-      Manta::Callback::create(this, &vtkOSPRayRenderer::InternalSetMaxDepth));
+      OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetMaxDepth));
   this->Modified();
   #endif
 }
@@ -966,6 +921,6 @@ void vtkOSPRayRenderer::SetMaxDepth( int newval )
 void vtkOSPRayRenderer::InternalSetMaxDepth()
 {
   #if 0
-  this->MantaScene->getRenderParameters().setMaxDepth( this->MaxDepth );
+  this->OSPRayScene->getRenderParameters().setMaxDepth( this->MaxDepth );
   #endif
 }

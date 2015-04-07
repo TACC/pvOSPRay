@@ -19,38 +19,40 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
-// .NAME vtkOSPRayCompositeMapper - OSPRayMapper for composite data
+// .NAME OSPRayView - QT GUI interface to a OSPRay Rendered 3D View
 // .SECTION Description
-// This class is an adapter between composite data produced by the data
-// processing pipeline and the non composite capable vtkOSPRayPolyDataMapper.
+// This is the Qt layer interface to the OSPRay Rendered 3D view.
 
-#ifndef __vtkOSPRayCompositeMapper_h
-#define __vtkOSPRayCompositeMapper_h
+#ifndef _OSPRayView_h
+#define _OSPRayView_h
 
-#include "vtkCompositePolyDataMapper.h"
-#include "vtkOSPRayModule.h"
-class vtkPolyDataMapper;
+#include "pqRenderView.h"
 
-class VTKOSPRAY_EXPORT vtkOSPRayCompositeMapper :
-  public vtkCompositePolyDataMapper
+class OSPRayView : public pqRenderView
 {
-
+  Q_OBJECT
+  typedef pqRenderView Superclass;
 public:
-  static vtkOSPRayCompositeMapper *New();
-  vtkTypeMacro(vtkOSPRayCompositeMapper, vtkCompositePolyDataMapper);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  static QString OSPRayViewType() { return "OSPRayView"; }
+  static QString OSPRayViewTypeName() { return "OSPRayViewType Rendered 3D View"; }
+
+  /// constructor takes a bunch of init stuff and must have this signature to
+  /// satisfy pqView
+  OSPRayView(
+         const QString& viewtype,
+         const QString& group,
+         const QString& name,
+         vtkSMViewProxy* viewmodule,
+         pqServer* server,
+         QObject* p);
+  ~OSPRayView();
 
 protected:
-  vtkOSPRayCompositeMapper();
-  ~vtkOSPRayCompositeMapper();
-
-  // Description:
-  // Need to define the type of data handled by this mapper.
-  virtual vtkPolyDataMapper * MakeAMapper();
 
 private:
-  vtkOSPRayCompositeMapper(const vtkOSPRayCompositeMapper&);  // Not implemented.
-  void operator=(const vtkOSPRayCompositeMapper&);    // Not implemented.
+  OSPRayView(const OSPRayView&); // Not implemented.
+  void operator=(const OSPRayView&); // Not implemented.
+
 };
 
-#endif
+#endif // _OSPRayView_h

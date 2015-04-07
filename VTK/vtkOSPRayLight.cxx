@@ -1,63 +1,26 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   Visualization Toolkit
-  Module:    vtkOSPRayLight.cxx
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-/*=========================================================================
-
-  Program:   VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
-  Module:    vtkOSPRayLight.cxx
-
-Copyright (c) 2007, Los Alamos National Security, LLC
-
-All rights reserved.
-
-Copyright 2007. Los Alamos National Security, LLC.
-This software was produced under U.S. Government contract DE-AC52-06NA25396
-for Los Alamos National Laboratory (LANL), which is operated by
-Los Alamos National Security, LLC for the U.S. Department of Energy.
-The U.S. Government has rights to use, reproduce, and distribute this software.
-NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY,
-EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.
-If software is modified to produce derivative works, such modified software
-should be clearly marked, so as not to confuse it with the version available
-from LANL.
-
-Additionally, redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following conditions
-are met:
--   Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
--   Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
--   Neither the name of Los Alamos National Security, LLC, Los Alamos National
-    Laboratory, LANL, the U.S. Government, nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL LOS ALAMOS NATIONAL SECURITY, LLC OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-=========================================================================*/
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayLight.h"
@@ -73,13 +36,6 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // #include <Model/Lights/PointLight.h>
 // #include <Model/Lights/DirectionalLight.h>
 
-//
-//ospray
-//
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-
-
 #include <math.h>
 
 vtkStandardNewMacro(vtkOSPRayLight);
@@ -88,7 +44,7 @@ vtkStandardNewMacro(vtkOSPRayLight);
 vtkOSPRayLight::vtkOSPRayLight()
 {
   //cerr << "ML(" << this << ") CREATE" << endl;
-  // this->MantaLight = NULL;
+  // this->OSPRayLight = NULL;
   this->OSPRayManager = NULL;
 }
 
@@ -96,7 +52,7 @@ vtkOSPRayLight::vtkOSPRayLight()
 vtkOSPRayLight::~vtkOSPRayLight()
 {
   //cerr << "ML(" << this << ") DESTROY" << endl;
-  // delete this->MantaLight;
+  // delete this->OSPRayLight;
   if (this->OSPRayManager)
     {
     //cerr << "ML(" << this << ") DESTROY " << this->OSPRayManager << " "
@@ -121,7 +77,7 @@ void vtkOSPRayLight::Render(vtkRenderer *ren, int /* not used */)
     return;
     }
 
-  // if (!this->MantaLight)
+  // if (!this->OSPRayLight)
     {
     CreateLight(ren);
     }
@@ -136,16 +92,15 @@ void vtkOSPRayLight::Render(vtkRenderer *ren, int /* not used */)
 // called in Transaction context, it is safe to modify the engine state here
 void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
-  vtkOSPRayRenderer *mantaRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
-  if (!mantaRenderer)
+  vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
+  if (!OSPRayRenderer)
     {
     return;
     }
 
     if (!this->OSPRayManager)
     {
-    this->OSPRayManager = mantaRenderer->GetOSPRayManager();
+    this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
     //cerr << "ML(" << this << ") REGISTER " << this->OSPRayManager << " "
     //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
@@ -160,7 +115,7 @@ void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
   #if 1
   double *color, *position, *focal, direction[3];
 
-  // Manta Lights only have one "color"
+  // OSPRay Lights only have one "color"
   color    = this->GetDiffuseColor();
   position = this->GetTransformedPosition();
   focal    = this->GetTransformedFocalPoint();
@@ -175,13 +130,13 @@ void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
     pointLights.push_back(ospLight);
     OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
     ospSetData(renderer, "pointLights", pointLightArray); 
-    // this->MantaLight = new Manta::PointLight(
-    //   Manta::Vector(position[0], position[1], position[2]),
-    //   Manta::Color(Manta::RGBColor(color[0],color[1],color[2])));
+    // this->OSPRayLight = new OSPRay::PointLight(
+    //   OSPRay::Vector(position[0], position[1], position[2]),
+    //   OSPRay::Color(OSPRay::RGBColor(color[0],color[1],color[2])));
     }
   else
     {
-    // "direction" in Manta means the direction toward light source rather than the
+    // "direction" in OSPRay means the direction toward light source rather than the
     // direction of rays originate from light source
     direction[0] = position[0] - focal[0];
     direction[1] = position[1] - focal[1];
@@ -195,14 +150,14 @@ void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
         OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
     ospSetData(renderer, "directionalLights", pointLightArray);
 
-    // this->MantaLight = new Manta::DirectionalLight(
-    //   Manta::Vector(direction[0], direction[1], direction[2]),
-    //   Manta::Color(Manta::RGBColor(color[0],color[1],color[2])));
+    // this->OSPRayLight = new OSPRay::DirectionalLight(
+    //   OSPRay::Vector(direction[0], direction[1], direction[2]),
+    //   OSPRay::Color(OSPRay::RGBColor(color[0],color[1],color[2])));
     }
-  // mantaRenderer->GetMantaLightSet()->add(this->MantaLight);
+  // OSPRayRenderer->GetOSPRayLightSet()->add(this->OSPRayLight);
   // if (!this->OSPRayManager)
   //   {
-  //   this->OSPRayManager = mantaRenderer->GetOSPRayManager();
+  //   this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
   //   //cerr << "ML(" << this << ") REGISTER " << this->OSPRayManager << " "
   //   //     << this->OSPRayManager->GetReferenceCount() << endl;
   //   this->OSPRayManager->Register(this);
@@ -216,7 +171,7 @@ void vtkOSPRayLight::UpdateLight(vtkRenderer *ren)
 {
   CreateLight(ren);
   #if 0
-  if (!this->MantaLight)
+  if (!this->OSPRayLight)
     {
     return;
     }
@@ -224,24 +179,24 @@ void vtkOSPRayLight::UpdateLight(vtkRenderer *ren)
   double intens = this->GetIntensity();
   double on = (this->GetSwitch()?1.0:0.0);
 
-  // Manta Lights only have one "color"
+  // OSPRay Lights only have one "color"
   color    = this->GetDiffuseColor();
   position = this->GetTransformedPosition();
   focal    = this->GetTransformedFocalPoint();
 
-  double lcolor[3]; //factor in intensity and on/off state for manta API
+  double lcolor[3]; //factor in intensity and on/off state for OSPRay API
   lcolor[0] = color[0] * intens * on;
   lcolor[1] = color[1] * intens * on;
   lcolor[2] = color[2] * intens * on;
 
   if (this->GetPositional())
     {
-    Manta::PointLight * pointLight =
-      dynamic_cast<Manta::PointLight *>(this->MantaLight);
+    OSPRay::PointLight * pointLight =
+      dynamic_cast<OSPRay::PointLight *>(this->OSPRayLight);
     if ( pointLight )
         {
-        pointLight->setPosition(Manta::Vector(position[0], position[1], position[2]));
-        pointLight->setColor(Manta::Color(Manta::RGBColor(lcolor[0],lcolor[1],lcolor[2])));
+        pointLight->setPosition(OSPRay::Vector(position[0], position[1], position[2]));
+        pointLight->setColor(OSPRay::Color(OSPRay::RGBColor(lcolor[0],lcolor[1],lcolor[2])));
         }
     else
       {
@@ -251,17 +206,17 @@ void vtkOSPRayLight::UpdateLight(vtkRenderer *ren)
     }
   else
     {
-    Manta::DirectionalLight * dirLight =
-      dynamic_cast<Manta::DirectionalLight *>(this->MantaLight);
+    OSPRay::DirectionalLight * dirLight =
+      dynamic_cast<OSPRay::DirectionalLight *>(this->OSPRayLight);
     if ( dirLight )
         {
-        // "direction" in Manta means the direction toward light source rather than the
+        // "direction" in OSPRay means the direction toward light source rather than the
         // direction of rays originate from light source
         direction[0] = position[0] - focal[0];
         direction[1] = position[1] - focal[1];
         direction[2] = position[2] - focal[2];
-        dirLight->setDirection(Manta::Vector(direction[0], direction[1], direction[2]));
-        dirLight->setColor(Manta::Color(Manta::RGBColor(lcolor[0],lcolor[1],lcolor[2])));
+        dirLight->setDirection(OSPRay::Vector(direction[0], direction[1], direction[2]));
+        dirLight->setColor(OSPRay::Color(OSPRay::RGBColor(lcolor[0],lcolor[1],lcolor[2])));
         }
     else
       {

@@ -19,38 +19,66 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
-// .NAME vtkOSPRayCompositeMapper - OSPRayMapper for composite data
+// .NAME vtkPVOSPRayView VTK level view that uses OSPRay instead of GL
 // .SECTION Description
-// This class is an adapter between composite data produced by the data
-// processing pipeline and the non composite capable vtkOSPRayPolyDataMapper.
+// A 3D view that uses the OSPRay ray tracer instead of openGL for rendering
 
-#ifndef __vtkOSPRayCompositeMapper_h
-#define __vtkOSPRayCompositeMapper_h
+#ifndef __vtkPVOSPRayView_h
+#define __vtkPVOSPRayView_h
 
-#include "vtkCompositePolyDataMapper.h"
-#include "vtkOSPRayModule.h"
-class vtkPolyDataMapper;
+#include "vtkPVRenderView.h"
 
-class VTKOSPRAY_EXPORT vtkOSPRayCompositeMapper :
-  public vtkCompositePolyDataMapper
+class vtkDataRepresentation;
+
+class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {
-
 public:
-  static vtkOSPRayCompositeMapper *New();
-  vtkTypeMacro(vtkOSPRayCompositeMapper, vtkCompositePolyDataMapper);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
-
-protected:
-  vtkOSPRayCompositeMapper();
-  ~vtkOSPRayCompositeMapper();
+  static vtkPVOSPRayView* New();
+  vtkTypeMacro(vtkPVOSPRayView, vtkPVRenderView);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
-  // Need to define the type of data handled by this mapper.
-  virtual vtkPolyDataMapper * MakeAMapper();
+  // Initialize the view with an identifier. Unless noted otherwise, this method
+  // must be called before calling any other methods on this class.
+  // @CallOnAllProcessess
+  virtual void Initialize(unsigned int id);
+
+  // Description:
+  //Controls number of render threads.
+  virtual void SetThreads(int val);
+  vtkGetMacro(Threads, int);
+
+  // Description:
+  // Parameters that controls ray tracing quality
+  // Defaults are for minimal quality and maximal speed.
+  virtual void SetEnableShadows(int val);
+  vtkGetMacro(EnableShadows, int);
+  virtual void SetEnableAO(int val);
+  vtkGetMacro(EnableAO, int);
+  virtual void SetSamples(int val);
+  vtkGetMacro(Samples, int);
+  virtual void SetMaxDepth(int val);
+  vtkGetMacro(MaxDepth, int);
+
+  // Overridden to ensure that we always use an vtkOpenGLCamera of the 2D
+  // renderer.
+  virtual void SetActiveCamera(vtkCamera*);
+
+//BTX
+protected:
+  vtkPVOSPRayView();
+  ~vtkPVOSPRayView();
+
+  int EnableShadows;
+  int EnableAO;
+  int Threads;
+  int Samples;
+  int MaxDepth;
 
 private:
-  vtkOSPRayCompositeMapper(const vtkOSPRayCompositeMapper&);  // Not implemented.
-  void operator=(const vtkOSPRayCompositeMapper&);    // Not implemented.
+  vtkPVOSPRayView(const vtkPVOSPRayView&); // Not implemented
+  void operator=(const vtkPVOSPRayView&); // Not implemented
+//ETX
 };
 
-#endif
+#endif // __vtkPVOSPRayView_h

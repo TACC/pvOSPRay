@@ -19,38 +19,28 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
-// .NAME vtkOSPRayCompositeMapper - OSPRayMapper for composite data
-// .SECTION Description
-// This class is an adapter between composite data produced by the data
-// processing pipeline and the non composite capable vtkOSPRayPolyDataMapper.
+#ifndef __OSPRayDisplay_h
+#define __OSPRayDisplay_h
 
-#ifndef __vtkOSPRayCompositeMapper_h
-#define __vtkOSPRayCompositeMapper_h
+#include <QObject>
 
-#include "vtkCompositePolyDataMapper.h"
-#include "vtkOSPRayModule.h"
-class vtkPolyDataMapper;
+class pqDisplayPanel;
 
-class VTKOSPRAY_EXPORT vtkOSPRayCompositeMapper :
-  public vtkCompositePolyDataMapper
+class OSPRayDisplay : public QObject
 {
+  Q_OBJECT
+  typedef QObject Superclass;
 
 public:
-  static vtkOSPRayCompositeMapper *New();
-  vtkTypeMacro(vtkOSPRayCompositeMapper, vtkCompositePolyDataMapper);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
-
-protected:
-  vtkOSPRayCompositeMapper();
-  ~vtkOSPRayCompositeMapper();
-
-  // Description:
-  // Need to define the type of data handled by this mapper.
-  virtual vtkPolyDataMapper * MakeAMapper();
+  OSPRayDisplay(pqDisplayPanel* parent);
+  ~OSPRayDisplay();
 
 private:
-  vtkOSPRayCompositeMapper(const vtkOSPRayCompositeMapper&);  // Not implemented.
-  void operator=(const vtkOSPRayCompositeMapper&);    // Not implemented.
+  OSPRayDisplay(const OSPRayDisplay&); // Not implemented.
+  void operator=(const OSPRayDisplay&); // Not implemented.
+
+  class pqInternal;
+  pqInternal *Internal;
 };
 
-#endif
+#endif // __OSPRayDisplay_h

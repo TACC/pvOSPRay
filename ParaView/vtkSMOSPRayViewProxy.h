@@ -19,38 +19,51 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
-// .NAME vtkOSPRayCompositeMapper - OSPRayMapper for composite data
+// .NAME vtkOSPRayViewProxy - view setup for vtkOSPRay
 // .SECTION Description
-// This class is an adapter between composite data produced by the data
-// processing pipeline and the non composite capable vtkOSPRayPolyDataMapper.
+// A  View that sets up the display pipeline so that it works with OSPRay.
+// This class causes OSPRay specific representations to be created and
+// also initializes the client server wrapped vtkOSPRay library for
+// paraview.
 
-#ifndef __vtkOSPRayCompositeMapper_h
-#define __vtkOSPRayCompositeMapper_h
+#ifndef __vtkSMOSPRayViewProxy_h
+#define __vtkSMOSPRayViewProxy_h
 
-#include "vtkCompositePolyDataMapper.h"
-#include "vtkOSPRayModule.h"
-class vtkPolyDataMapper;
+#include "vtkSMRenderViewProxy.h"
 
-class VTKOSPRAY_EXPORT vtkOSPRayCompositeMapper :
-  public vtkCompositePolyDataMapper
+class vtkSMRepresentationProxy;
+
+class VTK_EXPORT vtkSMOSPRayViewProxy : public vtkSMRenderViewProxy
 {
-
 public:
-  static vtkOSPRayCompositeMapper *New();
-  vtkTypeMacro(vtkOSPRayCompositeMapper, vtkCompositePolyDataMapper);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
-
-protected:
-  vtkOSPRayCompositeMapper();
-  ~vtkOSPRayCompositeMapper();
+  static vtkSMOSPRayViewProxy* New();
+  vtkTypeMacro(vtkSMOSPRayViewProxy, vtkSMRenderViewProxy);
+  void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
-  // Need to define the type of data handled by this mapper.
-  virtual vtkPolyDataMapper * MakeAMapper();
+  // Create a default representation for the given output port of source proxy.
+  // Returns a new proxy.
+  virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(
+    vtkSMProxy*, int opport);
+
+  // Description:
+  virtual bool IsSelectionAvailable() { return false; }
+
+
+//BTX
+protected:
+  vtkSMOSPRayViewProxy();
+  ~vtkSMOSPRayViewProxy();
+
+  virtual void CreateVTKObjects();
 
 private:
-  vtkOSPRayCompositeMapper(const vtkOSPRayCompositeMapper&);  // Not implemented.
-  void operator=(const vtkOSPRayCompositeMapper&);    // Not implemented.
+
+  vtkSMOSPRayViewProxy(const vtkSMOSPRayViewProxy&); // Not implemented.
+  void operator=(const vtkSMOSPRayViewProxy&); // Not implemented.
+
+//ETX
 };
 
-#endif
+
+#endif // __vtkSMOSPRayViewProxy_h

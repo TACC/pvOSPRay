@@ -19,38 +19,21 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
-// .NAME vtkOSPRayCompositeMapper - OSPRayMapper for composite data
-// .SECTION Description
-// This class is an adapter between composite data produced by the data
-// processing pipeline and the non composite capable vtkOSPRayPolyDataMapper.
+#include "OSPRayView.h"
 
-#ifndef __vtkOSPRayCompositeMapper_h
-#define __vtkOSPRayCompositeMapper_h
-
-#include "vtkCompositePolyDataMapper.h"
-#include "vtkOSPRayModule.h"
-class vtkPolyDataMapper;
-
-class VTKOSPRAY_EXPORT vtkOSPRayCompositeMapper :
-  public vtkCompositePolyDataMapper
+//-----------------------------------------------------------------------------
+OSPRayView::OSPRayView(
+  const QString& viewType,
+  const QString& group,
+  const QString& name,
+  vtkSMViewProxy* viewProxy,
+  pqServer* server,
+  QObject* p)
+  : pqRenderView(viewType, group, name, viewProxy, server, p)
 {
+}
 
-public:
-  static vtkOSPRayCompositeMapper *New();
-  vtkTypeMacro(vtkOSPRayCompositeMapper, vtkCompositePolyDataMapper);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
-
-protected:
-  vtkOSPRayCompositeMapper();
-  ~vtkOSPRayCompositeMapper();
-
-  // Description:
-  // Need to define the type of data handled by this mapper.
-  virtual vtkPolyDataMapper * MakeAMapper();
-
-private:
-  vtkOSPRayCompositeMapper(const vtkOSPRayCompositeMapper&);  // Not implemented.
-  void operator=(const vtkOSPRayCompositeMapper&);    // Not implemented.
-};
-
-#endif
+//-----------------------------------------------------------------------------
+OSPRayView::~OSPRayView()
+{
+}

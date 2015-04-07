@@ -1,51 +1,64 @@
-#/***********************************************************************************************************
-#Copyright (c) 2015, Carson Brownlee, Texas Advanced Computing Center, Universtiy of Texas at Austin
-#All rights reserved.
-#
-#Redistribution and use in source and binary forms, with or without modification, are permitted provided 
-#that the following conditions are met:
-#
-#1. Redistributions of source code must retain the above copyright notice, this list of conditions and the
-# following disclaimer.
-#
-#2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and 
-#the following disclaimer in the documentation and/or other materials provided with the distribution.
-#
-#3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or
-# promote products derived from this software without specific prior written permission.
-#
-#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
-#WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
-#PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE 
-#FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-#LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-#INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-#OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN 
-#IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#***********************************************************************************************************/
-
-
+## ======================================================================================= ##
+## Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  ##
+## All rights reserved.                                                                    ##
+##                                                                                         ##
+## Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     ##
+## except in compliance with the License.                                                  ##
+## A copy of the License is included with this software in the file LICENSE.               ##
+## If your copy does not contain the License, you may obtain a copy of the License at:     ##
+##                                                                                         ##
+##     http://opensource.org/licenses/BSD-3-Clause                                         ##
+##                                                                                         ##
+## Unless required by applicable law or agreed to in writing, software distributed under   ##
+## the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY ##
+## KIND, either express or implied.                                                        ##
+## See the License for the specific language governing permissions and limitations under   ##
+## limitations under the License.                                                          ##
+## ======================================================================================= ##
 
 cmake_minimum_required(VERSION 2.8.8)
-MESSAGE("pvOSPRay")
-project(OSPRayView)
+# MESSAGE("pvOSPRay")
+project(pvOSPRay)
 
-# FIXME: this is ABSURD!!! Needs to be removed. I don't have time right now.
 set (BUILD_AGAINST_PARAVIEW 1)
 
+
+if(NOT ParaView_SOURCE_DIR)
+  find_package(ParaView)
+  include("${PARAVIEW_USE_FILE}")
+  include (ParaViewPlugins)
+
+  # Load information about VTK/ParaView modules loaded/available.
+  pv_setup_module_environment("pvOSPRay")
+else()
+  # we're building from within ParaView Source.
+endif()
+
+# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+#   ${CMAKE_SOURCE_DIR}/Plugins/pvOSPRay/CMake)
+# MESSAGE("pvOSPRay CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH})
+# mark_as_advanced(CMAKE_INSTALL_PREFIX)
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-  "${CMAKE_SOURCE_DIR}/Plugins/pvOSPRay/CMake/")
-MESSAGE("pvOSPRay CMAKE_MODULE_PATH" ${CMAKE_MODULE_PATH})
+  ${PROJECT_SOURCE_DIR}/CMake
+  )
+# MESSAGE("pvOSPRay CMAKE_MODULE_PATH " ${CMAKE_MODULE_PATH})
+
+# if(NOT CMAKE_BUILD_TYPE)
+#   set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the build type: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+# endif(NOT CMAKE_BUILD_TYPE)
 
 
 #
 # ospray
 # 
-find_package(OSPRay)
+find_package(OSPRay REQUIRED)
 INCLUDE_DIRECTORIES(${OSPRAY_INCLUDE_DIRS})
 #
 #
 # 
+find_package(X11 REQUIRED)
+INCLUDE_DIRECTORIES(${X11_X11_INCLUDE_PATH})
 
 
 # -----------------------------------------------------------------------------

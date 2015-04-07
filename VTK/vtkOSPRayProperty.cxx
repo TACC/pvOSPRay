@@ -1,63 +1,26 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   Visualization Toolkit
-  Module:    vtkOSPRayProperty.cxx
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-/*=========================================================================
-
-  Program:   VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
-  Module:    vtkOSPRayProperty.cxx
-
-Copyright (c) 2007, Los Alamos National Security, LLC
-
-All rights reserved.
-
-Copyright 2007. Los Alamos National Security, LLC.
-This software was produced under U.S. Government contract DE-AC52-06NA25396
-for Los Alamos National Laboratory (LANL), which is operated by
-Los Alamos National Security, LLC for the U.S. Department of Energy.
-The U.S. Government has rights to use, reproduce, and distribute this software.
-NEITHER THE GOVERNMENT NOR LOS ALAMOS NATIONAL SECURITY, LLC MAKES ANY WARRANTY,
-EXPRESS OR IMPLIED, OR ASSUMES ANY LIABILITY FOR THE USE OF THIS SOFTWARE.
-If software is modified to produce derivative works, such modified software
-should be clearly marked, so as not to confuse it with the version available
-from LANL.
-
-Additionally, redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following conditions
-are met:
--   Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
--   Redistributions in binary form must reproduce the above copyright notice,
-    this list of conditions and the following disclaimer in the documentation
-    and/or other materials provided with the distribution.
--   Neither the name of Los Alamos National Security, LLC, Los Alamos National
-    Laboratory, LANL, the U.S. Government, nor the names of its contributors
-    may be used to endorse or promote products derived from this software
-    without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY LOS ALAMOS NATIONAL SECURITY, LLC AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-ARE DISCLAIMED. IN NO EVENT SHALL LOS ALAMOS NATIONAL SECURITY, LLC OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
-OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
-OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
-ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-=========================================================================*/
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayManager.h"
@@ -82,34 +45,28 @@ ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 
 
-//
-//ospray
-//
-#include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-
 #if 0
 //============================================================================
-//This is a helper that exists just to hold on to manta side resources
-//long enough for the manta thread to destroy them, whenever that
+//This is a helper that exists just to hold on to OSPRay side resources
+//long enough for the OSPRay thread to destroy them, whenever that
 //threads gets around to it (in a callback)
 class vtkOSPRayPropertyThreadCache
 {
 public:
-  vtkOSPRayPropertyThreadCache(Manta::Material *m,
-      Manta::Texture<Manta::Color> *dT,
-      Manta::Texture<Manta::Color> *sT )
-    : MantaMaterial(m), DiffuseTexture(dT), SpecularTexture(sT)
+  vtkOSPRayPropertyThreadCache(OSPRay::Material *m,
+      OSPRay::Texture<OSPRay::Color> *dT,
+      OSPRay::Texture<OSPRay::Color> *sT )
+    : OSPRayMaterial(m), DiffuseTexture(dT), SpecularTexture(sT)
   {
     this->DebugCntr = vtkOSPRayPropertyThreadCache::GlobalCntr++;
     //cerr << "MPPR( " << this << ") " << this->DebugCntr << endl;
   }
 
-  void FreeMantaResources()
+  void FreeOSPRayResources()
   {
-    //cerr << "MPPR(" << this << ") FREE MANTA RESOURCES "
+    //cerr << "MPPR(" << this << ") FREE OSPRay RESOURCES "
     //<< this->DebugCntr << endl;
-    delete this->MantaMaterial;
+    delete this->OSPRayMaterial;
     delete this->DiffuseTexture;
     delete this->SpecularTexture;
 
@@ -118,9 +75,9 @@ public:
     delete this;
   }
 
-  Manta::Material *MantaMaterial;
-  Manta::Texture<Manta::Color> *DiffuseTexture;
-  Manta::Texture<Manta::Color> *SpecularTexture;
+  OSPRay::Material *OSPRayMaterial;
+  OSPRay::Texture<OSPRay::Color> *DiffuseTexture;
+  OSPRay::Texture<OSPRay::Color> *SpecularTexture;
   int DebugCntr;
   static int GlobalCntr;
 
@@ -138,7 +95,7 @@ vtkStandardNewMacro(vtkOSPRayProperty);
 
 //----------------------------------------------------------------------------
 vtkOSPRayProperty::vtkOSPRayProperty()
-  // : MantaMaterial(0), DiffuseTexture(0), SpecularTexture(0),
+  // : OSPRayMaterial(0), DiffuseTexture(0), SpecularTexture(0),
     // Reflectance(0.0), Eta(1.52), Thickness(1.0), N(1.0), Nt(1.0)
 {
   cerr << "MP(" << this << ") CREATE" << endl;
@@ -178,35 +135,35 @@ void vtkOSPRayProperty::ReleaseGraphicsResources(vtkWindow *win)
     return;
   }
 
-  //save off the pointers for the manta thread
+  //save off the pointers for the OSPRay thread
   // vtkOSPRayPropertyThreadCache *R =
-    // new vtkOSPRayPropertyThreadCache(this->MantaMaterial,
+    // new vtkOSPRayPropertyThreadCache(this->OSPRayMaterial,
                                     // this->DiffuseTexture,
                                     // this->SpecularTexture);
   //make no further references to them in this thread
-  // this->MantaMaterial = NULL;
+  // this->OSPRayMaterial = NULL;
   // this->DiffuseTexture = NULL;
   // this->SpecularTexture = NULL;
 
-  //ask the manta thread to free them when it can
-  // this->OSPRayManager->GetMantaEngine()->addTransaction
+  //ask the OSPRay thread to free them when it can
+  // this->OSPRayManager->GetOSPRayEngine()->addTransaction
     // ( "cleanup property",
-      // Manta::Callback::create
-      // (R, &vtkOSPRayPropertyThreadCache::FreeMantaResources));
+      // OSPRay::Callback::create
+      // (R, &vtkOSPRayPropertyThreadCache::FreeOSPRayResources));
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayProperty::Render( vtkActor *vtkNotUsed(anActor),
  vtkRenderer * ren)
 {
-  vtkOSPRayRenderer * mantaRenderer = vtkOSPRayRenderer::SafeDownCast( ren );
-  if (!mantaRenderer)
+  vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast( ren );
+  if (!OSPRayRenderer)
   {
     return;
   }
   if (!this->OSPRayManager)
   {
-    this->OSPRayManager = mantaRenderer->GetOSPRayManager();
+    this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
     //cerr << "MP(" << this << ") REGISTER " << this->OSPRayManager << " "
     //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
@@ -216,19 +173,19 @@ void vtkOSPRayProperty::Render( vtkActor *vtkNotUsed(anActor),
 
   // return;
 
-  if ( this->GetMTime() > this->MantaMaterialMTime )
+  if ( this->GetMTime() > this->OSPRayMaterialMTime )
   {
     // std::cerr << "resetting ospray material with diffuse color " << diffuse[0] << " " << diffuse[1] << " " << diffuse[2] << std::endl;
-      CreateMantaProperty();
+      CreateOSPRayProperty();
     //TODO: this doesn't actually have to be a transaction, other than
     //the deletions
     //TODO: Create should happen before now, whenever the prop is
-    //changes actually (see how MantaPolyDataMapper creates it)
-    // this->OSPRayManager->GetMantaEngine()->addTransaction
+    //changes actually (see how OSPRayPolyDataMapper creates it)
+    // this->OSPRayManager->GetOSPRayEngine()->addTransaction
       // ( "set property",
-        // Manta::Callback::create(this, &vtkOSPRayProperty::CreateMantaProperty));
+        // OSPRay::Callback::create(this, &vtkOSPRayProperty::CreateOSPRayProperty));
 
-    // this->MantaMaterialMTime.Modified();
+    // this->OSPRayMaterialMTime.Modified();
   }
 
 }
@@ -238,43 +195,43 @@ void vtkOSPRayProperty::Render( vtkActor *vtkNotUsed(anActor),
 void vtkOSPRayProperty::BackfaceRender( vtkActor * vtkNotUsed( anActor ),
  vtkRenderer * vtkNotUsed( ren ) )
 {
-  // NOT supported by Manta
+  // NOT supported by OSPRay
   //TODO: Do something about it.
   cerr
   << "vtkOSPRayProperty::BackfaceRender(), backface rendering "
-  << "is not supported by Manta"
+  << "is not supported by OSPRay"
   << endl;
 }
 
 
 //----------------------------------------------------------------------------
-void vtkOSPRayProperty::CreateMantaProperty()
+void vtkOSPRayProperty::CreateOSPRayProperty()
 {
   #if 1
-  //cerr << "MP(" << this << ") CREATE MANTA PROPERTY" << endl;
+  //cerr << "MP(" << this << ") CREATE OSPRay PROPERTY" << endl;
 
   double * diffuse  = this->GetDiffuseColor();
   double * specular = this->GetSpecularColor();
 
-  //this only happens in a manta thread callback, so this is safe to do - not true
+  //this only happens in a OSPRay thread callback, so this is safe to do - not true
 
   /*
-  if (this->MantaMaterial)
+  if (this->OSPRayMaterial)
     {
-    cerr << "DELETING " << this->MantaMaterial << endl;
+    cerr << "DELETING " << this->OSPRayMaterial << endl;
     }
   */
-  // delete this->MantaMaterial;
+  // delete this->OSPRayMaterial;
   // delete this->DiffuseTexture;
   // delete this->SpecularTexture;
 
-  // this->DiffuseTexture  = new Manta::Constant<Manta::Color>
-  //   (  Manta::Color( Manta::RGBColor( diffuse[0],  diffuse[1],  diffuse[2]  ) )  );
+  // this->DiffuseTexture  = new OSPRay::Constant<OSPRay::Color>
+  //   (  OSPRay::Color( OSPRay::RGBColor( diffuse[0],  diffuse[1],  diffuse[2]  ) )  );
 
-  // this->SpecularTexture = new Manta::Constant<Manta::Color>
-  //   (  Manta::Color( Manta::RGBColor( specular[0], specular[1], specular[2] ) )  );
+  // this->SpecularTexture = new OSPRay::Constant<OSPRay::Color>
+  //   (  OSPRay::Color( OSPRay::RGBColor( specular[0], specular[1], specular[2] ) )  );
 
-  // A note on Manta Materials and shading model:
+  // A note on OSPRay Materials and shading model:
   // 1. Surface normal is computed at each hit point, if the primitive
   // has curvature (like sphere or triangle with vertex normal), it will
   // be different at each hit point.
@@ -292,23 +249,23 @@ void vtkOSPRayProperty::CreateMantaProperty()
     // if lighting is disabled, use EmitMaterial
       if ( this->Interpolation == VTK_FLAT )
       {
-      // this->MantaMaterial = new Manta::Flat( this->DiffuseTexture );
+      // this->OSPRayMaterial = new OSPRay::Flat( this->DiffuseTexture );
       }
       else
         if ( this->GetOpacity() < 1.0 )
         {
-        // this->MantaMaterial =
-          // new Manta::Transparent( this->DiffuseTexture, this->GetOpacity() );
+        // this->OSPRayMaterial =
+          // new OSPRay::Transparent( this->DiffuseTexture, this->GetOpacity() );
         }
         else
           if ( this->GetSpecular() == 0 )
           {
-          // this->MantaMaterial = new Manta::Lambertian( this->DiffuseTexture );
+          // this->OSPRayMaterial = new OSPRay::Lambertian( this->DiffuseTexture );
           }
           else
           {
-          // this->MantaMaterial =
-          //   new Manta::Phong( this->DiffuseTexture,
+          // this->OSPRayMaterial =
+          //   new OSPRay::Phong( this->DiffuseTexture,
           //                     this->SpecularTexture,
           //                     static_cast<int> ( this->GetSpecularPower() ),
           //                     NULL );
@@ -318,58 +275,58 @@ void vtkOSPRayProperty::CreateMantaProperty()
         {
           if ( strcmp( this->MaterialType,  "lambertian" ) == 0 )
           {
-      // this->MantaMaterial = new Manta::Lambertian( this->DiffuseTexture );
+      // this->OSPRayMaterial = new OSPRay::Lambertian( this->DiffuseTexture );
           }
           else
             if ( strcmp( this->MaterialType, "phong" ) == 0 )
             {
-        // this->MantaMaterial =
-        //   new Manta::Phong( this->DiffuseTexture,
+        // this->OSPRayMaterial =
+        //   new OSPRay::Phong( this->DiffuseTexture,
         //                     this->SpecularTexture,
         //                     static_cast<int> ( this->GetSpecularPower() ),
-        //                     new Manta::Constant<Manta::ColorComponent>
+        //                     new OSPRay::Constant<OSPRay::ColorComponent>
         //                     ( this->Reflectance ) );
             }
             else
               if ( strcmp( this->MaterialType, "transparent" ) == 0 )
               {
-          // this->MantaMaterial
-            // = new Manta::Transparent( this->DiffuseTexture, this->GetOpacity() );
+          // this->OSPRayMaterial
+            // = new OSPRay::Transparent( this->DiffuseTexture, this->GetOpacity() );
               }
               else
                 if ( strcmp( this->MaterialType, "thindielectric" ) == 0 )
                 {
-            // this->MantaMaterial = new Manta::ThinDielectric
+            // this->OSPRayMaterial = new OSPRay::ThinDielectric
             //   (
-            //    new Manta::Constant<Manta::Real>( this->Eta ),
+            //    new OSPRay::Constant<OSPRay::Real>( this->Eta ),
             //    this->DiffuseTexture, this->Thickness, 1 );
                 }
                 else
                   if ( strcmp( this->MaterialType, "dielectric" ) == 0 )
                   {
-              // this->MantaMaterial
-              //   = new Manta::Dielectric( new Manta::Constant<Manta::Real>( this->N  ),
-              //                            new Manta::Constant<Manta::Real>( this->Nt ),
+              // this->OSPRayMaterial
+              //   = new OSPRay::Dielectric( new OSPRay::Constant<OSPRay::Real>( this->N  ),
+              //                            new OSPRay::Constant<OSPRay::Real>( this->Nt ),
               //                            this->DiffuseTexture );
                   }
                   else
                     if ( strcmp( this->MaterialType, "metal" ) == 0 )
                     {
-                // this->MantaMaterial = new Manta::MetalMaterial( this->DiffuseTexture );
+                // this->OSPRayMaterial = new OSPRay::MetalMaterial( this->DiffuseTexture );
                     }
                     else
                       if ( strcmp( this->MaterialType, "orennayer" ) == 0 )
                       {
-                  // this->MantaMaterial = new Manta::OrenNayar( this->DiffuseTexture );
+                  // this->OSPRayMaterial = new OSPRay::OrenNayar( this->DiffuseTexture );
                       }
                       else
                       {
                   // just default to phong
-                  // this->MantaMaterial
-                  //   = new Manta::Phong( this->DiffuseTexture,
+                  // this->OSPRayMaterial
+                  //   = new OSPRay::Phong( this->DiffuseTexture,
                   //                       this->SpecularTexture,
                   //                       static_cast<int> ( this->GetSpecularPower() ),
-                  //                       new Manta::Constant<Manta::ColorComponent>
+                  //                       new OSPRay::Constant<OSPRay::ColorComponent>
                   //                       (
                   //                        this->Reflectance) );
                       }
@@ -398,6 +355,6 @@ void vtkOSPRayProperty::CreateMantaProperty()
       // PRINT(mat);
 
 
-  //cerr << "CREATED " << this->MantaMaterial << endl;
+  //cerr << "CREATED " << this->OSPRayMaterial << endl;
   #endif
                   }

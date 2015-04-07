@@ -1,18 +1,25 @@
-/*=========================================================================
+/* ======================================================================================= 
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+   All rights reserved.
+                                                                                           
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
+   except in compliance with the License.                                                  
+   A copy of the License is included with this software in the file LICENSE.               
+   If your copy does not contain the License, you may obtain a copy of the License at:     
+                                                                                           
+       http://opensource.org/licenses/BSD-3-Clause                                         
+                                                                                           
+   Unless required by applicable law or agreed to in writing, software distributed under   
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
+   KIND, either express or implied.                                                        
+   See the License for the specific language governing permissions and limitations under   
+   limitations under the License.
 
-  Program:   Visualization Toolkit
-  Module:    vtkOSPRayManager.cxx
+   pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
+   Copyright (c) 2007, Los Alamos National Security, LLC
+   ======================================================================================= */
 
-  Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
-  All rights reserved.
-  See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
-
-=========================================================================*/
-
+#include "ospray/ospray.h"
 
 #include "vtkOSPRayManager.h"
 #include "vtkObjectFactory.h"
@@ -37,14 +44,6 @@
 // #include <Model/Groups/Group.h>
 // #include <Model/Lights/HeadLight.h>
 
-#if USE_OSPRAY
-//
-//ospray
-//
-#include "ospray/ospray.h"
-// #include "ospray/common/ospcommon.h"
-// #include "ospray/common/OspCommon.h"
-     #endif
 
 // #include <typeinfo.h>
 
@@ -57,16 +56,16 @@ vtkOSPRayManager::vtkOSPRayManager()
 {
   #if 1
   cerr << "OManager(" << this << ") CREATE" << endl;
-  // this->MantaEngine = Manta::createManta();
-  // //TODO: this requires Manta >= r2439 but I can't check that programatically
-  // this->MantaEngine->setDisplayBeforeRender(false);
-  // this->MantaFactory = new Manta::Factory( this->MantaEngine );
+  // this->OSPRayEngine = OSPRay::createOSPRay();
+  // //TODO: this requires OSPRay >= r2439 but I can't check that programatically
+  // this->OSPRayEngine->setDisplayBeforeRender(false);
+  // this->OSPRayFactory = new OSPRay::Factory( this->OSPRayEngine );
   // this->Started = false;
 
-  // this->MantaScene = NULL;
-  // this->MantaWorldGroup = NULL;
-  // this->MantaLightSet = NULL;
-  // this->MantaCamera = NULL;
+  // this->OSPRayScene = NULL;
+  // this->OSPRayWorldGroup = NULL;
+  // this->OSPRayLightSet = NULL;
+  // this->OSPRayCamera = NULL;
   // this->SyncDisplay = NULL;
   // this->ChannelId = 0;
 
@@ -127,58 +126,58 @@ vtkOSPRayManager::~vtkOSPRayManager()
   //TODO: This is screwy but the only way I've found to get it to consistently
   //shutdown without hanging.
   //int i = 0;
-  v = this->MantaEngine->numWorkers();
-  this->MantaEngine->changeNumWorkers(0);
+  v = this->OSPRayEngine->numWorkers();
+  this->OSPRayEngine->changeNumWorkers(0);
   while (v != 0)
     {
     //cerr << "MX(" << this << ") SYNC " << i++ << " " << v << endl;
     if (this->SyncDisplay)
       {
       this->SyncDisplay->doneRendering();
-      v = this->MantaEngine->numWorkers();
+      v = this->OSPRayEngine->numWorkers();
       if (v != 0)
         {
         this->SyncDisplay->waitOnFrameReady();
         }
       }
-    v = this->MantaEngine->numWorkers();
+    v = this->OSPRayEngine->numWorkers();
     }
-  this->MantaEngine->finish();
-  this->MantaEngine->blockUntilFinished();
+  this->OSPRayEngine->finish();
+  this->OSPRayEngine->blockUntilFinished();
 
   //cerr << "MX(" << this << ") SYNC DONE " << i << " " << v << endl;
   //cerr << "MX(" << this << ") wait" << endl;
 
-  if (this->MantaLightSet)
+  if (this->OSPRayLightSet)
     {
-    delete this->MantaLightSet->getAmbientLight();
+    delete this->OSPRayLightSet->getAmbientLight();
     /*
     //let vtkOSPRayLight's delete themselves
-    Manta::Light *light;
-    for (unsigned int i = 0; i < this->MantaLightSet->numLights(); i++)
+    OSPRay::Light *light;
+    for (unsigned int i = 0; i < this->OSPRayLightSet->numLights(); i++)
       {
-      light = this->MantaLightSet->getLight(i);
+      light = this->OSPRayLightSet->getLight(i);
       delete light;
       }
     */
     }
-  delete this->MantaLightSet;
+  delete this->OSPRayLightSet;
 
-  delete this->MantaCamera;
+  delete this->OSPRayCamera;
 
-  if (this->MantaScene)
+  if (this->OSPRayScene)
     {
-    delete this->MantaScene->getBackground();
+    delete this->OSPRayScene->getBackground();
     }
-  delete this->MantaScene;
+  delete this->OSPRayScene;
 
-  delete this->MantaWorldGroup;
+  delete this->OSPRayWorldGroup;
 
-  delete this->MantaFactory;
+  delete this->OSPRayFactory;
 
   //delete this->SyncDisplay; //engine does this
 
-  delete this->MantaEngine;
+  delete this->OSPRayEngine;
 
   //cerr << "MX(" << this << ") good night Gracie" << endl;
   #endif
@@ -203,46 +202,46 @@ void vtkOSPRayManager::StartEngine(int maxDepth,
   //cerr << "MX(" << this << ") START" << endl;
   if (this->Started)
     {
-    cerr << "WARNING: Manta is already initted, ignoring reinitialize." << endl;
+    cerr << "WARNING: OSPRay is already initted, ignoring reinitialize." << endl;
     return;
     }
   this->Started = true;
 
-  // create an empty Manta scene with background
-  this->MantaScene = new Manta::Scene();
-  this->MantaScene->getRenderParameters().setMaxDepth( maxDepth );
-  this->MantaEngine->setScene( this->MantaScene );
+  // create an empty OSPRay scene with background
+  this->OSPRayScene = new OSPRay::Scene();
+  this->OSPRayScene->getRenderParameters().setMaxDepth( maxDepth );
+  this->OSPRayEngine->setScene( this->OSPRayScene );
 
-  Manta::ConstantBackground * background = new Manta::ConstantBackground(
-    Manta::Color(Manta::RGBColor( bgColor[0], bgColor[1], bgColor[2] )));
-  this->MantaScene->setBackground( background );
+  OSPRay::ConstantBackground * background = new OSPRay::ConstantBackground(
+    OSPRay::Color(OSPRay::RGBColor( bgColor[0], bgColor[1], bgColor[2] )));
+  this->OSPRayScene->setBackground( background );
 
   // create empty world groups
-  this->MantaWorldGroup = new Manta::Group();
-  this->MantaScene->setObject( this->MantaWorldGroup );
+  this->OSPRayWorldGroup = new OSPRay::Group();
+  this->OSPRayScene->setObject( this->OSPRayWorldGroup );
 
   // create empty LightSet with ambient light
-  this->MantaLightSet = new Manta::LightSet();
-  this->MantaLightSet->setAmbientLight(
-    new Manta::ConstantAmbient(
-    Manta::Color(Manta::RGBColor( ambient[0], ambient[1], ambient[2] ))));
-  this->MantaScene->setLights( this->MantaLightSet );
+  this->OSPRayLightSet = new OSPRay::LightSet();
+  this->OSPRayLightSet->setAmbientLight(
+    new OSPRay::ConstantAmbient(
+    OSPRay::Color(OSPRay::RGBColor( ambient[0], ambient[1], ambient[2] ))));
+  this->OSPRayScene->setLights( this->OSPRayLightSet );
 
-  // create the mantaCamera singleton,
+  // create the OSPRayCamera singleton,
   // it is the only camera we create per renderer
-  this->MantaCamera = this->MantaFactory->
+  this->OSPRayCamera = this->OSPRayFactory->
     createCamera( "pinhole(-normalizeRays -createCornerRays)" );
 
-  // Use SyncDisplay with Null Display to stop Manta engine at each frame,
-  // the image is combined with OpenGL framebuffer by vtkXMantaRenderWindow
+  // Use SyncDisplay with Null Display to stop OSPRay engine at each frame,
+  // the image is combined with OpenGL framebuffer by vtkXOSPRayRenderWindow
   std::vector<std::string> vs;
-  this->SyncDisplay = new Manta::SyncDisplay( vs );
-  this->SyncDisplay->setChild(  new Manta::NullDisplay( vs )  );
+  this->SyncDisplay = new OSPRay::SyncDisplay( vs );
+  this->SyncDisplay->setChild(  new OSPRay::NullDisplay( vs )  );
 
   //Set image size
-  this->ChannelId = this->MantaEngine->createChannel
+  this->ChannelId = this->OSPRayEngine->createChannel
     ( this->SyncDisplay,
-      this->MantaCamera,
+      this->OSPRayCamera,
       stereo, size[0], size[1] );
 
     // ospray::vec2i newSize(size[0],size[1]);
