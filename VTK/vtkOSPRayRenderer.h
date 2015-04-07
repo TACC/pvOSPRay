@@ -171,15 +171,6 @@ public:
   // }
   //ETX
 
-  //Description:
-  //Internal callbacks for OSPRay thread use.
-  //Do not call them directly.
-  void InternalSetBackground();
-  void InternalClearLights();
-  void InternalSetNumberOfWorkers();
-  void InternalSetShadows();
-  void InternalSetSamples();
-  void InternalSetMaxDepth();
 
 protected:
   vtkOSPRayRenderer();

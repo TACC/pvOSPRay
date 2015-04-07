@@ -56,7 +56,7 @@
         <string>Controls multisample rendering.</string>
        </property>
        <property name="minimum">
-        <number>1</number>
+        <number>16</number>
        </property>
       </widget>
      </item>
@@ -108,7 +108,8 @@
       <string>Shadows</string>
      </property>
     </widget> -->
-    <widget class="QCheckBox" name="ao">
+    <!--
+     <widget class="QCheckBox" name="ao">
      <property name="toolTip">
       <string>Enable/Disable AO</string>
      </property>
@@ -116,9 +117,10 @@
       <string>Ambient Occlusion</string>
      </property>
      <property name="checked">
-      <bool>false</bool>
+      <bool>true</bool>
     </property>
-    </widget>
+    </widget> 
+  -->
    </item>
   </layout>
  </widget>

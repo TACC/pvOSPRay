@@ -107,10 +107,13 @@ vtkOSPRayRenderer::vtkOSPRayRenderer()
 
   // this->OSPRayRenderer = ospNewRenderer("obj");
   // this->OSPRayRenderer = ospNewRenderer("pathtracer");
+  bool ao = EnableAO;
+  EnableAO=-1;
+  // SetEnableAO(ao);
   if (EnableAO)
-    this->OSPRayManager->OSPRayRenderer = ospNewRenderer("ao4");
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
   else
-    this->OSPRayManager->OSPRayRenderer = ospNewRenderer("obj");
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   this->OSPRayManager->OSPRayModel = ospNewModel();  //Carson: note: static needed, it seems they are freed in scope
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
@@ -125,7 +128,7 @@ vtkOSPRayRenderer::vtkOSPRayRenderer()
   ospSetParam(oRenderer,"model",oModel);
   ospSetParam(oRenderer,"camera",oCamera);
   ospSet1i(oRenderer,"spp",Samples);
-  ospSet3f(oRenderer,"bgColor",0.8,0.8,0.8);
+  ospSet3f(oRenderer,"bgColor",0.83,0.35,0.43);
   ospCommit(oModel);
   ospCommit(oCamera);
   ospCommit(oRenderer);
@@ -231,63 +234,16 @@ void vtkOSPRayRenderer::SetBackground(double r, double g, double b)
 {
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   ospSet3f(oRenderer,"bgColor",r,g,b);
-  // if ((this->Background[0] != r)||
-  //     (this->Background[1] != g)||
-  //     (this->Background[2] != b))
-  // {
-  // this->Superclass::SetBackground(r,g,b);
-  // this->OSPRayEngine->addTransaction
-    // ( "set background",
-      // OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetBackground));
-  // };
-}
-
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::InternalSetBackground()
-{
-  // double *color = this->GetBackground();
-  // OSPRay::ConstantBackground * background = new OSPRay::ConstantBackground(
-  //   OSPRay::Color(  OSPRay::RGBColor( color[0], color[1], color[2] )  )  );
-
-  // delete this->OSPRayScene->getBackground();
-  // this->OSPRayScene->setBackground( background );
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::ClearLights(void)
 {
-  // this->OSPRayEngine->addTransaction
-  //   ( "clear lights",
-  //     OSPRay::Callback::create( this, &vtkOSPRayRenderer::InternalClearLights));
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::Clear()
 {
-  // printf("vtkOSPRayRenderer::Clear\n");
-  // this->OSPRayManager->OSPRayModel = ospNewModel();
-  // ospSetParam(this->OSPRayManager->OSPRayRenderer,"world", this->OSPRayManager->OSPRayModel);
-  // ospSetParam(this->OSPRayManager->OSPRayRenderer,"model", this->OSPRayManager->OSPRayModel);
-  // ospCommit(this->OSPRayManager->OSPRayModel);
-  // ospCommit(this->OSPRayManager->OSPRayRenderer);
-  // this->OSPRayEngine->addTransaction
-  //   ( "clear lights",
-  //     OSPRay::Callback::create( this, &vtkOSPRayRenderer::InternalClearLights));
-}
-
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::InternalClearLights(void)
-{
-  // if (this->OSPRayLightSet)
-  //   {
-  //   delete this->OSPRayLightSet->getAmbientLight();
-  //   for ( unsigned int i = 0; i < this->OSPRayLightSet->numLights(); i ++ )
-  //     {
-  //     OSPRay::Light *light = this->OSPRayLightSet->getLight( i );
-  //     this->OSPRayLightSet->remove( light );
-  //     delete light;
-  //     }
-  //   }
 }
 
 //----------------------------------------------------------------------------
@@ -727,56 +683,21 @@ void vtkOSPRayRenderer::PrintSelf( ostream& os, vtkIndent indent )
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetNumberOfWorkers( int newval )
 {
-  #if 0
   if (this->NumberOfWorkers == newval)
     {
     return;
     }
-  this->NumberOfWorkers = newval;
-  this->OSPRayEngine->addTransaction
-    ( "set max depth",
-      OSPRay::Callback::create
-      (this, &vtkOSPRayRenderer::InternalSetNumberOfWorkers));
-  this->Modified();
-  #endif
-}
-
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::InternalSetNumberOfWorkers()
-{
-  // this->OSPRayEngine->changeNumWorkers( this->NumberOfWorkers );
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetEnableShadows( int newval )
 {
-  #if 0
   if (this->EnableShadows == newval)
     {
     return;
     }
 
   this->EnableShadows = newval;
-  this->OSPRayEngine->addTransaction
-    ( "set shadows",
-      OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetShadows));
-  this->Modified();
-  #endif
-}
-
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::InternalSetShadows()
-{
-  #if 0
-  if (this->EnableShadows)
-    {
-    this->OSPRayFactory->selectShadowAlgorithm( "hard(-attenuateShadows)" );
-    }
-  else
-    {
-    this->OSPRayFactory->selectShadowAlgorithm( "noshadows" );
-    }
-    #endif
 }
 
 //----------------------------------------------------------------------------
@@ -793,22 +714,13 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
 
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
-  // if (!renderer)
-    // return;
+
   PRINT(renderer);
   Assert(renderer);
-
-  // renderer = ospNewRenderer("ao16");
-  // renderer = ospNewRenderer("obj");
-  // Assert(oRenderer != NULL && "could not create renderer");
 
   ospSet1i(renderer,"spp",Samples);
   ospCommit(renderer);
 
-  // this->OSPRayEngine->addTransaction
-    // ( "set samples",
-      // OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetSamples));
-  // this->Modified();
   #endif
 }
 
@@ -824,30 +736,9 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   this->EnableAO = newval;
 
-
-  // OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
-  // if (!renderer)
-    // return;
-  // PRINT(renderer);
-  // Assert(renderer);
-
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
 
-  // _width = _height = 0;
-  // setSize(params.width,params.height);
-      // Assert(camera != NULL && "could not create camera");
-      // ospSet3f(camera,"pos",-1,1,-1);
-      // ospSet3f(camera,"dir",+1,-1,+1);
-      // ospCommit(camera);
-
-// {
-  // static OSPRenderer oRenderer = ospNewRenderer("raycast_eyelight");
-  // static OSPRenderer oRenderer = ospNewRenderer("ao16");
-
-  // ospLoadModule("pathtracer");
-  // this->OSPRayRenderer = ospNewRenderer("obj");
-  // this->OSPRayRenderer = ospNewRenderer("pathtracer");
   if (newval != 0)
   {
     printf("using ao\n");
@@ -857,70 +748,23 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
-  // renderer = ospNewRenderer("ao16");
-  // renderer = ospNewRenderer("obj");
   Assert(oRenderer != NULL && "could not create renderer");
 
   ospSetParam(oRenderer,"world",oModel);
   ospSetParam(oRenderer,"model",oModel);
   ospSetParam(oRenderer,"camera",oCamera);
 
-
-  // renderer = ospNewRenderer("ao16");
-  // renderer = ospNewRenderer("obj");
-  // Assert(oRenderer != NULL && "could not create renderer");
-
-  // ospSet1i(renderer,"spp",Samples);
   ospCommit(oRenderer);
-
-  // this->OSPRayEngine->addTransaction
-    // ( "set samples",
-      // OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetSamples));
-  // this->Modified();
   #endif
-}
-
-
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::InternalSetSamples()
-{
-  #if 0
-  if (this->Samples <= 1)
-    {
-    this->OSPRayFactory->selectPixelSampler( "singlesample" );
-    }
-  else
-    {
-    char buff[80];
-    sprintf(buff, "regularsample(-numberOfSamples %d)", this->Samples);
-    this->OSPRayFactory->selectPixelSampler(buff);
-    //this->OSPRayFactory->selectPixelSampler(
-    //"jittersample(-numberOfSamples 16)");
-    }
-    #endif
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetMaxDepth( int newval )
 {
-  #if 0
   if (this->MaxDepth == newval)
     {
     return;
     }
 
   this->MaxDepth = newval;
-  this->OSPRayEngine->addTransaction
-    ( "set max depth",
-      OSPRay::Callback::create(this, &vtkOSPRayRenderer::InternalSetMaxDepth));
-  this->Modified();
-  #endif
-}
-
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::InternalSetMaxDepth()
-{
-  #if 0
-  this->OSPRayScene->getRenderParameters().setMaxDepth( this->MaxDepth );
-  #endif
 }

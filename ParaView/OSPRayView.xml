@@ -58,7 +58,7 @@
         command="SetEnableAO"
         immediate_update="1"
         number_of_elements="1"
-        default_values="0">
+        default_values="1">
         <BooleanDomain name="bool" />
         <Documentation>
           Turns on AO.
@@ -69,7 +69,7 @@
         command="SetSamples"
         immediate_update="1"
         number_of_elements="1"
-        default_values="1">
+        default_values="16">
         <IntRangeDomain name="range" min="1" />
         <Documentation>
           Controls multisampling.
