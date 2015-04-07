@@ -56,6 +56,9 @@
         <string>Controls multisample rendering.</string>
        </property>
        <property name="minimum">
+        <number>1</number>
+       </property>
+      <property name="value">
         <number>16</number>
        </property>
       </widget>
@@ -99,7 +102,7 @@
      </property>
     </spacer>
    </item>
-   <item row="2" column="0">
+    <item row="2" column="0">
     <!-- <widget class="QCheckBox" name="shadows">
      <property name="toolTip">
       <string>Enable/Disable shadows</string>
@@ -108,7 +111,7 @@
       <string>Shadows</string>
      </property>
     </widget> -->
-     <widget class="QCheckBox" name="ao">
+    <widget class="QCheckBox" name="ao">
      <property name="toolTip">
       <string>Enable/Disable AO</string>
      </property>
@@ -117,9 +120,12 @@
      </property>
      <property name="checked">
       <bool>true</bool>
+    </property>     
+    <property name="enabled">
+      <bool>false</bool>
     </property>
     </widget> 
-   </item>
+   </item> 
   </layout>
  </widget>
  <resources/>

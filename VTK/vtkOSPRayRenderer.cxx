@@ -250,7 +250,28 @@ void vtkOSPRayRenderer::Clear()
 // Ask lights to load themselves into graphics pipeline.
 int vtkOSPRayRenderer::UpdateLights()
 {
-  #if 0
+
+  OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
+      std::vector<OSPLight> pointLights;
+      std::vector<OSPLight> directionalLights;
+
+      // std::vector<OSPLight> pointLights;
+    // cout << "msgView: Adding a hard coded directional light as the sun." << endl;
+      /*
+    OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
+    ospSetString(ospLight, "name", "sun" );
+    ospSet3f(ospLight, "color", .6, .6, .55);
+    ospSet3f(ospLight, "direction", -1, -1, 0);
+    ospCommit(ospLight);
+    directionalLights.push_back(ospLight);
+    OSPLight ospLight2 = ospNewLight(renderer, "DirectionalLight");
+    ospSetString(ospLight2, "name", "shadow" );
+    ospSet3f(ospLight2, "color", .3, .35, .4);
+    ospSet3f(ospLight2, "direction", 1, .5, 0);
+    ospCommit(ospLight2);
+    directionalLights.push_back(ospLight);
+    */
+
   // convert VTK lights into OSPRay lights
   vtkCollectionSimpleIterator sit;
   this->Lights->InitTraversal( sit );
@@ -266,34 +287,77 @@ int vtkOSPRayRenderer::UpdateLights()
       noneOn = false;
       }
     //OSPRay lights set intensity to 0.0 if switched off, so render regardless
-    vLight->Render( this, 0 /* not used */ );
+    // vLight->Render( this, 0 /* not used */ );
+      vtkLight* light = vLight;
+
+        double *color, *position, *focal, direction[3];
+
+  // OSPRay Lights only have one "color"
+  color    = light->GetDiffuseColor();
+  position = light->GetTransformedPosition();
+  focal    = light->GetTransformedFocalPoint();
+
+  if (light->GetPositional())
+    {
+              OSPLight ospLight = ospNewLight(renderer, "OBJPointLight");
+    ospSetString(ospLight, "name", "point" );
+    ospSet3f(ospLight, "color", color[0],color[1],color[2]);
+    ospSet3f(ospLight, "position", position[0],position[1],position[2]);
+    ospCommit(ospLight);
+    pointLights.push_back(ospLight);
+    std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+    // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
+    // ospSetData(renderer, "pointLights", pointLightArray); 
+    // this->OSPRayLight = new OSPRay::PointLight(
+    //   OSPRay::Vector(position[0], position[1], position[2]),
+    //   OSPRay::Color(OSPRay::RGBColor(color[0],color[1],color[2])));
+    }
+  else
+    {
+    // "direction" in OSPRay means the direction toward light source rather than the
+    // direction of rays originate from light source
+    direction[0] = position[0] - focal[0];
+    direction[1] = position[1] - focal[1];
+    direction[2] = position[2] - focal[2];
+        OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
+    ospSetString(ospLight, "name", "sun" );
+    ospSet3f(ospLight, "color", color[0],color[1],color[2]);
+    ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
+    ospCommit(ospLight);
+    directionalLights.push_back(ospLight);
+    std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+        // OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
+    // ospSetData(renderer, "directionalLights", pointLightArray);
+
+    // this->OSPRayLight = new OSPRay::DirectionalLight(
+    //   OSPRay::Vector(direction[0], direction[1], direction[2]),
+    //   OSP
     }
 
   if (noneOn)
     {
-    if (this->OSPRayLightSet->numLights()==0 )
+    // if (this->OSPRayLightSet->numLights()==0 )
       {
       // there is no VTK light nor OSPRayLight defined, create a OSPRay headlight
       cerr
         << "No light defined, creating a headlight at camera position" << endl;
-      this->DefaultLight =
-        new OSPRay::HeadLight( 0, OSPRay::Color( OSPRay::RGBColor( 1, 1, 1 ) ) );
-      this->OSPRayEngine->addTransaction
-        ("add headlight",
-         OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::add,
-                                  this->DefaultLight ) );
+      // this->DefaultLight =
+      //   new OSPRay::HeadLight( 0, OSPRay::Color( OSPRay::RGBColor( 1, 1, 1 ) ) );
+      // this->OSPRayEngine->addTransaction
+      //   ("add headlight",
+      //    OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::add,
+      //                             this->DefaultLight ) );
       }
     }
   else
     {
-    if (this->DefaultLight)
-      {
-      OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::remove,
-                               this->DefaultLight );
-      this->DefaultLight = NULL;
-      }
     }
-  #endif
+  }
+
+    OSPData directionalLightsArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
+    ospSetData(renderer, "directionalLights", directionalLightsArray);
+    OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
+    ospSetData(renderer, "pointLights", pointLightArray); 
 
   return 0;
 }
@@ -523,22 +587,22 @@ void vtkOSPRayRenderer::LayerRender()
 
               //TODO: Need to figure out where we're going to read lighting data from
     //begin light test
-    std::vector<OSPLight> pointLights;
-    // cout << "msgView: Adding a hard coded directional light as the sun." << endl;
-    OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
-    ospSetString(ospLight, "name", "sun" );
-    ospSet3f(ospLight, "color", .6, .6, .55);
-    ospSet3f(ospLight, "direction", -1, -1, 0);
-    ospCommit(ospLight);
-    pointLights.push_back(ospLight);
-    OSPLight ospLight2 = ospNewLight(renderer, "DirectionalLight");
-    ospSetString(ospLight2, "name", "shadow" );
-    ospSet3f(ospLight2, "color", .3, .35, .4);
-    ospSet3f(ospLight2, "direction", 1, .5, 0);
-    ospCommit(ospLight2);
-    pointLights.push_back(ospLight);
-    OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
-    ospSetData(renderer, "directionalLights", pointLightArray);
+    // std::vector<OSPLight> pointLights;
+    // // cout << "msgView: Adding a hard coded directional light as the sun." << endl;
+    // OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
+    // ospSetString(ospLight, "name", "sun" );
+    // ospSet3f(ospLight, "color", .6, .6, .55);
+    // ospSet3f(ospLight, "direction", -1, -1, 0);
+    // ospCommit(ospLight);
+    // pointLights.push_back(ospLight);
+    // OSPLight ospLight2 = ospNewLight(renderer, "DirectionalLight");
+    // ospSetString(ospLight2, "name", "shadow" );
+    // ospSet3f(ospLight2, "color", .3, .35, .4);
+    // ospSet3f(ospLight2, "direction", 1, .5, 0);
+    // ospCommit(ospLight2);
+    // pointLights.push_back(ospLight);
+    // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
+    // ospSetData(renderer, "directionalLights", pointLightArray);
 // updateCamera();
   ospCommit(renderer);
   ospCommit(ospModel);

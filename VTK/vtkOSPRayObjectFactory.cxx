@@ -86,11 +86,11 @@ vtkOSPRayObjectFactory::vtkOSPRayObjectFactory()
                          "OSPRay",
                          1,
                          vtkObjectFactoryCreatevtkOSPRayCamera);
-  this->RegisterOverride("vtkLight",
+  /*this->RegisterOverride("vtkLight",
                          "vtkOSPRayLight",
                          "OSPRay",
                          1,
-                         vtkObjectFactoryCreatevtkOSPRayLight);
+                         vtkObjectFactoryCreatevtkOSPRayLight);*/
   this->RegisterOverride("vtkPolyDataMapper",
                          "vtkOSPRayPolyDataMapper",
                          "OSPRay",
