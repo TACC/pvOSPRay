@@ -34,6 +34,7 @@
 
 #include "vtkRenderingVolumeModule.h" // For export macro
 #include "vtkAbstractVolumeMapper.h"
+#include "vtkOSPRayModule.h"
 
 class vtkRenderer;
 class vtkVolume;
@@ -47,9 +48,10 @@ class vtkImageData;
 
 class vtkWindow;
 
-class VTKRENDERINGVOLUME_EXPORT vtkOSPRayVolumeMapper : public vtkAbstractVolumeMapper
+class VTKOSPRAY_EXPORT vtkOSPRayVolumeMapper : public vtkAbstractVolumeMapper
 {
 public:
+  static vtkOSPRayVolumeMapper *New();
   vtkTypeMacro(vtkOSPRayVolumeMapper,vtkAbstractVolumeMapper);
   void PrintSelf( ostream& os, vtkIndent indent );
 
@@ -126,7 +128,7 @@ public:
   // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
   // DO NOT USE THIS METHOD OUTSIDE OF THE RENDERING PROCESS
   // Render the volume
-  virtual void Render(vtkRenderer *ren, vtkVolume *vol)=0;
+  virtual void Render(vtkRenderer *ren, vtkVolume *vol);
 
   // Description:
   // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE

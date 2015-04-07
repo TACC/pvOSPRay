@@ -1355,15 +1355,5 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         delete mesh;
     }
 
-    // if (group->size())
-    //   {
-    //   OSPRayActor->SetGroup(group);
-    //   }
-    // else
-    //   {
-    //   OSPRayActor->SetGroup(NULL);
-    //   delete group;
-    //   //cerr << "NOTHING TO SEE" << endl;
-    //   }
-#endif
+    #endif
 }

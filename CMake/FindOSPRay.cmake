@@ -34,7 +34,7 @@ IF(NOT OSPRAY_DIR)
 ENDIF(NOT OSPRAY_DIR)
 
 FIND_PATH(OSPRAY_CMAKE_DIR ospray.cmake
-  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/cmake ${PROJECT_SOURCE_DIR}/../../../OSPRay/cmake
+  HINTS ${PROJECT_SOURCE_DIR}/../OSPRay/cmake ${PROJECT_SOURCE_DIR}/../../../OSPRay/cmake ${OSPRAY_DIR}/cmake
   DOC "OSPRay cmake directory"
   )
 IF(NOT OSPRAY_CMAKE_DIR)

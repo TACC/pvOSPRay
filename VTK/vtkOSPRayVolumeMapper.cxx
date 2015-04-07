@@ -28,6 +28,9 @@
 #include "vtkInformation.h"
 
 
+vtkStandardNewMacro(vtkOSPRayVolumeMapper);
+
+
 // Construct a vtkOSPRayVolumeMapper with empty scalar input and clipping off.
 vtkOSPRayVolumeMapper::vtkOSPRayVolumeMapper()
 {
@@ -49,6 +52,11 @@ vtkOSPRayVolumeMapper::vtkOSPRayVolumeMapper()
 
 vtkOSPRayVolumeMapper::~vtkOSPRayVolumeMapper()
 {
+}
+
+void vtkOSPRayVolumeMapper::Render(vtkRenderer *ren, vtkVolume *vol)
+{
+
 }
 
 void vtkOSPRayVolumeMapper::ConvertCroppingRegionPlanesToVoxels()

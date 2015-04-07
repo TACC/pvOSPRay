@@ -59,7 +59,8 @@ SET ( OSPRAY_CLASSES
   vtkOSPRayRenderer.cxx
   vtkOSPRayTestSource.cxx
   vtkOSPRayTexture.cxx
-  vtkOSPRayVolumeMapper.cxx
+  vtkOSPRayVolumeRayCastMapper.h
+  vtkOSPRayVolumeRayCastMapper.cxx
   )
 
 IF (BUILD_AGAINST_PARAVIEW)
@@ -67,6 +68,8 @@ IF (BUILD_AGAINST_PARAVIEW)
   SET ( OSPRAY_CLASSES ${OSPRAY_CLASSES}
     vtkOSPRayLODActor.cxx
     vtkPVOSPRayRepresentation.cxx
+    vtkPVOSPRayImageVolumeRepresentation.cxx
+    vtkPVOSPRayImageVolumeRepresentation.h
     vtkOSPRayCompositeMapper.cxx)
 ENDIF (BUILD_AGAINST_PARAVIEW)
 
