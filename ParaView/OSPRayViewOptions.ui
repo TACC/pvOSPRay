@@ -108,7 +108,6 @@
       <string>Shadows</string>
      </property>
     </widget> -->
-    <!--
      <widget class="QCheckBox" name="ao">
      <property name="toolTip">
       <string>Enable/Disable AO</string>
@@ -120,7 +119,6 @@
       <bool>true</bool>
     </property>
     </widget> 
-  -->
    </item>
   </layout>
  </widget>
