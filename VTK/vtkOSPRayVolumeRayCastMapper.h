@@ -29,6 +29,8 @@
                                       // and vtkVolumeRayCastDynamicInfo
 #include "vtkOSPRayModule.h"
 
+
+
 class vtkEncodedGradientEstimator;
 class vtkEncodedGradientShader;
 class vtkMatrix4x4;
@@ -41,6 +43,10 @@ class vtkVolumeRayCastFunction;
 class vtkVolumeTransform;
 class vtkTransform;
 class vtkRayCastImageDisplayHelper;
+
+
+class vtkOSPRayManager;
+
 
 // Macro for tri-linear interpolation - do four linear interpolations on
 // edges, two linear interpolations between pairs of edges, then a final
@@ -258,6 +264,14 @@ protected:
   // are indexing into the ImageInUse image. This must be converted to
   // the zbuffer image coordinates. Nearest neighbor value is returned.
   double         GetZBufferValue( int x, int y );
+
+//
+//OSPRay
+//
+
+
+  vtkOSPRayManager *OSPRayManager;
+
 
 private:
   vtkOSPRayVolumeRayCastMapper(const vtkOSPRayVolumeRayCastMapper&);  // Not implemented.
