@@ -1,0 +1,329 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<meta name="description" content="pvOSPRay: a ParaView Module for the OSPRay Ray Tracer">
+	<link rel="stylesheet" type="text/css" media="screen" href="../css/stylesheet.css">
+	<title>pvOSPRay</title>
+	<link rel="icon" type="image/png" href="./images/fiu192.png" sizes="192x192">
+	<link rel="SHORTCUT ICON" href="./images/fiu32.ico">
+	<style type="text/css"></style></head>
+
+	<body>
+		<div id="header">
+			<div id="header-github">
+				<a id="forkme-banner" href="https://github.com/TACC/pvOSPRay">View on GitHub</a>
+			</div>
+			<div id="header-title">pvOSPRay</div>
+			<div id="header-subtitle">A ParaView Module for the OSPRay Ray Tracer</div>
+			<div id="header-navbar">
+				<ul>
+					<li><a href="http://tacc.github.io/pvOSPRay/index.html">Overview</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/demos.html">Demos</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/gallery.html">Gallery</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/getting_pvospray.html">Getting pvOSPRay</a></li>
+					<li><a href="https://github.com/TACC/pvOSPRay/wiki">Wiki</a></li>
+					<li><a href="https://github.com/TACC/pvOSPRay/issues">Bugs/Issues</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/related_projects.html">Related Projects</a></li>
+				</ul>
+			</div>
+			<div id="header-spacing"></div> 
+		</div>
+
+		<div id="content-wrap">
+			<div id="content">
+
+<h1>pvOSPRay Basic Walk-Through</h1>
+
+<p>
+This demo provides a basic walk-through of how to enable and use pvOSPRay within ParaView.
+If you do not yet have a version of pvOSPRay installed on your system, you can follow these
+<a href="getting_pvospray.html">instructions for getting pvOSPRay</a>. 
+</p>
+
+<p>
+In this demo, you will:
+<ol>
+<li>Create a wavelet object drawn using the default ParaView rasterizer (<a href="#raster">jump to this step</a>)</li>
+<li>Load the pvOSPRay plugin (<a href="#plugin">jump to this step</a>)</li>
+<li>Render the wavelet object using OSPRay (<a href="#ospray">jump to this step</a>)</li>
+<li>Change OSPRay settings to affect quality and performance (<a href="#settings">jump to this step</a>)</li>
+</ol>
+</p>
+
+<p>
+Each demo image below is linked to a larger version for your reference. Just click the image to open the larger version.
+</p>
+
+  <!-- ------------------------------------------------------- -->
+
+<h2><a name="raster">Creating a Rasterized Object</a></h2>
+<p>
+The first task in this demo is to create a simple yet interesting object to render. The ParaView wavelet source
+is well-suited to this task, as it has more varied features than a simple geometric shape like a cone or sphere. However,
+the wavelet source creates a volume by default, so we will extract several isosurfaces from the volume to create our object.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, open ParaView. The images used in this demo are taken from a MacOSX build, but Linux and Windows builds are similar. You should
+			see the ParaView workspace, similar to the image to the right.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_01.png"><img src="walkthrough_images/pvOSPRay_01.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			Next, select the "Sources" menu from the ParaView menu bar (at the top of the application window in Linux and Windows, at the top of the desktop in MacOSX).
+			In the Sources menu, select "Wavelet".
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_02b.png"><img src="walkthrough_images/pvOSPRay_02b.png" height=274></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This will create a Wavelet source in the ParaView Pipeline Browser and a wireframe of the wavelet volume in the Layout #1 render window.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_03a.png"><img src="walkthrough_images/pvOSPRay_03a.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			Next, we will create a set of isosurfaces (also called "contours") in the wavelet data, which will provide visible surfaces to render.
+			Click the "Contour" button in the ParaView toolbar (the concentric half-spheres icon to the right of the calculator icon). 
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_03b.png"><img src="walkthrough_images/pvOSPRay_03b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			We have now added a contour filter, which by default creates a single isosurface at the midpoint value of the dataset. 
+			However, we would like to generate several surfaces to better show the shading capabilities of OSPRay.
+			Click the 'Add a range of values' button to the right of the Isosurfaces box in the Properties display.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_04b.png"><img src="walkthrough_images/pvOSPRay_04b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This opens the "Add Range" dialog. For this demo, we will change the number of steps to 5, rather than use the default of 10. 
+			(We encourage you to experiment both with the step value and the range endpoints to create different surfaces.)
+			<br><br>
+			When you have adjusted the values to your liking, click the "OK" button.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_05.png"><img src="walkthrough_images/pvOSPRay_05.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The Isosurfaces box in the Properties display now contains five isovalues. 
+			Click the "Apply" button at the top of the Properties display to create the isosurfaces.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_06b.png"><img src="walkthrough_images/pvOSPRay_06b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The wavelet isosurfaces should now be rendered in the Layout #1 display window, similar to the image to the right.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_07.png"><img src="walkthrough_images/pvOSPRay_07.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+  <!-- ------------------------------------------------------- -->
+<h2><a name="plugin">Loading the pvOSPRay plugin</a></h2>
+<p>
+The next task in this demo will load the pvOSPRay plugin so that you can render images using OSPRay. 
+The plugin is not loaded by default, so we will use ParaView's dynamic plugin mechanism to load pvOSPRay.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, open the ParaView Plugin Manager dialog. Select the "Tools" menu from the ParaView menu bar (at the top of the application window in Linux
+			and Windows, at the top of the desktop in MacOSX). 
+			<br><br>
+			In the Tools menu, select "Manage Plugins...".
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_08b.png"><img src="walkthrough_images/pvOSPRay_08b.png" height=274></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This will open the ParaView Plugin Manager dialog. Find the pvOSPRay plugin in the Local Plugins list on the right. Select pvOSPRay by clicking on it.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_09.png"><img src="walkthrough_images/pvOSPRay_09.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			After selecting pvOSPRay from the list, click the "Load Selected" button.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_09b.png"><img src="walkthrough_images/pvOSPRay_09b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The Property value next to pvOSPRay should now show "Loaded", indicating that the plugin has successfully been connected to ParaView.
+			<br><br> 
+			Close the Plugin Manager dialog. OSPRay is now ready for use!
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_10b.png"><img src="walkthrough_images/pvOSPRay_10b.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+
+  <!-- ------------------------------------------------------- -->
+<h2><a name="ospray">Rendering using OSPRay</a></h2>
+
+<p>
+Loading the pvOSPRay plugin makes OSPRay rendering available, but you must explicitly open an OSPRay display to use it.
+This demo task will open an OSPRay display and render the wavelet object using the OSPRay ray tracer.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, create a new display layout. Select the "+" icon next to "Layout #1" above the display window to add a new display layout. 
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_11b.png"><img src="walkthrough_images/pvOSPRay_11b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This opens a blank display with various view options. Select "OSPRay" from the Create View list.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_12b.png"><img src="walkthrough_images/pvOSPRay_12b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The OSPRay display is now open, but nothing is rendered yet, since all the pipeline objects in the new display are hidden by default.
+			<br><br>
+			Show the wavelet isosurfaces by clicking on the eye icon next to the Contour in the Pipeline Browser.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_13b.png"><img src="walkthrough_images/pvOSPRay_13b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The OSPRay-rendered wavelet surfaces are now displayed in Layout #2. You can swap between the raster version in Layout #1 and the 
+			ray-traced version in Layout #2 by clicking on the respective layout tabs. The active tab is highlighted (here, in blue).
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_14b.png"><img src="walkthrough_images/pvOSPRay_14b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The OSPRay renderer has Ambient Occlusion (AO) enabled by default. This shading technique creates realistic shadowing effects more efficiently than 
+			a full global illumination approximation. Notice that the surface texture and interior regions are much more apparent in the OSPRay ray traced images 
+			(right) than in the rasterized images (left).
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_16b.png"><img src="walkthrough_images/pvOSPRay_16b_thumb.png" width=400></a>
+			<a href="walkthrough_images/pvOSPRay_22b.png"><img src="walkthrough_images/pvOSPRay_22b_thumb.png" width=400></a>
+		</td>
+	</tr>	
+</table>
+
+
+  <!-- ------------------------------------------------------- -->
+<h2><a name="settings">Changing OSPRay Settings</a></h2>
+
+<p>
+OSPRay has a number of settings that affect the speed and quality of the rendering. In general, higher-quality images take longer to produce.
+We recommend using efficient settings during data exploration, then increasing the quality settings for particular views of interest.
+<br>
+Most of OSPRay's settings are accessible through ParaView's toolbars and Properties display. 
+However, a few are accessible only through the ParaView Application Preferences dialog.
+This final demo task will show you how to set these and their effects on the rendered image.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, open the ParaView Settings dialog. 
+			<br><br>
+			In MacOSX, open the "ParaView" menu and select "Preferences..." (shown, left). 
+			<br><br>
+			In Linux, open the "Edit" menu and select "Settings..." (shown, right).  
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_17b.png"><img src="walkthrough_images/pvOSPRay_17b.png" height=274></a>
+			<a href="walkthrough_images/pvOSPRay_17c.png"><img src="walkthrough_images/pvOSPRay_17c.png" height=274></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This opens the Settings dialog. Highlight "OSPRay" in the left-side menu to see the OSPRay-specific settings.
+			<br><br>
+			"Sampes per Pixel" sets the number of rays traced for each pixel in the displayed image. <br>
+			Setting this value higher can improve image anti-aliasing (makes the image "smoother"), but can lower the frame rate.<br>
+			Setting this value lower can improve the frame rate (rendering is more interactive), but can increase image aliasing (makes the image "rougher").
+			<br><br>
+			"Max Ray Depth" sets the number of bounces the tracer allows before terminating a ray path. This setting applies to 
+			special material properties that require additional sampling, such as reflective materials; or special lighting properties, 
+			such as global illumination approximations.<br>
+			Setting this value higher can improve the sampling fidelity, but can lower the frame rate.<br>
+			Setting this value lower can improve the frame rate, but can lower the fidelity of the sampling.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_18.png"><img src="walkthrough_images/pvOSPRay_18.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The OSPRay images to this point have used four (4) samples per pixel. Set the value to 64 to see the difference in image quality and frame rate.
+			<br>
+			Click "OK" to close the dialog and to have the new settings take effect.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_19b.png"><img src="walkthrough_images/pvOSPRay_19b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			OSPRay now renders the wavelet surface using sixty-four samples per pixel.
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_20.png"><img src="walkthrough_images/pvOSPRay_20.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			Compare the image quality using four samples per pixel (left) versus sixty-four samples per pixel (right).
+		</td>
+		<td style="vertical-align:center" width=400>
+			<a href="walkthrough_images/pvOSPRay_20b.png"><img src="walkthrough_images/pvOSPRay_20b_thumb.png" width=400></a>
+		</td>
+	</tr>	
+</table>
+
+
+			</div>
+		</div>
+
+		<div id="footer">
+			<a href="http://tacc.github.io/pvOSPRay/">http://tacc.github.io/pvOSPRay/</a>
+		</div>
+
+</body></html>
