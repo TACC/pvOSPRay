@@ -359,11 +359,10 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
      printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
 
   //! Create an OSPRay transfer function.
-  transferFunction = ospNewTransferFunction("piecewise_linear");  exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
+  // transferFunction = ospNewTransferFunction("piecewise_linear");  exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
 
   //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
-  ospCommit(transferFunction);
-
+  // ospCommit(transferFunction);
 
     }
     #endif
