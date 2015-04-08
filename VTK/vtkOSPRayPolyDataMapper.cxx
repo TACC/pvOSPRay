@@ -1147,6 +1147,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         cerr << "Points : " << ptarray->GetNumberOfPoints() << endl;
         cerr << "Tuples : " << scalar->GetNumberOfTuples() << endl;
         cerr << "Name : " << scalar->GetName() << endl;
+        cerr << "Min : " << scalar->GetRange()[0] << " Max: " << scalar->GetRange()[1] << endl;
         cerr << "Components : " << scalar->GetNumberOfComponents() << endl;
 
         if(colorPerVertex) cerr << "Detected color per vertex" << endl; 
