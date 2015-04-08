@@ -760,6 +760,51 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
 }
 
 
+
+void FindAllData(vtkPolyData* polydata)
+{
+
+
+  std::cout << "------------------------------------------------ " << std::endl;
+
+  std::cout << "Normals: " << polydata->GetPointData()->GetNormals() << std::endl;
+ 
+  vtkIdType numberOfPointArrays = polydata->GetPointData()->GetNumberOfArrays();
+  std::cout << "Number of PointData arrays: " << numberOfPointArrays << std::endl;
+ 
+  vtkIdType numberOfCellArrays = polydata->GetCellData()->GetNumberOfArrays();
+  std::cout << "Number of CellData arrays: " << numberOfCellArrays << std::endl;
+ 
+  std::cout << "Type table/key: " << std::endl;;
+  //more values can be found in <VTK_DIR>/Common/vtkSetGet.h
+  std::cout << VTK_UNSIGNED_CHAR << " unsigned char" << std::endl;
+  std::cout << VTK_UNSIGNED_INT << " unsigned int" << std::endl;
+  std::cout << VTK_FLOAT << " float" << std::endl;
+  std::cout << VTK_DOUBLE << " double" << std::endl;
+ 
+  for(vtkIdType i = 0; i < numberOfPointArrays; i++)
+    {
+    // The following two lines are equivalent
+    //arrayNames.push_back(polydata->GetPointData()->GetArray(i)->GetName());
+    //arrayNames.push_back(polydata->GetPointData()->GetArrayName(i));
+    int dataTypeID = polydata->GetPointData()->GetArray(i)->GetDataType();
+    std::cout << "Array " << i << ": " << polydata->GetPointData()->GetArrayName(i)
+              << " (type: " << dataTypeID << ")" << std::endl;
+    }
+ 
+  for(vtkIdType i = 0; i < numberOfCellArrays; i++)
+    {
+    // The following two lines are equivalent
+    //polydata->GetPointData()->GetArray(i)->GetName();
+    //polydata->GetPointData()->GetArrayName(i);
+    int dataTypeID = polydata->GetCellData()->GetArray(i)->GetDataType();
+    std::cout << "Array " << i << ": " << polydata->GetCellData()->GetArrayName(i)
+              << " (type: " << dataTypeID << ")" << std::endl;
+    }
+  std::cout << "------------------------------------------------ " << std::endl;
+}
+
+
 //----------------------------------------------------------------------------
 // Draw method for OSPRay.
 void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
@@ -963,6 +1008,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             double *tcoord = this->ColorCoordinates->GetTuple(i);
             //   texCoords.push_back( OSPRay::Vector(tcoord[0], 0, 0) );
             mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0],0));
+            // texCoords.push_back(vtkosp::Vec2(tcoord[0],0));
             // mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
             // printf("texCoord: %f %f\n", tcoord[0], 0);
         }
@@ -1054,6 +1100,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
     }
 
     std::vector<ospray::vec3fa> slVertex;
+    std::vector<ospray::vec3fa> slColors;
     std::vector<int> slIndex;
     float slRadius;
 
@@ -1065,24 +1112,93 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         vtkIdType npts;
         vtkIdType *pts;
         vtkPoints *ptarray = points;
+
+    
+         //vtkPointData* scalars = input->GetPointData();
+         //vtkLookupTable* lut = scalars->GetLookupTable();
+
+        FindAllData(input);
+
+        int colorPerVertex = 0;
+        int colorPerCell = 0;
+
+        vtkUnsignedCharArray *colorArray = MapScalars(1.0);
+
+
+
+        //int ArrayId = inputInfo->Get(ARRAY_ID());
+
+        //cerr << "Array ID: " << ArrayId << endl;
+
+        cerr << "Color mode : " << actor->GetMapper()->GetColorModeAsString() << endl;
+        cerr << "Scalar mode : " << actor->GetMapper()->GetScalarModeAsString() << endl;
+        cerr << "Material mode : " << actor->GetMapper()->GetScalarMaterialModeAsString() << endl;
+
+
+        if(!colorArray) cerr << "No color map" << endl;
+
+
+
+        vtkDataArray* scalar = input->GetPointData()->GetArray(0);
+        vtkScalarsToColors* vstc = GetLookupTable();
+        if(!vstc) cerr << "Lookup table found map" << endl;
+
+
+        cerr << "Points : " << ptarray->GetNumberOfPoints() << endl;
+        cerr << "Tuples : " << scalar->GetNumberOfTuples() << endl;
+        cerr << "Name : " << scalar->GetName() << endl;
+        cerr << "Components : " << scalar->GetNumberOfComponents() << endl;
+
+        if(colorPerVertex) cerr << "Detected color per vertex" << endl; 
+        if(colorPerCell) cerr << "Detected color per cell" << endl; 
+
         double coord0[3];
         double coord1[3];
         vtkIdType cell;
 
 
+        std::vector<ospray::vec3fa> tmpColors;
+        vstc->SetVectorModeToMagnitude();
+
+        unsigned char* output = new unsigned char[scalar->GetNumberOfTuples()*3];
+        vstc->MapScalarsThroughTable(scalar,output,VTK_RGB);
+
+        for(int ii=0; ii < scalar->GetNumberOfTuples(); ii++) {
+            double color[3];
+            for(int jj=0; jj <3; jj++) {
+                color[jj] = float(output[ii*3+jj])/255.0;
+            }
+            tmpColors.push_back(ospray::vec3fa(color[0],color[1],color[2]));
+        }
+
+        delete output;
+
         std::vector<ospray::vec3fa> tmpPoints;
+        
         for(int ii=0; ii < ptarray->GetNumberOfPoints(); ii++) {
             ptarray->GetPoint(ii, coord0);
             tmpPoints.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
         }
+        
         slRadius = this->LineWidth / 0.005;
+
+
+
+
+
         while((cell = ca->GetNextCell(npts, pts))) {
+
+            
+
+
             if(npts <= 2) continue;
             slVertex.push_back(tmpPoints[pts[0]]);
+            slColors.push_back(tmpColors[pts[0]]);
 
             for (vtkIdType i = 1; i < npts; i++) {
                 slIndex.push_back(slVertex.size()-1);
                 slVertex.push_back(tmpPoints[pts[i]]);
+                slColors.push_back(tmpColors[pts[i]]);
                 //     //TODO: Make option to scale linewidth by scalar
                 //     OSPRay::TextureCoordinateCylinder *segment =
                 //       new OSPRay::TextureCoordinateCylinder
@@ -1322,8 +1438,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
                 OSPGeometry slGeometry = ospNewGeometry("streamlines");
                 Assert(slGeometry);
                 OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
+                OSPData color = ospNewData(slColors.size(),OSP_FLOAT3A,&slColors[0]);
                 OSPData index = ospNewData(slIndex.size(),OSP_INT,&slIndex[0]);
                 ospSetObject(slGeometry,"vertex",vertex);
+                ospSetObject(slGeometry,"vertex.color",color);
                 ospSetObject(slGeometry,"index",index);
                 ospSet1f(slGeometry,"radius",slRadius);
 

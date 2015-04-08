@@ -305,7 +305,7 @@ int vtkOSPRayRenderer::UpdateLights()
     ospSet3f(ospLight, "position", position[0],position[1],position[2]);
     ospCommit(ospLight);
     pointLights.push_back(ospLight);
-    std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+    // std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
     // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
     // ospSetData(renderer, "pointLights", pointLightArray); 
     // this->OSPRayLight = new OSPRay::PointLight(
@@ -325,7 +325,7 @@ int vtkOSPRayRenderer::UpdateLights()
     ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
     ospCommit(ospLight);
     directionalLights.push_back(ospLight);
-    std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+    //std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << " \n";
         // OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
     // ospSetData(renderer, "directionalLights", pointLightArray);
 
