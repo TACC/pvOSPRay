@@ -79,6 +79,7 @@ vtkOSPRayRenderer::vtkOSPRayRenderer()
   //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
   //OSPRayLightSet( 0 ), OSPRayCamera( 0 ), SyncDisplay( 0 )
 {
+  hasVolumeHack= false;
   //cerr << "MR(" << this << ") CREATE" << endl;
 
   // Default options
@@ -107,18 +108,30 @@ vtkOSPRayRenderer::vtkOSPRayRenderer()
 
   // this->OSPRayRenderer = ospNewRenderer("obj");
   // this->OSPRayRenderer = ospNewRenderer("pathtracer");
-  bool ao = EnableAO;
-  EnableAO=-1;
-  // SetEnableAO(ao);
-  if (EnableAO)
-    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
-  else
-    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
-  OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
+
+  // if (EnableAO)
+  //   this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
+  // else
+  //   this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   this->OSPRayManager->OSPRayModel = ospNewModel();  //Carson: note: static needed, it seems they are freed in scope
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   this->OSPRayManager->OSPRayCamera = ospNewCamera("perspective");
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
+
+  bool ao = EnableAO;
+  EnableAO=-1;
+  SetEnableAO(ao);
+  OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
+
+  this->OSPRayManager->OSPRayVolumeRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
+  this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
+  OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
+  OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
+  ospSetObject(vRenderer, "dynamic_model", vModel);
+
+  ospSetParam(vRenderer,"world",vModel);
+  ospSetParam(vRenderer,"model",vModel);
+  ospSetParam(vRenderer,"camera",oCamera);
 
   // renderer = ospNewRenderer("ao16");
   // renderer = ospNewRenderer("obj");
@@ -305,7 +318,7 @@ int vtkOSPRayRenderer::UpdateLights()
     ospSet3f(ospLight, "position", position[0],position[1],position[2]);
     ospCommit(ospLight);
     pointLights.push_back(ospLight);
-    std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+    // std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
     // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
     // ospSetData(renderer, "pointLights", pointLightArray); 
     // this->OSPRayLight = new OSPRay::PointLight(
@@ -325,7 +338,7 @@ int vtkOSPRayRenderer::UpdateLights()
     ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
     ospCommit(ospLight);
     directionalLights.push_back(ospLight);
-    std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+    // std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << " \n";
         // OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
     // ospSetData(renderer, "directionalLights", pointLightArray);
 
@@ -609,11 +622,28 @@ void vtkOSPRayRenderer::LayerRender()
     //end light test
 
   // printf("render\n");
-
-
-
-
   ospRenderFrame(framebuffer,renderer);
+
+//   if (hasVolumeHack)
+// {
+//   // this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
+//   OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
+//   OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
+//   ospSetObject(vRenderer, "dynamic_model", vModel);
+//   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
+
+//   ospSetParam(vRenderer,"world",vModel);
+//   ospSetParam(vRenderer,"model",vModel);
+//   ospSetParam(vRenderer,"camera",oCamera);
+
+//   ospCommit(vRenderer);
+//   ospCommit(vModel);
+
+//   ospRenderFrame(framebuffer,vRenderer);
+// }
+
+
+  
 
   float* ospBuffer = (float *) ospMapFrameBuffer(framebuffer);
   #endif
@@ -814,11 +844,12 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   Assert(oRenderer != NULL && "could not create renderer");
 
+  ospCommit(oRenderer);
   ospSetParam(oRenderer,"world",oModel);
   ospSetParam(oRenderer,"model",oModel);
   ospSetParam(oRenderer,"camera",oCamera);
-
   ospCommit(oRenderer);
+
   #endif
 }
 

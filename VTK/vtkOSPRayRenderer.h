@@ -171,6 +171,7 @@ public:
   // }
   //ETX
 
+  bool hasVolumeHack;
 
 protected:
   vtkOSPRayRenderer();
@@ -231,6 +232,7 @@ private:
   int EnableAO;
   int Samples;
   int MaxDepth;
+
 
 
   // OSPFrameBuffer ospFramebuffer;

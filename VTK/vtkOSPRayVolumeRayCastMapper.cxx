@@ -14,6 +14,10 @@
 =========================================================================*/
 #include "vtkOSPRayVolumeRayCastMapper.h"
 
+#include "ospray/ospray.h"
+#include "ospray/common/OSPCommon.h"
+#include "ospray/volume/BlockBrickedVolume.h"
+
 #include "vtkCamera.h"
 #include "vtkDataArray.h"
 #include "vtkEncodedGradientEstimator.h"
@@ -345,6 +349,7 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     this->OSPRayManager->Register(this);
     }
 
+
      void* ScalarDataPointer =
       this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
      int ScalarDataType =
@@ -358,14 +363,133 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
      printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
 
+     // OSPModel dynamicModel = ospNewModel();
+     // ospCommit(dynamicModel);
+
+     // OSPRenderer renderer = ospNewRenderer("raycast_volume_renderer");
+     OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
+     this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
+     OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
+     // exitOnCondition(renderer == NULL, "could not create OSPRay renderer object");
+
+
+      //! Create an OSPRay light source.
+      OSPLight light = ospNewLight(NULL, "DirectionalLight");  ospSet3f(light, "direction", 1.0f, -2.0f, -1.0f);  ospSet3f(light, "color", 1.0f, 1.0f, 1.0f);
+
+  //! Set the light source on the renderer.
+  ospCommit(light);  ospSetData(renderer, "lights", ospNewData(1, OSP_OBJECT, &light));
+
   //! Create an OSPRay transfer function.
-  // transferFunction = ospNewTransferFunction("piecewise_linear");  exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
+  OSPTransferFunction transferFunction = ospNewTransferFunction("piecewise_linear");  
+  // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
+
+  std::vector<float> alphas;
+  alphas.resize(512, 1.0);
+  for (int i =0; i < 256;i++)
+    alphas[i] = float(i)/255.0f;
+
+  for (int i =64; i < 256;i++)
+    alphas[i] = std::min(1.0f,alphas[i]+0.2f);
+  // alphas[0] = 0;
+  // alphas[1] = .5;
+  OSPData tfAlphaData = ospNewData(alphas.size(), OSP_FLOAT, &alphas[0]);
+  ospSetData(transferFunction, "opacities", tfAlphaData);
+
+  std::vector<osp::vec3f> colors;
+  colors.resize(512, osp::vec3f(0,0,1));
+  std::vector<osp::vec3f> colorsl;
+  colorsl.resize(3, osp::vec3f(0,0,1));
+  colorsl[0] = osp::vec3f(.23,.299,.754);
+  colorsl[1] = osp::vec3f(.865,.865,.865);
+  colorsl[2] = osp::vec3f(.71,.016,.15);
+  for (int i =0; i < colors.size()/2;i++)
+  {
+    float v = float(i)/(float(colors.size())/2.0f);
+    colors[i+0] = colorsl[0]*(1.0-v) + colorsl[1]*v;
+  }
+  for (int i =0; i < colors.size()/2;i++)
+  {
+    float v = float(i)/128.0f;
+    colors[i+colors.size()/2] = colorsl[1]*(1.0-v) + colorsl[2]*v;
+  }
+  OSPData colorData = ospNewData(colors.size(), OSP_FLOAT3, &colors[0]);
+  ospSetData(transferFunction, "colors", colorData);
+
+  ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
 
   //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
-  // ospCommit(transferFunction);
+   ospCommit(transferFunction);
 
+  //! Set the dynamic model on the renderer.
+  ospSetObject(renderer, "dynamic_model", dynamicModel);
+
+  /*ospray::BlockBrickedVolume* */ OSPVolume volume = ospNewVolume("block_bricked_volume");
+
+  // volume->createEquivalentISPC();
+
+  char* buffer = NULL;
+  size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
+
+  buffer = (char*)embree::alignedMalloc(sizeBytes);
+  memcpy(buffer, ScalarDataPointer, sizeBytes);
+  // std::cout << "buffer of size " << sizeBytes << ": ";
+  // for(size_t i =0;i < sizeBytes; i++)
+  //   std::cout << int(buffer[i]) << " ";
+  // std::cout << std::endl;
+  OSPData voxelData = ospNewData(dim[0]*dim[1]*dim[2], (ScalarDataType == VTK_FLOAT) ? OSP_FLOAT : OSP_UCHAR, buffer);
+  ospSetData(volume, "voxelData", voxelData);
+  ospSet3i(volume, "volumeDimensions", dim[0], dim[1], dim[2]);
+  ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
+  ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
+  ospSet3i(volume, "blockCount", dim[0],dim[1],dim[2]);
+  // volume->setRegion(buffer, ospray::vec3i(0,0,0), ospray::vec3i(dim[0],dim[1],dim[2]));
+
+  ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
+  ospCommit(volume);
+  ospAddVolume(dynamicModel,(OSPVolume)volume);
+
+  OSPRayRenderer->hasVolumeHack = true;
+
+  // for(size_t i =0; i < volume->GetDimensions().y*volume->getDimensions().z; i++)
+  // {
+  //   // size_t j = i % volume->GetDimensions().y; size_t k = index/volume->getDimensions.y;
+  //   volume->setRegion(buffer, vec3i(0,0,0), vec3i())
+  // }
+
+
+  // std::vector<std::string> filenames;
+  // filenames.push_back("changeme");
+
+  // std::vector<OSPModel> models;  
+  // std::vector<OSPVolume> volumes;
+
+  //   //! Load OSPRay objects from files.
+  // for (size_t i=0 ; i < filenames.size() ; i++) 
+  // {
+  //   std::string filename = filenames[i];
+
+  // //! Create an OSPRay model.
+  // OSPModel model = ospNewModel();
+
+  // //! Load OSPRay objects from a file.
+  // OSPObjectCatalog catalog = ospImportObjects(filename.c_str());
+
+  // //! For now we set the same transfer function on all volumes.
+  // for (size_t i=0 ; catalog->entries[i] ; i++) if (catalog->entries[i]->type == OSP_VOLUME) ospSetObject(catalog->entries[i]->object, "transferFunction", transferFunction);
+
+  // //! Add the loaded volume(s) to the model.
+  // for (size_t i=0 ; catalog->entries[i] ; i++) if (catalog->entries[i]->type == OSP_VOLUME) ospAddVolume(model, (OSPVolume) catalog->entries[i]->object);
+
+  // //! Keep vector of all loaded volume(s).
+  // for (size_t i=0 ; catalog->entries[i] ; i++) if (catalog->entries[i]->type == OSP_VOLUME) volumes.push_back((OSPVolume) catalog->entries[i]->object);
+
+  // //! Commit the OSPRay object state.
+  // ospCommitCatalog(catalog);  ospCommit(model);  models.push_back(model);
+
+  // }
     }
     #endif
+    return;
 
 
   int scalarType = this->GetInput()->GetPointData()->GetScalars()->GetDataType();
