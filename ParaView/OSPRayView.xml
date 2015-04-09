@@ -416,6 +416,7 @@
         </Documentation>
       </DoubleVectorProperty>
 
+      <!--
       <IntVectorProperty name="SelectionVisibility"
         command="SetSelectionVisibility"
         number_of_elements="1"
@@ -425,7 +426,9 @@
           Set the visibility for the selection, if any.
         </Documentation>
       </IntVectorProperty>
+      -->
 
+      <!--
       <IntVectorProperty name="CubeAxesVisibility"
         command="SetCubeAxesVisibility"
         number_of_elements="1"
@@ -435,6 +438,7 @@
           Set the visibility for the cube axes.
         </Documentation>
       </IntVectorProperty>
+      -->
 
       <RepresentationType
         subproxy="OutlineRepresentation" text="Outline"/>
@@ -480,6 +484,7 @@
       </StringVectorProperty>
     
 
+      <!--
       <StringVectorProperty name="SelectionCellFieldDataArrayName"
         command="SetCellFieldDataArrayName"
         number_of_elements="1"
@@ -490,7 +495,9 @@
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
+      -->
 
+      <!--
       <StringVectorProperty name="SelectionPointFieldDataArrayName"
         command="SetPointFieldDataArrayName"
         number_of_elements="1"
@@ -501,6 +508,7 @@
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
+      -->
 
       <SubProxy>
         <Proxy name="SurfaceRepresentation"
@@ -508,42 +516,42 @@
           proxyname="OSPRaySurfaceRepresentation"> <!-- this is the only thing different -->
         </Proxy>
         <ExposedProperties>
-          <Property name="Ambient" />
-          <Property name="AmbientColor" />
-          <Property name="BackfaceAmbientColor" />
-          <Property name="BackfaceDiffuseColor" />
-          <Property name="BackfaceOpacity" />
-          <Property name="BackfaceRepresentation" />
-          <Property name="ColorArrayName" />
-          <Property name="ColorAttributeType" />
-          <Property name="Diffuse" />
+          <!-- <Property name="Ambient" /> -->
+          <!-- <Property name="AmbientColor" /> -->
+          <!-- <Property name="BackfaceAmbientColor" /> -->
+          <!-- <Property name="BackfaceDiffuseColor" /> -->
+          <!-- <Property name="BackfaceOpacity" /> -->
+          <!-- <Property name="BackfaceRepresentation" /> -->
+          <Property name="ColorArrayName" /> <!-- required -->
+          <Property name="ColorAttributeType" /> <!-- required -->
+          <!-- <Property name="Diffuse" /> -->
           <Property name="DiffuseColor" />
           <Property name="EdgeColor" />
           <Property name="InterpolateScalarsBeforeMapping" />
           <Property name="Interpolation" />
           <Property name="LineWidth" />
           <Property name="LookupTable" />
-          <Property name="MapScalars" />
-          <Property name="Opacity" />
+          <!-- <Property name="MapScalars" /> -->
+          <!-- <Property name="Opacity" /> -->
           <Property name="Orientation" />
           <Property name="Origin" />
-          <Property name="Pickable" />
-          <Property name="PointSize" />
+          <!-- <Property name="Pickable" /> -->
+          <!-- <Property name="PointSize" /> -->
           <Property name="Position" />
           <Property name="Scale" />
-          <Property name="Specular" />
-          <Property name="SpecularColor" />
-          <Property name="SpecularPower" />
-          <Property name="StaticMode" />
-          <Property name="SuppressLOD" />
-          <Property name="Texture" />
+          <!-- <Property name="Specular" /> -->
+          <!-- <Property name="SpecularColor" /> -->
+          <!-- <Property name="SpecularPower" /> -->
+          <!-- <Property name="StaticMode" /> -->
+          <!-- <Property name="SuppressLOD" /> -->
+          <!-- <Property name="Texture" /> -->
           <!-- OSPRay specific properties -->
-          <Property name="MaterialType" />
-          <Property name="Reflectance" />
-          <Property name="Thickness" />
-          <Property name="Eta" />
-          <Property name="N" />
-          <Property name="Nt" />
+          <!-- <Property name="MaterialType" /> -->
+          <!-- <Property name="Reflectance" /> -->
+          <!-- <Property name="Thickness" /> -->
+          <!-- <Property name="Eta" /> -->
+          <!-- <Property name="N" /> -->
+          <!-- <Property name="Nt" /> -->
         </ExposedProperties>
       </SubProxy>
 
@@ -570,6 +578,7 @@
         <Proxy name="Glyph3DRepresentation"
           proxygroup="representations" proxyname="Glyph3DRepresentation">
         </Proxy>
+        <!--
         <ExposedProperties>
           <Property name="Masking" />
           <Property name="MeshVisibility" />
@@ -583,6 +592,7 @@
           <Property name="SelectScaleArray" />
           <Property name="Source" />
         </ExposedProperties>
+        -->
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
@@ -594,6 +604,7 @@
           proxygroup="representations"
           proxyname="CubeAxesRepresentation">
         </Proxy>
+        <!--
         <ExposedProperties>
           <Property exposed_name="CubeAxesColor" name="Color" />
           <Property exposed_name="CubeAxesCornerOffset" name="CornerOffset" />
@@ -618,6 +629,7 @@
           <Property name="CustomBounds"/>
           <Property name="CustomBoundsActive"/>
         </ExposedProperties>
+        -->
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
@@ -637,6 +649,7 @@
           <Exception name="Opacity" />
           <Exception name="PointSize" />
         </ShareProperties>
+        <!--
         <ExposedProperties>
           <Property name="CellLabelBold" exposed_name="SelectionCellLabelBold" />
           <Property name="CellLabelColor" exposed_name="SelectionCellLabelColor" />
@@ -665,6 +678,7 @@
           <Property name="Representation" exposed_name="SelectionRepresentation" />
           <Property name="UseOutline" exposed_name="SelectionUseOutline"/>
         </ExposedProperties>
+        -->
       </SubProxy>
 
       <InputProperty name="Input" command="SetInputConnection">
