@@ -51,62 +51,63 @@ the latest tested bugfix release.
 pvOSPRay currently supports both Linux and Mac OSX (a Windows version will soon follow).
 In addition, before you can build pvOSPRay you need the following prerequisites:
 <ul>
-  <li>You can clone the latest vtkOSPRay sources via: <code>git clone https://github.com/TACC/vtkOSPRay.git</code></li>
-  <li>You can clone the latest OSPRay sources via: <code>git clone https://github.com/ospray/ospray.git</code></li>
-  <li>To build OSPRay you require a copy of
-    the <a href="http://ispc.github.io">Intel&reg; SPMD Program Compiler
-      (ISPC)</a>. Please obtain a copy of the latest binary release of ISPC
-    (currently 1.8.0) from
-    the <a href="https://ispc.github.io/downloads.html">ISPC downloads
-      page</a>, and place it right "next to" the checked-out OSPRay sources
-    in your directory tree (e.g., if OSPRay is in ~/Projects/ospray, ISPC
-    should be in ~/Projects/ispc-v1.8.0-linux).</li>
-  <li>Additional packages you need
-    are <a href="http://www.cmake.org">CMake</a>, any form of C++ compiler
-    (we recommend using
-    the <a href="https://software.intel.com/en-us/c-compilers">Intel&reg;
-      C++ compiler (<code>icc</code>)</a>, but also support <code>GCC</code> and <code>clang-cc</code>), and standard
-    Linux development tools. To build the demo viewers, you should also
-    have some version of OpenGL and the GL Utility Toolkit (<code>GLUT</code> or
-    <code>freeglut</code>).</li>
-  <li>OSPRay also heavily
+<!--   <li>You can clone the latest vtkOSPRay sources via: <code>git clone https://github.com/TACC/vtkOSPRay.git</code></li> -->
+  <li>Install OSPRay, following <a href="ospray.github.io/getting_ospray.html">these instructions</a>.</li>
+  <li>OSPRay (and thus pvOSPRay) also heavily
   uses <a href="http://embree.github.io">Embree</a>; however, OSPRay
   directly includes its own copy of Embree, so a special installation
   of Embree is <em>not</em> required.</li>
 </ul>
 
 <h3> Building pvOSPRay</h3>
-
-Note that you will need to download and build vtkOSPRay first. Assuming the above requisites are all fulfilled, building pvOSPRay through CMake is easy:
-<ul>
-  <li>Create a build directory, and go into it
-    <br>
+<p>
+Note: the instructions below build pvOSPRay as part of a ParaView source build. Instructions to build pvOSPRay separately from ParaView will be posted soon.
+</p>
+<p>
+Note: vtkOSPRay is currently contained within pvOSPRay and will be built along with pvOSPRay as part of the ParaView build.
+</p>
+<ol>
+  <li>Download ParaView 4.1 source from <a href="http://www.paraview.org/download/">www.paraview.org</a> (<a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.1&type=source&os=all&downloadFile=ParaView-v4.1.0-source.tar.gz">click here to download</a>). Untar the source tree into a local directory. 
+  We recommend putting the source tree in the same directory as OSPRay (i.e., ~/Projects/OSPRay and ~/Projects/ParaView-v4.1.0).</li>
+<li>Change to the ParaView Plugins directory: <br>
     <code>
-      user@mymachine[~/Projects]: mkdir pvOSPRay/release
+      user@mymachine[~/Projects]: cd ParaView-v4.1.0/Plugins
     </code>
     <br>
+    Clone the pvOSPRay source into the plugins directory: <br>
     <code>
-      user@mymachine[~/Projects]: cd pvOSPRay/release
-    </code>
-    <br>
-    (We do recommend having separate build directories for different configurations such as release, debug, etc).
-  </li>
-
-  <li>Open the CMake configuration dialog
-    <br>
-    <code>user@mymachine[~/Projects]: ccmake ..</code>
-    <br>
-  </li>
-
-  <li>Make sure to properly set build mode, desired Instruction set to build for (SSE, AVX, AVX2), enable the components you need, etc. (though most of these settings should be inherited from your OSPRay build); then type 'c'onfigure and 'g'enerate. When back on the command prompt, build it using
-    <br>
-    <code>
-      user@mymachine[~/Projects]: make
+      user@mymachine[~/Projects/ParaView-v4.1.0/Plugins]: <br>git clone https://github.com/TACC/pvOSPRay.git
     </code>
   </li>
 
-  <li>You should now have <code>libpvOSPRay.so</code> as well as a set of sample viewers. You can test your version of pvOSPRay using any of the examples on the <a href="demos.html">pvOSPRay Demos and Examples</a> page.</li>
-</ul>
+  <li>Change to the ParaView root directory, create a build directory for the ParaView build, change to the build directory, then run CMake:<br>
+    <code>
+      user@mymachine[~/Projects/ParaView-v4.1.0/Plugins]: cd ..
+    </code>
+    <br>
+    <code>
+      user@mymachine[~/Projects/ParaView-v4.1.0]: mkdir build
+    </code>
+    <br>
+    <code>
+      user@mymachine[~/Projects/ParaView-v4.1.0]: cd build
+    </code>
+    <br>
+    <code>
+      user@mymachine[~/Projects/ParaView-v4.1.0/build]: ccmake ..
+    </code>
+  </li>
+
+  <li>Inside CMake, 't'oggle advanced mode, then use '/' to search for the pvOSPRay plugin option PARAVIEW_BUILD_PLUGIN_pvOSPRay. Set this option to "ON", then 'c'onfigure. CMake should find OSPRay and copy the necessary configuration information from the OSPRay build. If OSPRay was not found, enter the OSPRay directory in OSPRAY_DIR and 'c'onfigure again. Once OSPRay is found and configuraiton is complete, 'g'enerate and exit.
+  Once CMake exits, run 'make' from the command line:
+    <br>
+    <code>
+      user@mymachine[~/Projects/ParaView-v4.1.0/build]: make
+    </code>
+  </li>
+
+  <li>This will build the pvOSPRay plugin as part of the ParaView build. You can test your version of pvOSPRay using any of the examples on the <a href="demos.html">pvOSPRay Demos and Examples</a> page. If this is your first time running pvOSPRay, we recommend the <a href="demos/walkthrough.html">Basic Walk-Through demo</a>.</li>
+</ol>
 
 
 
