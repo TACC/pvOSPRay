@@ -1114,65 +1114,50 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         vtkPoints *ptarray = points;
 
     
-         //vtkPointData* scalars = input->GetPointData();
-         //vtkLookupTable* lut = scalars->GetLookupTable();
-
-        FindAllData(input);
-
-        int colorPerVertex = 0;
-        int colorPerCell = 0;
-
-        vtkUnsignedCharArray *colorArray = MapScalars(1.0);
-
-
-
-        //int ArrayId = inputInfo->Get(ARRAY_ID());
-
-        //cerr << "Array ID: " << ArrayId << endl;
-
-        cerr << "Color mode : " << actor->GetMapper()->GetColorModeAsString() << endl;
-        cerr << "Scalar mode : " << actor->GetMapper()->GetScalarModeAsString() << endl;
-        cerr << "Material mode : " << actor->GetMapper()->GetScalarMaterialModeAsString() << endl;
-
-
-        if(!colorArray) cerr << "No color map" << endl;
-
-
-
         vtkDataArray* scalar = input->GetPointData()->GetArray(0);
         vtkScalarsToColors* vstc = GetLookupTable();
-        if(!vstc) cerr << "Lookup table found map" << endl;
 
-
-        cerr << "Points : " << ptarray->GetNumberOfPoints() << endl;
-        cerr << "Tuples : " << scalar->GetNumberOfTuples() << endl;
-        cerr << "Name : " << scalar->GetName() << endl;
-        cerr << "Min : " << scalar->GetRange()[0] << " Max: " << scalar->GetRange()[1] << endl;
-        cerr << "Components : " << scalar->GetNumberOfComponents() << endl;
-
-        if(colorPerVertex) cerr << "Detected color per vertex" << endl; 
-        if(colorPerCell) cerr << "Detected color per cell" << endl; 
 
         double coord0[3];
-        double coord1[3];
         vtkIdType cell;
 
 
         std::vector<ospray::vec3fa> tmpColors;
-        vstc->SetVectorModeToMagnitude();
+        std::vector<double> tmpVector;
 
-        unsigned char* output = new unsigned char[scalar->GetNumberOfTuples()*3];
-        vstc->MapScalarsThroughTable(scalar,output,VTK_RGB);
 
-        for(int ii=0; ii < scalar->GetNumberOfTuples(); ii++) {
-            double color[3];
-            for(int jj=0; jj <3; jj++) {
-                color[jj] = float(output[ii*3+jj])/255.0;
+        int scalarSize = scalar->GetNumberOfTuples();
+        int vectorSize = scalar->GetNumberOfComponents();
+
+        unsigned char* output = new unsigned char[scalarSize*4];
+
+
+        if(vectorSize > 1) {
+            vstc->SetVectorModeToMagnitude();
+            vstc->MapVectorsThroughTable(scalar->GetVoidPointer(0),output,scalar->GetDataType(),scalarSize,vectorSize,VTK_RGBA);
+        } else {
+		    double solidColor[3];
+		    OSPRayProperty->GetDiffuseColor(solidColor);
+            for(int ii=0; ii < scalarSize; ii++) {
+                output[ii+0] = solidColor[0] * 255;
+                output[ii+1] = solidColor[1] * 255;
+                output[ii+2] = solidColor[2] * 255;
             }
-            tmpColors.push_back(ospray::vec3fa(color[0],color[1],color[2]));
         }
 
-        delete output;
+
+
+        //vtkUnsignedCharArray* output= vstc->MapScalars(scalar,VTK_RGBA,-1);
+
+        for(int ii=0; ii < scalarSize; ii++) {
+
+            double color[3];
+            for(int jj=0; jj <3; jj++) {
+                color[jj] = float(output[ii*4+jj])/255.0;
+            }
+            tmpColors.push_back(ospray::vec3fa(color[0],color[1],color[2]));
+
+        }
 
         std::vector<ospray::vec3fa> tmpPoints;
         
