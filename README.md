@@ -1,12 +1,3 @@
-vtkOSPRay
-======
-
-<h2>About</h2>
-The base VTK code without ParaView is contained in the VTK directory and makes up vtkOSPRay.  vtkOSPRay is a VTK module which utilizes Intel's OSPRay ray tracing framework (http://ospray.github.io) for rendering.  This offers a performant CPU rendering package with enhanced image quality and includes plugins for the commonly used visualization tools ParaView and VisIt.
-
-<h2>Building</h2>
-VTK support is built with CMake and tested with the VTK release in ParaView 4.1.0.  
-
 pvOSPRay
 ======
 
@@ -63,12 +54,12 @@ make -j4
 </ul>
 <h3>Building ParaView</h3>
 <ul>
-<li>download ParaView 4.1.0 source from the website, or click <a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.1&type=source&os=all&downloadFile=ParaView-v4.1.0-source.tar.gz">here</a></li> to paraview_source_dir
+<li>download ParaView 4.1.0 source from the website, or click <a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.1&type=source&os=all&downloadFile=ParaView-v4.1.0-source.tar.gz">here</a></li> to paraview_source_dir. We recommend putting paraview_source_dir in the same directory as the OSPRay source dir.
 <li>
 cd <paraview_source_dir>/Plugins
 </li>
 <li>
-git clone https://github.com/TACC/vtkOSPRay.git pvOSPRay
+git clone https://github.com/TACC/pvOSPRay.git pvOSPRay
 </li>
 <li>
 cd paraview_build_dir
@@ -90,7 +81,13 @@ Note that some older version of ICC may run into issues, there is currently a kn
 Under Tools->"Manage Plugins" select "Load New..." and navigate to the libOSPRayView.so library. Select OSPRayView and click load selected.  Close the plugins window.
 Click the "x" on the top right of the window to close the rendering, and select "OSPRay" to create a pvOSPRay rendering view.
 
-VisItOSPRay
+vtkOSPRay
 ======
+
 <h2>About</h2>
-VisItOSPRay is available upon request currently, though it is in early development and only working to a limited degree.  A broader release is expected soon.
+The base VTK code without ParaView is contained in the VTK directory and makes up vtkOSPRay.  vtkOSPRay is a VTK module which utilizes Intel's OSPRay ray tracing framework (http://ospray.github.io) for rendering.  This is currently bundled with pvOSPRay.
+
+<h2>Building</h2>
+VTK support is built with CMake and tested with the VTK release in ParaView 4.1.0.  
+
+
