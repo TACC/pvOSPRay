@@ -1055,11 +1055,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
     // that are specified through vtkProperty
     this->PointSize = OSPRayProperty->GetPointSize();
     this->LineWidth = OSPRayProperty->GetLineWidth();
-    if (this->PointSize < 1.0)
+    if (this->PointSize < 0.0)
     {
         this->PointSize = 1.0;
     }
-    if (this->LineWidth < 1.0)
+    if (this->LineWidth < 0.0)
     {
         this->LineWidth = 1.0;
     }
@@ -1167,7 +1167,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         }
         
         slRadius = this->LineWidth / 0.005;
-
+        cerr << " Radius " << slRadius << endl;
 
 
 
@@ -1413,42 +1413,44 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 	}
 
 
-	if(slVertex.size()) {
-		double solidColor[3];
-		OSPRayProperty->GetDiffuseColor(solidColor);
-		OSPMaterial slMat = ospNewMaterial(renderer,"default");
-		if(slMat) {
-			ospSet3f(slMat,"kd",solidColor[0],solidColor[1],solidColor[2]);
-			ospCommit(slMat);
-		}
-                OSPGeometry slGeometry = ospNewGeometry("streamlines");
-                Assert(slGeometry);
-                OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
-                OSPData color = ospNewData(slColors.size(),OSP_FLOAT3A,&slColors[0]);
-                OSPData index = ospNewData(slIndex.size(),OSP_INT,&slIndex[0]);
-                ospSetObject(slGeometry,"vertex",vertex);
-                ospSetObject(slGeometry,"vertex.color",color);
-                ospSetObject(slGeometry,"index",index);
-                ospSet1f(slGeometry,"radius",slRadius);
-
-                if(slMat)
-                    ospSetMaterial(slGeometry,slMat);
-
-                ospCommit(slGeometry); 
-                ospAddGeometry(OSPRayActor->OSPRayModel,slGeometry);
+    if(slVertex.size()) {
+        double solidColor[3];
+        OSPRayProperty->GetDiffuseColor(solidColor);
+        OSPMaterial slMat = ospNewMaterial(renderer,"default");
+        if(slMat) {
+            ospSet3f(slMat,"kd",solidColor[0],solidColor[1],solidColor[2]);
+            ospCommit(slMat);
         }
+        OSPGeometry slGeometry = ospNewGeometry("streamlines");
+        Assert(slGeometry);
+        OSPData vertex = ospNewData(slVertex.size(),OSP_FLOAT3A,&slVertex[0]);
+        OSPData color = ospNewData(slColors.size(),OSP_FLOAT3A,&slColors[0]);
+        OSPData index = ospNewData(slIndex.size(),OSP_INT,&slIndex[0]);
+        ospSetObject(slGeometry,"vertex",vertex);
+        ospSetObject(slGeometry,"vertex.color",color);
+        ospSetObject(slGeometry,"index",index);
+        ospSet1f(slGeometry,"radius",slRadius);
 
-        ospCommit(OSPRayActor->OSPRayModel);
-        if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP()))
-        {
-            double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-            OSPRayActor->cache[time] = OSPRayActor->OSPRayModel;
-        }
-        else
-        {
-            OSPRayActor->cache[timestep] = OSPRayActor->OSPRayModel;
-            std::cerr << "added nontime actor at timestep" << timestep << "\n";
-        }
+        cerr << "Radius " << slRadius  << " " << this->LineWidth << endl;
+
+        if(slMat)
+            ospSetMaterial(slGeometry,slMat);
+
+        ospCommit(slGeometry); 
+        ospAddGeometry(OSPRayActor->OSPRayModel,slGeometry);
+    }
+
+    ospCommit(OSPRayActor->OSPRayModel);
+    if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP()))
+    {
+        double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
+        OSPRayActor->cache[time] = OSPRayActor->OSPRayModel;
+    }
+    else
+    {
+        OSPRayActor->cache[timestep] = OSPRayActor->OSPRayModel;
+        std::cerr << "added nontime actor at timestep" << timestep << "\n";
+    }
 
 #endif
 
