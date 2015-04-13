@@ -232,6 +232,7 @@ private:
   int Samples;
   int MaxDepth;
 
+  double backgroundRGB[3];
 
   // OSPFrameBuffer ospFramebuffer;
 };

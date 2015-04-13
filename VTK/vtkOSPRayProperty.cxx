@@ -185,7 +185,7 @@ void vtkOSPRayProperty::Render( vtkActor *vtkNotUsed(anActor),
       // ( "set property",
         // OSPRay::Callback::create(this, &vtkOSPRayProperty::CreateOSPRayProperty));
 
-    // this->OSPRayMaterialMTime.Modified();
+    this->OSPRayMaterialMTime.Modified();
   }
 
 }
@@ -333,7 +333,10 @@ void vtkOSPRayProperty::CreateOSPRayProperty()
                     }
 
           OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
-          if (!this->OSPRayMaterial)
+
+          // FIXME: this check is removed so the material is re-created properly when the renderer is changed
+          // need some way to delete the material stored in ospray
+          //if (!this->OSPRayMaterial)
             this->OSPRayMaterial = ospNewMaterial(renderer,"OBJMaterial");
           OSPMaterial oMaterial = (OSPMaterial)this->OSPRayMaterial;
           Assert(oMaterial);

@@ -902,7 +902,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
     vtkosp::Mesh* mesh = new vtkosp::Mesh();
     // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
-    osp::Material* osmat = OSPRayProperty->GetOSPRayMaterial();
+    // force create a new material every time this is called in case the renderer
+    // has changed
+    //osp::Material* osmat = OSPRayProperty->GetOSPRayMaterial();
+    osp::Material* osmat = 0;
     if (!osmat)
     {
         OSPRayProperty->CreateOSPRayProperty();

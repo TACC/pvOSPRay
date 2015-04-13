@@ -234,6 +234,10 @@ void vtkOSPRayRenderer::SetBackground(double r, double g, double b)
 {
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   ospSet3f(oRenderer,"bgColor",r,g,b);
+
+  backgroundRGB[0] = r;
+  backgroundRGB[1] = g;
+  backgroundRGB[2] = b;
 }
 
 //----------------------------------------------------------------------------
@@ -805,11 +809,14 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   if (newval != 0)
   {
-    printf("using ao\n");
+    std::cout << "using ao4" << std::endl;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
   }
   else
+  {
+    std::cout << "using obj" << std::endl;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+  }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
   Assert(oRenderer != NULL && "could not create renderer");
@@ -818,7 +825,26 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
   ospSetParam(oRenderer,"model",oModel);
   ospSetParam(oRenderer,"camera",oCamera);
 
+  ospSet1i(oRenderer,"spp",Samples);
+
   ospCommit(oRenderer);
+
+  SetBackground(backgroundRGB[0], backgroundRGB[1], backgroundRGB[2]);
+
+  cout << "new renderer: " << static_cast<void*>(oRenderer) << ", samples: " << this->Samples << endl;
+
+  // loop through actors and set mtime to force update
+  // this will force the actors to create new materials that will be
+  // associated with the new renderer
+  vtkActorCollection *actorList = this->GetActors();
+  actorList->InitTraversal();
+
+  int numActors = actorList->GetNumberOfItems();
+  for(int i=0; i<numActors; i++) {
+      vtkActor *a = actorList->GetNextActor();
+      a->Modified();
+  }
+
   #endif
 }
 
