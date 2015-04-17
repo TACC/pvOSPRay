@@ -39,6 +39,8 @@
 #include "vtkVolumeRayCastFunction.h"
 #include "vtkRayCastImageDisplayHelper.h"
 #include "vtkStreamingDemandDrivenPipeline.h"
+#include "vtkColorTransferFunction.h"
+#include "vtkPiecewiseFunction.h"
 
 
 #include "vtkOSPRayRenderer.h"
@@ -349,13 +351,26 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     this->OSPRayManager->Register(this);
     }
 
-
      void* ScalarDataPointer =
       this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
      int ScalarDataType =
       this->GetInput()->GetPointData()->GetScalars()->GetDataType();
 
      vtkImageData *data = this->GetInput();
+     vtkDataArray * scalars = this->GetScalars(data, this->ScalarMode,
+      this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
+     std::cout << "cellFlag: " << CellFlag  << std::endl;
+
+     if (!scalars)
+     {
+      std::cout << "no scalars in input\n";
+     }
+     else
+     {
+   int numberOfComponents = scalars->GetNumberOfComponents();
+   std::cout << "numberOfComponents: " << numberOfComponents << std::endl;
+     }
+
 
      int dim[3];
 
@@ -370,6 +385,7 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
      OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
      this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
      OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
+     OSPModel model = ospNewModel();
      // exitOnCondition(renderer == NULL, "could not create OSPRay renderer object");
 
 
@@ -388,12 +404,10 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   for (int i =0; i < 256;i++)
     alphas[i] = float(i)/255.0f;
 
-  for (int i =64; i < 256;i++)
-    alphas[i] = std::min(1.0f,alphas[i]+0.2f);
+  //for (int i =64; i < 256;i++)
+  //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
   // alphas[0] = 0;
   // alphas[1] = .5;
-  OSPData tfAlphaData = ospNewData(alphas.size(), OSP_FLOAT, &alphas[0]);
-  ospSetData(transferFunction, "opacities", tfAlphaData);
 
   std::vector<osp::vec3f> colors;
   colors.resize(512, osp::vec3f(0,0,1));
@@ -412,8 +426,38 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     float v = float(i)/128.0f;
     colors[i+colors.size()/2] = colorsl[1]*(1.0-v) + colorsl[2]*v;
   }
+
+      // if(scalarOpacity->GetMTime() > this->BuildTime ||
+      //    (this->LastBlendMode!=blendMode)
+      //    || (blendMode==vtkVolumeMapper::COMPOSITE_BLEND &&
+      //        this->LastSampleDistance!=sampleDistance)
+      //    || needUpdate || !this->Loaded)
+
+  vtkVolumeProperty* volProperty = vol->GetProperty();
+  vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
+  vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(1);
+  float tfVals[256*3];
+  float tfOVals[256];
+  for(int i=0;i<256*3;i++)
+    tfVals[i]=0.0;
+  for(int i=0;i<256;i++)
+    tfOVals[i]=0.0;
+  scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], 4, tfOVals);
+  colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], 4, tfVals);
+  std::cout << "tfVals:\n";
+  for(int i=0;i<12;i++)
+    std::cout << tfVals[i] << " " << std::endl;
+  std::cout << "\n\n";
+
+    std::cout << "tfOVals:\n";
+  for(int i=0;i<4;i++)
+    std::cout << tfOVals[i] << " " << std::endl;
+  std::cout << "\n\n";
+
   OSPData colorData = ospNewData(colors.size(), OSP_FLOAT3, &colors[0]);
   ospSetData(transferFunction, "colors", colorData);
+  OSPData tfAlphaData = ospNewData(alphas.size(), OSP_FLOAT, &alphas[0]);
+  ospSetData(transferFunction, "opacities", tfAlphaData);
 
   ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
 
@@ -423,19 +467,14 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   //! Set the dynamic model on the renderer.
   ospSetObject(renderer, "dynamic_model", dynamicModel);
 
-  /*ospray::BlockBrickedVolume* */ OSPVolume volume = ospNewVolume("block_bricked_volume");
+  OSPVolume volume = ospNewVolume("block_bricked_volume");
 
-  // volume->createEquivalentISPC();
 
   char* buffer = NULL;
   size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
 
   buffer = (char*)embree::alignedMalloc(sizeBytes);
   memcpy(buffer, ScalarDataPointer, sizeBytes);
-  // std::cout << "buffer of size " << sizeBytes << ": ";
-  // for(size_t i =0;i < sizeBytes; i++)
-  //   std::cout << int(buffer[i]) << " ";
-  // std::cout << std::endl;
   OSPData voxelData = ospNewData(dim[0]*dim[1]*dim[2], (ScalarDataType == VTK_FLOAT) ? OSP_FLOAT : OSP_UCHAR, buffer);
   ospSetData(volume, "voxelData", voxelData);
   ospSet3i(volume, "volumeDimensions", dim[0], dim[1], dim[2]);
@@ -446,9 +485,14 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
   ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
   ospCommit(volume);
-  ospAddVolume(dynamicModel,(OSPVolume)volume);
+  ospAddVolume(model,(OSPVolume)volume);
+  ospCommit(model);
+  ospSetObject(renderer, "model", model);
+  ospCommit(renderer);
+  this->OSPRayManager->OSPRayVolumeModel = model;
 
   OSPRayRenderer->hasVolumeHack = true;
+
 
   // for(size_t i =0; i < volume->GetDimensions().y*volume->getDimensions().z; i++)
   // {

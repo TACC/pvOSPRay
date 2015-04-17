@@ -314,7 +314,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
                                           OSPRay::Group *points,
                                           OSPRay::Group *lines*/)
 {
-
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   // OSPRay::Material *material = this->MyHelper->material;
   // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
@@ -326,6 +326,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
   switch (this->Representation) {
   case VTK_POINTS:
     {
+    std::cout << "VTK_POINTS\n";
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       double coord[3];
@@ -353,6 +354,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     break;
   case VTK_WIREFRAME:
     {
+    std::cout << "VTK_WIREFRAME\n";
     double coord0[3];
     // OSPRay::Vector noTC(0.0,0.0,0.0);
     // OSPRay::TextureCoordinateCylinder *segment;
@@ -362,6 +364,8 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
       mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
       for (vtkIdType i = 1; i < npts; i++)
         {
+
+    std::cout << "points in cell: " << npts << "\n";
 	mesh->wireframe_index.push_back(mesh->wireframe_vertex.size()-1);
       	ptarray->GetPoint(index[i], coord0);
       	mesh->wireframe_vertex.push_back(ospray::vec3fa(coord0[0],coord0[1],coord0[2]));
@@ -404,8 +408,8 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     } //VTK_WIREFRAME:
     break;
   case VTK_SURFACE:
-  default:
     {
+    std::cout << "VTK_SURFACE\n";
     // write polygons with on the fly triangulation, assuming polygons are simple and
     // can be triangulated into "fans"
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
@@ -535,6 +539,9 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
 
     }//VTK_SURFACE
     break;
+  default:
+    std::cerr << "unknwon representation type\n";
+    break;
   }
 
 }
@@ -548,6 +555,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
                                          // OSPRay::Group *points,
                                          // OSPRay::Group *lines)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   // OSPRay::Material *material = this->MyHelper->material;
   // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
@@ -561,6 +569,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
   switch (this->Representation) {
   case VTK_POINTS:
     {
+      std::cout << "VTK_POINTS\n";
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       double coord[3];
@@ -586,6 +595,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     break;
   case VTK_WIREFRAME:
     {
+      std::cout << "VTK_WIREFRAME\n";
     double coord0[3];
     double coord1[3];
     double coord2[3];
@@ -644,8 +654,8 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     } //VTK_WIREFRAME:
     break;
   case VTK_SURFACE:
-  default:
     {
+      std::cout << "VTK_SURFACE\n";
     for ( cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++ )
       {
       // count of the i-th triangle in a strip
@@ -756,6 +766,10 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
 
 
     }
+    break;
+
+  default:
+    std::cerr << "unkown representation type\n";
   }
 }
 
@@ -1117,7 +1131,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         vtkDataArray* scalar = input->GetPointData()->GetArray(0);
         vtkScalarsToColors* vstc = GetLookupTable();
 
-
         double coord0[3];
         vtkIdType cell;
 
@@ -1125,6 +1138,8 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         std::vector<ospray::vec3fa> tmpColors;
         std::vector<double> tmpVector;
 
+        if (scalar)
+        {
 
         int scalarSize = scalar->GetNumberOfTuples();
         int vectorSize = scalar->GetNumberOfComponents();
@@ -1158,6 +1173,12 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             tmpColors.push_back(ospray::vec3fa(color[0],color[1],color[2]));
 
         }
+      }
+      else
+      {
+                  // std::cerr << __PRETTY_FUNCTION__ << " empty scalar\n";
+          // return;
+        }
 
         std::vector<ospray::vec3fa> tmpPoints;
         
@@ -1181,10 +1202,20 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             slVertex.push_back(tmpPoints[pts[0]]);
             slColors.push_back(tmpColors[pts[0]]);
 
+            
+        mesh->wireframe_vertex.push_back(tmpPoints[pts[0]]);
+
+
+
             for (vtkIdType i = 1; i < npts; i++) {
                 slIndex.push_back(slVertex.size()-1);
                 slVertex.push_back(tmpPoints[pts[i]]);
                 slColors.push_back(tmpColors[pts[i]]);
+
+                mesh->wireframe_index.push_back(slVertex.size()-1);
+        // ptarray->GetPoint(index[i], coord0);
+        mesh->wireframe_vertex.push_back(tmpPoints[pts[i]]);
+        
                 //     //TODO: Make option to scale linewidth by scalar
                 //     OSPRay::TextureCoordinateCylinder *segment =
                 //       new OSPRay::TextureCoordinateCylinder
@@ -1197,6 +1228,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
                 //        (texCoords.size()?
                 //         texCoords[(this->CellScalarColor?cell:pts[1])] : noTC)
                 //        );
+
             }
         }
     }

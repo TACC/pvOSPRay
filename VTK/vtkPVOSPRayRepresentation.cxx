@@ -52,6 +52,8 @@ vtkPVOSPRayRepresentation::vtkPVOSPRayRepresentation()
   vtkInformation* keys = vtkInformation::New();
   this->Actor->SetPropertyKeys(keys);
   keys->Delete();
+
+  this->SetSuppressLOD(true);
 }
 
 //-----------------------------------------------------------------------------

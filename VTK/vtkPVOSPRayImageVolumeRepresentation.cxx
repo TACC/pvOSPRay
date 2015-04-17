@@ -40,6 +40,8 @@
 #include "vtkOSPRayPolyDataMapper.h"
 #include "vtkOSPRayProperty.h"
 #include "vtkObjectFactory.h"
+#include "vtkVolumeProperty.h"
+     #include "vtkPiecewiseFunction.h"
 
 #include <map>
 #include <string>
@@ -362,7 +364,15 @@ void vtkPVOSPRayImageVolumeRepresentation::SetColor(vtkColorTransferFunction* lu
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacity(vtkPiecewiseFunction* pwf)
 {
+  std::cout << __PRETTY_FUNCTION__ << " SetScalarOpaicty\n";
   this->Property->SetScalarOpacity(pwf);
+
+  float tfOVals[256];
+  pwf->GetTable(0,300, 12, tfOVals);
+      std::cout << "tfOVals:\n";
+  for(int i=0;i<12;i++)
+    std::cout << tfOVals[i] << " " << std::endl;
+  std::cout << "\n\n";
 }
 
 //----------------------------------------------------------------------------

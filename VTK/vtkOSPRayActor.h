@@ -28,6 +28,8 @@
 #define __vtkOSPRayActor_h
 
 #include "vtkOSPRayModule.h"
+// #include "vtkPVLODActor.h"
+// #include "vtkLODProp3D.h"
 #include "vtkActor.h"
 #include <map>
 #include <vector>
@@ -114,6 +116,9 @@ public:
  protected:
   vtkOSPRayActor();
   ~vtkOSPRayActor();
+
+  virtual void CreateOwnLODs () {}
+  virtual void UpdateOwnLODs() {} 
 
  private:
   vtkOSPRayActor(const vtkOSPRayActor&);  // Not implemented.

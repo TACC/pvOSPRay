@@ -136,6 +136,7 @@ osp::Renderer*    OSPRayRenderer;
 osp::Camera*      OSPRayCamera;
 osp::Model* OSPRayDynamicModel;
 osp::Renderer*    OSPRayVolumeRenderer;
+osp::Model* OSPRayVolumeModel;
 
 };
 

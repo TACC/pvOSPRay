@@ -135,6 +135,7 @@ vtkOSPRayActor::vtkOSPRayActor()
   this->SortType = DYNBVH;
   // this->OSPRayModel = ospNewModel();
   this->OSPRayModel = NULL;
+  // this->SetEnableLOD(false);
 }
 
 //----------------------------------------------------------------------------

@@ -99,6 +99,13 @@
 
   <ProxyGroup name="representations">
 
+    <RepresentationProxy name="OSPRayOutlineRepresentation"
+                         class="vtkPVOSPRayOutlineRepresentation"
+                         processes="client|renderserver|dataserver"
+                         base_proxygroup="representations"
+                         base_proxyname="SurfaceRepresentation">
+    </RepresentationProxy>
+
     <RepresentationProxy name="OSPRaySurfaceRepresentation"
                          class="vtkPVOSPRayRepresentation"
                          processes="client|renderserver|dataserver"
@@ -153,6 +160,7 @@
       </DoubleVectorProperty>
 
     </RepresentationProxy>
+
 
         <RepresentationProxy name="OSPRayVolumeRepresentation"
                          class="vtkPVOSPRayImageVolumeRepresentation"
@@ -566,7 +574,7 @@
       <SubProxy>
         <Proxy name="OutlineRepresentation"
           proxygroup="representations"
-          proxyname="OutlineRepresentation">
+          proxyname="OSPRayOutlineRepresentation">
         </Proxy>
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />

@@ -39,6 +39,8 @@ public:
   vtkTypeMacro(vtkPVOSPRayRepresentation, vtkGeometryRepresentationWithFaces);
   void PrintSelf(ostream& os, vtkIndent indent);
 
+  // virtual void SetRepresentation(const char* rep)
+    // { this->Superclass::SetRepresentation(rep); }
   // Description:
   // control that ray traced rendering characteristics of this object
   void SetMaterialType(char *);

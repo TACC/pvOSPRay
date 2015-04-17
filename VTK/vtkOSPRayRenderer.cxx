@@ -449,6 +449,7 @@ void vtkOSPRayRenderer::DeviceRender()
   this->UpdateSize();
 
 
+  hasVolumeHack = false;
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   this->OSPRayManager->OSPRayModel = ospNewModel();  //Carson: note: static needed, it seems they are freed in scope
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
@@ -622,25 +623,31 @@ void vtkOSPRayRenderer::LayerRender()
     //end light test
 
   // printf("render\n");
+
+   if (hasVolumeHack)
+ {
+   // this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
+   OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
+   OSPModel vdModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
+   ospSetObject(vRenderer, "dynamic_model", vdModel);
+   OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
+   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
+
+   ospSetParam(vRenderer,"world",vModel);
+   ospSetParam(vRenderer,"dynamic_model",vdModel);
+   ospSetParam(vRenderer,"model",vModel);
+   ospSetParam(vRenderer,"camera",oCamera);
+
+   ospCommit(vModel);
+   ospCommit(vdModel);
+   ospCommit(vRenderer);
+
+   ospRenderFrame(framebuffer,vRenderer);
+ }
+ else
+ {
   ospRenderFrame(framebuffer,renderer);
-
-//   if (hasVolumeHack)
-// {
-//   // this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
-//   OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
-//   OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
-//   ospSetObject(vRenderer, "dynamic_model", vModel);
-//   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
-
-//   ospSetParam(vRenderer,"world",vModel);
-//   ospSetParam(vRenderer,"model",vModel);
-//   ospSetParam(vRenderer,"camera",oCamera);
-
-//   ospCommit(vRenderer);
-//   ospCommit(vModel);
-
-//   ospRenderFrame(framebuffer,vRenderer);
-// }
+ }
 
 
   
@@ -840,11 +847,13 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
   }
   else
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+  // this->OSPRayManager->OSPRayRenderer =  (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
   Assert(oRenderer != NULL && "could not create renderer");
 
-  ospCommit(oRenderer);
+  // ospCommit(oRenderer);
+  ospSetParam(oRenderer,"dynamic_model",ospNewModel());
   ospSetParam(oRenderer,"world",oModel);
   ospSetParam(oRenderer,"model",oModel);
   ospSetParam(oRenderer,"camera",oCamera);

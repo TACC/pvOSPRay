@@ -81,14 +81,15 @@ vtkOSPRayManager::vtkOSPRayManager()
   if (1)
   {
     int ac =1;
-    const char* av[] = {"gluray\0","\0"};
-    // const char* av[] = {"gluray\0","--osp:debug\0"};
+    // const char* av[] = {"pvOSPRay\0","\0"};
+    // const char* av[] = {"pvOSPRay\0","--osp:debug\0"};
+    const char* av[] = {"pvOSPRay\0","--osp:verbose\0"};
     ospInit(&ac, av);
   }
   else  //coi
   {
     int ac =2;
-    const char* av[] = {"gluray\0","--osp:coi","\0"};
+    const char* av[] = {"pvOSPRay\0","--osp:coi","\0"};
     ospInit(&ac, av);
   }
   //ospLoadModule("pathtracer");

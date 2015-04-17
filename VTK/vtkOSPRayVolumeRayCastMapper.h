@@ -176,6 +176,7 @@ protected:
   virtual void ReportReferences(vtkGarbageCollector*);
 
   // The distance between sample points along the ray
+  int CellFlag;
   double                       SampleDistance;
   double                       ImageSampleDistance;
   double                       MinimumImageSampleDistance;

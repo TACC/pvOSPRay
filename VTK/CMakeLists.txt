@@ -68,6 +68,9 @@ IF (BUILD_AGAINST_PARAVIEW)
   SET ( OSPRAY_CLASSES ${OSPRAY_CLASSES}
     vtkOSPRayLODActor.cxx
     vtkPVOSPRayRepresentation.cxx
+    vtkPVOSPRayRepresentation.h
+    vtkPVOSPRayOutlineRepresentation.cxx
+    vtkPVOSPRayOutlineRepresentation.h
     vtkPVOSPRayImageVolumeRepresentation.cxx
     vtkPVOSPRayImageVolumeRepresentation.h
     vtkOSPRayCompositeMapper.cxx)
