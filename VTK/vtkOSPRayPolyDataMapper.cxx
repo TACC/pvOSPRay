@@ -802,8 +802,9 @@ void FindAllData(vtkPolyData* polydata)
     //arrayNames.push_back(polydata->GetPointData()->GetArray(i)->GetName());
     //arrayNames.push_back(polydata->GetPointData()->GetArrayName(i));
     int dataTypeID = polydata->GetPointData()->GetArray(i)->GetDataType();
+    int arrayTypeID = polydata->GetPointData()->IsArrayAnAttribute(i);
     std::cout << "Array " << i << ": " << polydata->GetPointData()->GetArrayName(i)
-              << " (type: " << dataTypeID << ")" << std::endl;
+              << " (type: " << dataTypeID << ")" << arrayTypeID << std::endl;
     }
  
   for(vtkIdType i = 0; i < numberOfCellArrays; i++)
@@ -915,7 +916,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
     vtkosp::Mesh* mesh = new vtkosp::Mesh();
     // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
-    osp::Material* osmat = OSPRayProperty->GetOSPRayMaterial();
+    // force create a new material every time this is called in case the renderer
+    // has changed
+    //osp::Material* osmat = OSPRayProperty->GetOSPRayMaterial();
+    osp::Material* osmat = 0;
     if (!osmat)
     {
         OSPRayProperty->CreateOSPRayProperty();
@@ -1127,36 +1131,52 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         vtkIdType *pts;
         vtkPoints *ptarray = points;
 
-    
-        vtkDataArray* scalar = input->GetPointData()->GetArray(0);
-        vtkScalarsToColors* vstc = GetLookupTable();
+   
+        FindAllData(input);
+        //int TupleID = GetFieldDataTupleId();
 
         double coord0[3];
         vtkIdType cell;
-
-
         std::vector<ospray::vec3fa> tmpColors;
         std::vector<double> tmpVector;
 
         if (scalar)
         {
 
-        int scalarSize = scalar->GetNumberOfTuples();
-        int vectorSize = scalar->GetNumberOfComponents();
+        vtkDataArray* scalar = input->GetPointData()->GetScalars(NULL);
 
+        if(!scalar) {
+
+        } else {
+        }
+
+
+        int scalarSize = ptarray->GetNumberOfPoints();
         unsigned char* output = new unsigned char[scalarSize*4];
 
 
-        if(vectorSize > 1) {
+/*        //vtkDataArray* scalar = GetScalar();
+
+
+
+
+
+
+
+*/
+
+        int vectorSize = (scalar) ? scalar->GetNumberOfComponents() : 0;
+        if(scalar && vectorSize > 1) {
+            vtkScalarsToColors* vstc = GetLookupTable();
             vstc->SetVectorModeToMagnitude();
             vstc->MapVectorsThroughTable(scalar->GetVoidPointer(0),output,scalar->GetDataType(),scalarSize,vectorSize,VTK_RGBA);
         } else {
 		    double solidColor[3];
 		    OSPRayProperty->GetDiffuseColor(solidColor);
             for(int ii=0; ii < scalarSize; ii++) {
-                output[ii+0] = solidColor[0] * 255;
-                output[ii+1] = solidColor[1] * 255;
-                output[ii+2] = solidColor[2] * 255;
+                output[ii*4+0] = (unsigned char)(solidColor[0] * 255);
+                output[ii*4+1] = (unsigned char)(solidColor[1] * 255);
+                output[ii*4+2] = (unsigned char)(solidColor[2] * 255);
             }
         }
 
