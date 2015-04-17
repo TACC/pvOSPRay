@@ -1,0 +1,395 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<meta name="description" content="pvOSPRay: a ParaView Module for the OSPRay Ray Tracer">
+	<link rel="stylesheet" type="text/css" media="screen" href="../css/stylesheet.css">
+	<title>pvOSPRay</title>
+	<link rel="icon" type="image/png" href="./images/fiu192.png" sizes="192x192">
+	<link rel="SHORTCUT ICON" href="./images/fiu32.ico">
+	<style type="text/css"></style></head>
+
+	<body>
+		<div id="header">
+			<div id="header-github">
+				<a id="forkme-banner" href="https://github.com/TACC/pvOSPRay">View on GitHub</a>
+			</div>
+			<div id="header-title">pvOSPRay</div>
+			<div id="header-subtitle">A ParaView Module for the OSPRay Ray Tracer</div>
+			<div id="header-navbar">
+				<ul>
+					<li><a href="http://tacc.github.io/pvOSPRay/index.html">Overview</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/demos.html">Demos</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/gallery.html">Gallery</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/getting_pvospray.html">Getting pvOSPRay</a></li>
+					<li><a href="https://github.com/TACC/pvOSPRay/wiki">Wiki</a></li>
+					<li><a href="https://github.com/TACC/pvOSPRay/issues">Bugs/Issues</a></li>
+					<li><a href="http://tacc.github.io/pvOSPRay/related_projects.html">Related Projects</a></li>
+				</ul>
+			</div>
+			<div id="header-spacing"></div> 
+		</div>
+
+		<div id="content-wrap">
+			<div id="content">
+
+<h1>pvOSPRay Basic Visualizations</h1>
+
+<p>
+This demo show how to create basic scalar and vector visualizations of a small but interesting dataset in ParaView using OSPRay.
+The dataset is <a href="data/disk_out_ref.ex2">disk_out_ref.ex2</a>, a simulation of the flow of air around a heated and spinning disk.
+</p>
+<p>
+For instructions on how to enable and use pvOSPRay within ParaView, please see the <a href="walkthrough.html">walk-through demo</a>.
+If you do not yet have a version of pvOSPRay installed on your system, you can follow these
+<a href="getting_pvospray.html">instructions for getting pvOSPRay</a>. 
+</p>
+
+<p>
+This demo assumes that the pvOSPRay plugin is already loaded within your ParaView installation.
+In this demo, you will:
+<ol>
+<li>Load the disk_out_ref dataset (<a href="#load">jump to this step</a>)</li>
+<li>Produce isosurfaces for the data (<a href="#isosurfaces">jump to this step</a>)</li>
+<li>Open an OSPRay render window (<a href="#ospray">jump to this step</a>)</li>
+<li>Produce vector glyphs for the data (<a href="#glyphs">jump to this step</a>)</li>
+<li>Manage ParaView Level-of-Detail (LOD) settings (<a href="#lod">jump to this step</a>)</li>
+<li>Produce streamlines for the data (<a href="#streamlines">jump to this step</a>)</li>
+</ol>
+</p>
+
+<p>
+Each demo image below is linked to a larger version for your reference. Just click the image to open the larger version.
+</p>
+
+  <!-- ------------------------------------------------------- -->
+
+<h2><a name="load">Loading the Dataset</a></h2>
+<p>
+The first task in this demo is to download the dataset to your local machine. Please click the link to download (or right-click and select "Save Link As..."): 
+<a href="data/disk_out_ref.ex2">disk_out_ref.ex2</a>.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, open ParaView. The images used in this demo are taken from a MacOSX build, but Linux and Windows builds are similar. You should
+			see the ParaView workspace, similar to the image to the right.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_01.png"><img src="disk_out_ref_images/disk_out_ref_01.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			Next, open the <code>disk_out_ref.ex2</code> file. Click the Open File button in the upper-left corner. Navigate to the location of your local copy of the file and click "Open".
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_01b.png"><img src="disk_out_ref_images/disk_out_ref_01b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			At this point, the file metadata has been read, but the file itself is not yet loaded. The ParaView Properties viewer (lower left) lists the properties available in the file.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_02b.png"><img src="disk_out_ref_images/disk_out_ref_02b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			We need a vector property in order to demonstrate vector glyphs and streamlines. For this demo, we will use the velocity property "V". Click the checkbox next to the "V" in the Property viewer to select the velocity property for import. Verify that the checkbox is checked, then click "Apply" at the top of the Property viewer.  
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_03b.png"><img src="disk_out_ref_images/disk_out_ref_03b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The selected properties of <code>disk_out_ref.ex2</code> have now been loaded. The extent of the data is shown as a solid surface, as shown.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_04.png"><img src="disk_out_ref_images/disk_out_ref_04.png" width=400></a>
+		</td>
+	</tr>
+	</table>
+
+	  <!-- ------------------------------------------------------- -->
+<h2><a name="isosurfaces">Producing Isosurfaces</a></h2>
+<p>
+The next task in this demo will produce a set of isosurfaces rendered using both the default rasterizer and the OSPRay ray tracer.
+</p>
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			The first step for this task is to load the ParaView contour filter, which produces isosurfaces. Click the "Contour" button in the ParaView toolbar.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_04b.png"><img src="disk_out_ref_images/disk_out_ref_04b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The ParaView default contour filter will create a single isosurface at the midpoint value of the first scalar property. We will use the range option to create a set of surfaces. Click the range button in the Properties viewer.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_05b.png"><img src="disk_out_ref_images/disk_out_ref_05b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This opens the "Add Range" dialog. We will use the default values for this section, but you are encouraged to experiment with the range and steps options to create different surface sets. Click "Ok" to create the range.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_06.png"><img src="disk_out_ref_images/disk_out_ref_06.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The range values are added to the Property viewer. Notice that the original mid-point isovalue is still present. For this demo, we will keep it, but if you would like to remove it, highlight it, then click the minus "-" button in the Properties viewer. Once you have all your desired values for the isosurface set, click the "Apply" button in the Properties viewer.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_07b.png"><img src="disk_out_ref_images/disk_out_ref_07b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			You should now see a set of isosurfaces in the display window, similar to the view shown.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_08.png"><img src="disk_out_ref_images/disk_out_ref_08.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+	  <!-- ------------------------------------------------------- -->
+<h2><a name="isosurfaces">Opening an OSPRay Render Window</a></h2>
+<p>
+The next task in this demo will render the isosurface set from the previous task using the OSPRay ray tracer. If you do not know how to load the OSPRay plugin, please see <a href="walkthrough.html#plugin">this step</a> in the walk-through demo for instructions.
+</p>
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, open a new display window. Click the plus button "+" next to the "Layout #1" tab above the display window.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_08b.png"><img src="disk_out_ref_images/disk_out_ref_08b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This will open the ParaView Create View dialog. Click the OSPRay option. If you do not see the OSPRay option listed, please make sure the pvOSPRay plugin is loaded by following <a href="walkthrough.html#plugin">these instructions</a>.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_09b.png"><img src="disk_out_ref_images/disk_out_ref_09b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			After selecting OSPRay a blank display window will open. Note that the dataset and contour filter are still present in the pipeline browser, but they have been hidden, noted by the grayed-out eye icons to the left of each item. Click the eye icon next to the contour filter to render the isosurface set using OSPRay.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_10b.png"><img src="disk_out_ref_images/disk_out_ref_10b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			You should now see the isosurface set rendered using OSPRay. You can use the layout tabs to switch between the rasterized display in Layout #1 and the ray traced display in Layout #2. Note the differences in the shadows, particularly between surfaces.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_11b.png"><img src="disk_out_ref_images/disk_out_ref_11b.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+
+  <!-- ------------------------------------------------------- -->
+<h2><a name="glyphs">Producing Glyphs</a></h2>
+
+<p>
+This demo task will use OSPRay to render arrow glyphs to visualize a vector property of the <code>disk_out_ref.ex2</code> dataset.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, click the Glyph button in the ParaView toolbar, located in the same toolbar set as the Contour button.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_12a.png"><img src="disk_out_ref_images/disk_out_ref_12a.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This creates a glyph filter in the Pipeline Browser and populates the Properties viewer with various options. We will use the default selections, so click the "Apply" button in the Properties viewer.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_12bb.png"><img src="disk_out_ref_images/disk_out_ref_12bb.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This creates a set of arrow glyphs to indicate the flow direction and magnitude at various sample points throughout the dataset. Notice that the isosurface set is also visible, which demonstrates how you can use multiple filters together in ParaView to create complex visualizations. However, the isosurfaces will mask some of the glyph shading we wish to demonstrate, so click the eye icon next to the contour filter in the Pipeline Browser to hide the isosurface set.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_12cc.png"><img src="disk_out_ref_images/disk_out_ref_12cc.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			Now the display window shows only the vector glyphs, as shown.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_12d.png"><img src="disk_out_ref_images/disk_out_ref_12d.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+
+  <!-- ------------------------------------------------------- -->
+<h2><a name="lod">Managing Level-Of-Detail</a></h2>
+
+<p>
+ParaView has a level-of-detail (LOD) control mechanism to reduce the geometric complexity of a visualization when the camera is moved. This feature helps rasterization, since the render cost for each view is dependent on the total amount of geometry. However, the feature does not help ray tracing, since the render cost only depends on the amount of <i>visible</i> geometry. Further, it can hurt ray tracing, since changing the LOD level changes all the scene geometry (since the geometric representation becomes more or less refined) and the ray tracer must rebuild its internal acceleration structures.
+</p>
+<p>
+While this LOD-jumping does not greatly impact performance for this small dataset, it can for larger data. Therefore, this task shows you how to disable LOD changes within ParaView.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			First, we will demonstrate the LOD-jumping behavior described above. Click in the display window and hold the button down, then move the cursor to change the view direction. Notice how the arrow shapes become coarser when the view moves, while the button is held down; then, the arrows return to their finer shape when the button is released.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_13.png"><img src="disk_out_ref_images/disk_out_ref_13.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			<p>
+			To disable the LOD behavior, we must open the Settings dialog.
+			</p>
+			<p>
+			In MacOSX, open the "ParaView" menu and select "Preferences..." (shown, left). 
+			</p>
+			<p>
+			In Linux, open the "Edit" menu and select "Settings..." (shown, right).  
+			</p>
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="walkthrough_images/pvOSPRay_17b.png"><img src="walkthrough_images/pvOSPRay_17b.png" height=274></a>
+			<a href="walkthrough_images/pvOSPRay_17c.png"><img src="walkthrough_images/pvOSPRay_17c.png" height=274></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The Settings dialog should appear. Select the "General" sublist of the "Render View" option in the left-side list. Note that there are several options for LOD control, but for this demo, you will completely disable LOD. Uncheck the "LOD Threshold" checkbox to disable LOD completely.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_14b.png"><img src="disk_out_ref_images/disk_out_ref_14b.png" width=400></a>
+		</td>
+	</tr>
+		<tr>
+		<td style="vertical-align:top">
+			After the LOD Threshold box is unchecked, click "Ok". Now, changing the view direction should not change the geometry of the arrow glyphs.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_15b.png"><img src="disk_out_ref_images/disk_out_ref_15b.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+
+  <!-- ------------------------------------------------------- -->
+<h2><a name="streamlines">Producing Streamlines</a></h2>
+
+<p>
+For the final task of this demo, you will create streamlines to visualize the vector field of the <code>disk_out_ref.ex2</code> dataset.
+</p>
+
+<table cellspacing="20">
+	<tr>
+		<td style="vertical-align:top">
+			<p>
+			First, you will create a streamlines filter in the Pipeline Browser. In the ParaView toolbar, click the Streamlines button, which is immediately to the right of the glyph button. 
+			</p>
+			<p>
+			(Note that the glyphs from the previous task have already been hidden by clicking the eye icon next to Glyph in the Pipeline Browser.)
+			</p>
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_16b.png"><img src="disk_out_ref_images/disk_out_ref_16b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			This adds a StreamTracer to the Pipeline Browser. We will use the default settings for now, so click "Apply" in the Properties viewer.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_17b.png"><img src="disk_out_ref_images/disk_out_ref_17b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			<p>
+			You should now see an image similar to the one shown. We will continue to use this view direction for the examples.
+			</p>
+			<p>
+			(Note that your particular view will be the same orientation as the last view drawn for your glyph image. To reset your view to a standard orientation, use the axis view buttons, shown highlighted.)
+			</p>
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_18b.png"><img src="disk_out_ref_images/disk_out_ref_18b.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			<p>
+			Where ParaView uses 2D lines to draw streamlines (see below), a ray tracer cannot render these efficiently, so pvOSPRay renders the streamlines as piecewise cylindrical tubes. This representation costs little, since OSPRay can intersect each cylinder using its implicit representation without explicitly creating tessellated geometry. Further, using a tube allows you to easily control the thickness of the lines and gives each line additional visual depth.
+			</p>
+			<p>
+			The default width hides the internal structure and details for this dataset, so we need to reduce it. We will use the search feature of the Properties viewer to quickly find the line width option. Type "line" in the Properties viewer search box.
+			</p>
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_18c.png"><img src="disk_out_ref_images/disk_out_ref_18c.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			The search returns each option that contains "line". We will use the display option at the bottom. Experiment with various width values to observe their effect. We suggest that 0.005 strikes a good balance between texture and clarity.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_19b.png"><img src="disk_out_ref_images/disk_out_ref_19b.png" width=400></a>
+		</td>
+	</tr>	
+	<tr>
+		<td style="vertical-align:top">
+			These images show views of the streamlines with width 0.005.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/disk_out_ref_20.png"><img src="disk_out_ref_images/disk_out_ref_20.png" width=400></a>
+			<a href="disk_out_ref_images/disk_out_ref_21.png"><img src="disk_out_ref_images/disk_out_ref_21.png" width=400></a>
+		</td>
+	</tr>
+	<tr>
+		<td style="vertical-align:top">
+			Theses images compares OSPRay rendering (left) against rasterization rendering (right) for glyphs (top) and streamlines (bottom). Notice the shading depth in the OSPRay images.
+		</td>
+		<td style="vertical-align:top" width=400>
+			<a href="disk_out_ref_images/glyphs_comp.png"><img src="disk_out_ref_images/glyphs_comp_thumb.png" width=400></a>
+			<a href="disk_out_ref_images/streamlines_comp.png"><img src="disk_out_ref_images/streamlines_comp_thumb.png" width=400></a>
+		</td>
+	</tr>
+</table>
+
+
+			</div>
+		</div>
+
+		<div id="footer">
+			<a href="http://tacc.github.io/pvOSPRay/">http://tacc.github.io/pvOSPRay/</a>
+		</div>
+
+</body></html>
