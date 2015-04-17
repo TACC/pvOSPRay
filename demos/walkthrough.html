@@ -70,7 +70,7 @@ the wavelet source creates a volume by default, so we will extract several isosu
 			First, open ParaView. The images used in this demo are taken from a MacOSX build, but Linux and Windows builds are similar. You should
 			see the ParaView workspace, similar to the image to the right.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_01.png"><img src="walkthrough_images/pvOSPRay_01.png" width=400></a>
 		</td>
 	</tr>
@@ -79,7 +79,7 @@ the wavelet source creates a volume by default, so we will extract several isosu
 			Next, select the "Sources" menu from the ParaView menu bar (at the top of the application window in Linux and Windows, at the top of the desktop in MacOSX).
 			In the Sources menu, select "Wavelet".
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_02b.png"><img src="walkthrough_images/pvOSPRay_02b.png" height=274></a>
 		</td>
 	</tr>
@@ -87,7 +87,7 @@ the wavelet source creates a volume by default, so we will extract several isosu
 		<td style="vertical-align:top">
 			This will create a Wavelet source in the ParaView Pipeline Browser and a wireframe of the wavelet volume in the Layout #1 render window.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_03a.png"><img src="walkthrough_images/pvOSPRay_03a.png" width=400></a>
 		</td>
 	</tr>
@@ -96,7 +96,7 @@ the wavelet source creates a volume by default, so we will extract several isosu
 			Next, we will create a set of isosurfaces (also called "contours") in the wavelet data, which will provide visible surfaces to render.
 			Click the "Contour" button in the ParaView toolbar (the concentric half-spheres icon to the right of the calculator icon). 
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_03b.png"><img src="walkthrough_images/pvOSPRay_03b.png" width=400></a>
 		</td>
 	</tr>
@@ -106,18 +106,21 @@ the wavelet source creates a volume by default, so we will extract several isosu
 			However, we would like to generate several surfaces to better show the shading capabilities of OSPRay.
 			Click the 'Add a range of values' button to the right of the Isosurfaces box in the Properties display.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_04b.png"><img src="walkthrough_images/pvOSPRay_04b.png" width=400></a>
 		</td>
 	</tr>
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			This opens the "Add Range" dialog. For this demo, we will change the number of steps to 5, rather than use the default of 10. 
 			(We encourage you to experiment both with the step value and the range endpoints to create different surfaces.)
-			<br><br>
+			</p>
+			<p>
 			When you have adjusted the values to your liking, click the "OK" button.
+			<p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_05.png"><img src="walkthrough_images/pvOSPRay_05.png" width=400></a>
 		</td>
 	</tr>
@@ -126,7 +129,7 @@ the wavelet source creates a volume by default, so we will extract several isosu
 			The Isosurfaces box in the Properties display now contains five isovalues. 
 			Click the "Apply" button at the top of the Properties display to create the isosurfaces.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_06b.png"><img src="walkthrough_images/pvOSPRay_06b.png" width=400></a>
 		</td>
 	</tr>
@@ -134,7 +137,7 @@ the wavelet source creates a volume by default, so we will extract several isosu
 		<td style="vertical-align:top">
 			The wavelet isosurfaces should now be rendered in the Layout #1 display window, similar to the image to the right.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_07.png"><img src="walkthrough_images/pvOSPRay_07.png" width=400></a>
 		</td>
 	</tr>
@@ -150,12 +153,15 @@ The plugin is not loaded by default, so we will use ParaView's dynamic plugin me
 <table cellspacing="20">
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			First, open the ParaView Plugin Manager dialog. Select the "Tools" menu from the ParaView menu bar (at the top of the application window in Linux
 			and Windows, at the top of the desktop in MacOSX). 
-			<br><br>
+			</p>
+			<p>
 			In the Tools menu, select "Manage Plugins...".
+			</p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_08b.png"><img src="walkthrough_images/pvOSPRay_08b.png" height=274></a>
 		</td>
 	</tr>
@@ -163,7 +169,7 @@ The plugin is not loaded by default, so we will use ParaView's dynamic plugin me
 		<td style="vertical-align:top">
 			This will open the ParaView Plugin Manager dialog. Find the pvOSPRay plugin in the Local Plugins list on the right. Select pvOSPRay by clicking on it.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_09.png"><img src="walkthrough_images/pvOSPRay_09.png" width=400></a>
 		</td>
 	</tr>
@@ -171,17 +177,20 @@ The plugin is not loaded by default, so we will use ParaView's dynamic plugin me
 		<td style="vertical-align:top">
 			After selecting pvOSPRay from the list, click the "Load Selected" button.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_09b.png"><img src="walkthrough_images/pvOSPRay_09b.png" width=400></a>
 		</td>
 	</tr>
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			The Property value next to pvOSPRay should now show "Loaded", indicating that the plugin has successfully been connected to ParaView.
-			<br><br> 
+			</p>
+			<p>
 			Close the Plugin Manager dialog. OSPRay is now ready for use!
+			</p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_10b.png"><img src="walkthrough_images/pvOSPRay_10b.png" width=400></a>
 		</td>
 	</tr>
@@ -201,7 +210,7 @@ This demo task will open an OSPRay display and render the wavelet object using t
 		<td style="vertical-align:top">
 			First, create a new display layout. Select the "+" icon next to "Layout #1" above the display window to add a new display layout. 
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_11b.png"><img src="walkthrough_images/pvOSPRay_11b.png" width=400></a>
 		</td>
 	</tr>
@@ -209,17 +218,20 @@ This demo task will open an OSPRay display and render the wavelet object using t
 		<td style="vertical-align:top">
 			This opens a blank display with various view options. Select "OSPRay" from the Create View list.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_12b.png"><img src="walkthrough_images/pvOSPRay_12b.png" width=400></a>
 		</td>
 	</tr>
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			The OSPRay display is now open, but nothing is rendered yet, since all the pipeline objects in the new display are hidden by default.
-			<br><br>
+			</p>
+			<p>
 			Show the wavelet isosurfaces by clicking on the eye icon next to the Contour in the Pipeline Browser.
+			</p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_13b.png"><img src="walkthrough_images/pvOSPRay_13b.png" width=400></a>
 		</td>
 	</tr>
@@ -228,7 +240,7 @@ This demo task will open an OSPRay display and render the wavelet object using t
 			The OSPRay-rendered wavelet surfaces are now displayed in Layout #2. You can swap between the raster version in Layout #1 and the 
 			ray-traced version in Layout #2 by clicking on the respective layout tabs. The active tab is highlighted (here, in blue).
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_14b.png"><img src="walkthrough_images/pvOSPRay_14b.png" width=400></a>
 		</td>
 	</tr>
@@ -238,7 +250,7 @@ This demo task will open an OSPRay display and render the wavelet object using t
 			a full global illumination approximation. Notice that the surface texture and interior regions are much more apparent in the OSPRay ray traced images 
 			(right) than in the rasterized images (left).
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_16b.png"><img src="walkthrough_images/pvOSPRay_16b_thumb.png" width=400></a>
 			<a href="walkthrough_images/pvOSPRay_22b.png"><img src="walkthrough_images/pvOSPRay_22b_thumb.png" width=400></a>
 		</td>
@@ -252,7 +264,8 @@ This demo task will open an OSPRay display and render the wavelet object using t
 <p>
 OSPRay has a number of settings that affect the speed and quality of the rendering. In general, higher-quality images take longer to produce.
 We recommend using efficient settings during data exploration, then increasing the quality settings for particular views of interest.
-<br>
+</p>
+<p>
 Most of OSPRay's settings are accessible through ParaView's toolbars and Properties display. 
 However, a few are accessible only through the ParaView Application Preferences dialog.
 This final demo task will show you how to set these and their effects on the rendered image.
@@ -261,42 +274,53 @@ This final demo task will show you how to set these and their effects on the ren
 <table cellspacing="20">
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			First, open the ParaView Settings dialog. 
-			<br><br>
+			</p>
+			<p>
 			In MacOSX, open the "ParaView" menu and select "Preferences..." (shown, left). 
-			<br><br>
+			</p>
+			<p>
 			In Linux, open the "Edit" menu and select "Settings..." (shown, right).  
+			</p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_17b.png"><img src="walkthrough_images/pvOSPRay_17b.png" height=274></a>
 			<a href="walkthrough_images/pvOSPRay_17c.png"><img src="walkthrough_images/pvOSPRay_17c.png" height=274></a>
 		</td>
 	</tr>
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			This opens the Settings dialog. Highlight "OSPRay" in the left-side menu to see the OSPRay-specific settings.
-			<br><br>
+			</p>
+			<p>
 			"Sampes per Pixel" sets the number of rays traced for each pixel in the displayed image. <br>
 			Setting this value higher can improve image anti-aliasing (makes the image "smoother"), but can lower the frame rate.<br>
 			Setting this value lower can improve the frame rate (rendering is more interactive), but can increase image aliasing (makes the image "rougher").
-			<br><br>
+			</p>
+			<p>
 			"Max Ray Depth" sets the number of bounces the tracer allows before terminating a ray path. This setting applies to 
 			special material properties that require additional sampling, such as reflective materials; or special lighting properties, 
 			such as global illumination approximations.<br>
 			Setting this value higher can improve the sampling fidelity, but can lower the frame rate.<br>
 			Setting this value lower can improve the frame rate, but can lower the fidelity of the sampling.
+			</p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_18.png"><img src="walkthrough_images/pvOSPRay_18.png" width=400></a>
 		</td>
 	</tr>
 	<tr>
 		<td style="vertical-align:top">
+			<p>
 			The OSPRay images to this point have used four (4) samples per pixel. Set the value to 64 to see the difference in image quality and frame rate.
-			<br>
+			</p>
+			<p>
 			Click "OK" to close the dialog and to have the new settings take effect.
+			</p>
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_19b.png"><img src="walkthrough_images/pvOSPRay_19b.png" width=400></a>
 		</td>
 	</tr>
@@ -304,7 +328,7 @@ This final demo task will show you how to set these and their effects on the ren
 		<td style="vertical-align:top">
 			OSPRay now renders the wavelet surface using sixty-four samples per pixel.
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_20.png"><img src="walkthrough_images/pvOSPRay_20.png" width=400></a>
 		</td>
 	</tr>
@@ -312,7 +336,7 @@ This final demo task will show you how to set these and their effects on the ren
 		<td style="vertical-align:top">
 			Compare the image quality using four samples per pixel (left) versus sixty-four samples per pixel (right).
 		</td>
-		<td style="vertical-align:center" width=400>
+		<td style="vertical-align:top" width=400>
 			<a href="walkthrough_images/pvOSPRay_20b.png"><img src="walkthrough_images/pvOSPRay_20b_thumb.png" width=400></a>
 		</td>
 	</tr>	
