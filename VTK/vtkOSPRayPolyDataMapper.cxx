@@ -1139,31 +1139,16 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
         vtkIdType cell;
         std::vector<ospray::vec3fa> tmpColors;
         std::vector<double> tmpVector;
-
-        if (scalar)
-        {
+      // vtkDataArray* scalar = GetScalar();
+      //   if (scalar)
+      //   {
 
         vtkDataArray* scalar = input->GetPointData()->GetScalars(NULL);
-
-        if(!scalar) {
-
-        } else {
-        }
-
+        if (!scalar)
+          return;
 
         int scalarSize = ptarray->GetNumberOfPoints();
         unsigned char* output = new unsigned char[scalarSize*4];
-
-
-/*        //vtkDataArray* scalar = GetScalar();
-
-
-
-
-
-
-
-*/
 
         int vectorSize = (scalar) ? scalar->GetNumberOfComponents() : 0;
         if(scalar && vectorSize > 1) {
@@ -1180,8 +1165,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             }
         }
 
-
-
         //vtkUnsignedCharArray* output= vstc->MapScalars(scalar,VTK_RGBA,-1);
 
         for(int ii=0; ii < scalarSize; ii++) {
@@ -1193,12 +1176,12 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
             tmpColors.push_back(ospray::vec3fa(color[0],color[1],color[2]));
 
         }
-      }
-      else
-      {
+      // }
+      // else
+      // {
                   // std::cerr << __PRETTY_FUNCTION__ << " empty scalar\n";
           // return;
-        }
+        // }
 
         std::vector<ospray::vec3fa> tmpPoints;
         
@@ -1214,18 +1197,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor)
 
 
         while((cell = ca->GetNextCell(npts, pts))) {
-
-            
-
-
             if(npts <= 2) continue;
             slVertex.push_back(tmpPoints[pts[0]]);
             slColors.push_back(tmpColors[pts[0]]);
-
-            
-        mesh->wireframe_vertex.push_back(tmpPoints[pts[0]]);
-
-
+            mesh->wireframe_vertex.push_back(tmpPoints[pts[0]]);
 
             for (vtkIdType i = 1; i < npts; i++) {
                 slIndex.push_back(slVertex.size()-1);
