@@ -466,9 +466,15 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
   //! Set the dynamic model on the renderer.
   ospSetObject(renderer, "dynamic_model", dynamicModel);
-
+  printf("voxelType: %s\n", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar"); 
+  fflush(stdout);
   OSPVolume volume = ospNewVolume("block_bricked_volume");
-
+  if (!volume)
+  {
+    std::cerr << "could not create ospray volume!\n";
+    return;
+  }
+  
 
   char* buffer = NULL;
   size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
@@ -478,7 +484,9 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   OSPData voxelData = ospNewData(dim[0]*dim[1]*dim[2], (ScalarDataType == VTK_FLOAT) ? OSP_FLOAT : OSP_UCHAR, buffer);
   ospSetData(volume, "voxelData", voxelData);
   ospSet3i(volume, "volumeDimensions", dim[0], dim[1], dim[2]);
+  ospSetRegion(volume, voxelData, osp::vec3i(0,0,0), osp::vec3i(dim[0], dim[1], dim[2]));
   ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
+
   ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
   ospSet3i(volume, "blockCount", dim[0],dim[1],dim[2]);
   // volume->setRegion(buffer, ospray::vec3i(0,0,0), ospray::vec3i(dim[0],dim[1],dim[2]));

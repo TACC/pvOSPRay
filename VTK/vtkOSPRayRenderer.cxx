@@ -801,6 +801,10 @@ void vtkOSPRayRenderer::SetEnableShadows( int newval )
     {
     return;
     }
+    
+  OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
+  ospSet1i(renderer,"shadowsEnabled", this->EnableShadows);
+  ospCommit(renderer);
 
   this->EnableShadows = newval;
 }
