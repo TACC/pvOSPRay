@@ -474,24 +474,22 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     std::cerr << "could not create ospray volume!\n";
     return;
   }
-  
 
   char* buffer = NULL;
   size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
 
   buffer = (char*)embree::alignedMalloc(sizeBytes);
   memcpy(buffer, ScalarDataPointer, sizeBytes);
-  OSPData voxelData = ospNewData(dim[0]*dim[1]*dim[2], (ScalarDataType == VTK_FLOAT) ? OSP_FLOAT : OSP_UCHAR, buffer);
-  ospSetData(volume, "voxelData", voxelData);
-  ospSet3i(volume, "volumeDimensions", dim[0], dim[1], dim[2]);
-  ospSetRegion(volume, voxelData, osp::vec3i(0,0,0), osp::vec3i(dim[0], dim[1], dim[2]));
-  ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
 
+  ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
   ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
-  ospSet3i(volume, "blockCount", dim[0],dim[1],dim[2]);
-  // volume->setRegion(buffer, ospray::vec3i(0,0,0), ospray::vec3i(dim[0],dim[1],dim[2]));
+  ospSetRegion(volume, buffer, osp::vec3i(0,0,0), osp::vec3i(dim[0], dim[1], dim[2]));
 
   ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
+
+  // set to 1 to enable gradient shading
+  ospSet1i(volume, "gradientShadingEnabled", 0);
+
   ospCommit(volume);
   ospAddVolume(model,(OSPVolume)volume);
   ospCommit(model);
