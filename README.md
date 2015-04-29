@@ -2,7 +2,7 @@ pvOSPRay
 ======
 
 <h2>About</h2>
-pvOSPRay is a ParaView plugin which creates a custom view using vtkOSPRay for rendering. Currently tested using ParaView 4.1.0 on linux using ICC.  The code for ParaView, the plugin, and the base VTK code are all contained in the base of the vtkOSRPay repository.
+pvOSPRay is a ParaView plugin which creates a custom view using vtkOSPRay for rendering. Currently tested using ParaView 4.1.0 on linux using ICC.
 
 <h2>Using Existing modules on Stampede and Maverick</h2>
 <p>modules are provided for running on TACC's Stampede and Maverick clusters.  A system wide release is planned, but for now module files must of custom loaded with the below instructions </p>
@@ -74,7 +74,7 @@ configure
 enable PARAVIEW_BUILD_PLUGIN_OSPRayView
 </li>
 <li>
-you will need to set the relevant OSPRAY_DIR and OSPRAY_BUILD_DIR to path_to_ospray_dir.
+you will need to set the relevant OSPRAY_DIR and OSPRAY_BUILD_DIR to path_to_ospray_dir
 </li>
 <li>
 generate
@@ -83,9 +83,6 @@ generate
 make -j4
 </li>
 </ul>
-
-<h3>Troubleshooting</h3>
-Note that some older version of ICC may run into issues, there is currently a known issue building the plugin with icc 14.0.1 which is being fixed.  If you run into this error in constants.h, remove the instantiation of "True" and "False", and instead change any calls in other files to "TrueTy()" or "FalseTy".
 
 <h2>Running</h2>
 Under Tools->"Manage Plugins" select "Load New..." and navigate to the libOSPRayView.so library. Select OSPRayView and click load selected.  Close the plugins window.
