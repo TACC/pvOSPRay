@@ -65,8 +65,18 @@ git clone https://github.com/TACC/pvOSPRay.git pvOSPRay
 cd paraview_build_dir
 </li>
 <li>
-CXX="icpc" CC="icc" ccmake paraview_source_dir .  configure. enable PARAVIEW_BUILD_PLUGIN_OSPRayView. 
+CXX="icpc" CC="icc" ccmake paraview_source_dir .  
+</li>
+<li>
+configure 
+</li>
+<li>
+enable PARAVIEW_BUILD_PLUGIN_OSPRayView
+</li>
+<li>
 you will need to set the relevant OSPRAY_DIR and OSPRAY_BUILD_DIR to path_to_ospray_dir.
+</li>
+<li>
 generate
 </li>
 <li>
@@ -80,14 +90,5 @@ Note that some older version of ICC may run into issues, there is currently a kn
 <h2>Running</h2>
 Under Tools->"Manage Plugins" select "Load New..." and navigate to the libOSPRayView.so library. Select OSPRayView and click load selected.  Close the plugins window.
 Click the "x" on the top right of the window to close the rendering, and select "OSPRay" to create a pvOSPRay rendering view.
-
-vtkOSPRay
-======
-
-<h2>About</h2>
-The base VTK code without ParaView is contained in the VTK directory and makes up vtkOSPRay.  vtkOSPRay is a VTK module which utilizes Intel's OSPRay ray tracing framework (http://ospray.github.io) for rendering.  This is currently bundled with pvOSPRay.
-
-<h2>Building</h2>
-VTK support is built with CMake and tested with the VTK release in ParaView 4.1.0.  
 
 
