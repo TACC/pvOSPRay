@@ -1061,7 +1061,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         std::cout << "m: " << minmax[0] << " M:" << minmax[1] << std::endl;
         //vstc->SetRange(0,1);
         
-        double scale = minmax[1] = minmax[0];
+        double scale = minmax[1] - minmax[0];
 
         for (int i = 0; i < scalarSize; i++) {
           double *tcoord = this->ColorCoordinates->GetTuple(i);
