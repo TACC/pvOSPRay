@@ -930,6 +930,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       double *tcoord = this->ColorCoordinates->GetTuple(i);
       //   texCoords.push_back( OSPRay::Vector(tcoord[0], 0, 0) );
       // mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], 0));
+			if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
       mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], tcoord[1]));
       // texCoords.push_back(vtkosp::Vec2(tcoord[0],0));
       // mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
@@ -956,6 +957,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     vtkDataArray *tcoords = input->GetPointData()->GetTCoords();
     for (int i = 0; i < tcoords->GetNumberOfTuples(); i++) {
       double *tcoord = tcoords->GetTuple(i);
+			if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
       mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], tcoord[1]));
       //     ( OSPRay::Vector(tcoord[0], tcoord[1], tcoord[2]) );
     }

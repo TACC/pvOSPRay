@@ -24,6 +24,8 @@
 //
 
 #include "vtkOSPRay.h"
+#include "vtkOSPRayRenderer.h"
+
 #include "vtkOSPRayObjectFactory.h"
 
 #include "vtkDebugLeaks.h"
@@ -38,7 +40,6 @@
 #include "vtkOSPRayPolyDataMapper.h"
 // #include "vtkOSPRayVolumeMapper.h"
 #include "vtkOSPRayProperty.h"
-#include "vtkOSPRayRenderer.h"
 #include "vtkOSPRayTexture.h"
 
 #ifdef VTKOSPRAY_FOR_PARAVIEW
