@@ -123,6 +123,10 @@ vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
   this->ImageDisplayHelper     = vtkRayCastImageDisplayHelper::New();
 
   this->IntermixIntersectingGeometry = 1;
+
+
+  volume = ospNewVolume("block_bricked_volume");
+  model = ospNewModel();
 }
 
 // Destruct a vtkOSPRayVolumeRayCastMapper - clean up any memory used
@@ -334,8 +338,6 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     //
     // OSPRay
     //
-    #if 1
-    {
 
         vtkOSPRayRenderer* OSPRayRenderer =
     vtkOSPRayRenderer::SafeDownCast(ren);
@@ -350,6 +352,16 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
     }
+
+     this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
+     OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
+
+  // if(scalarOpacity->GetMTime() > this->BuildTime ||
+  //        (this->LastBlendMode!=blendMode)
+  //        || (blendMode==vtkVolumeMapper::COMPOSITE_BLEND &&
+  //            this->LastSampleDistance!=sampleDistance)
+  //        || needUpdate || !this->Loaded)
+  // {
 
      void* ScalarDataPointer =
       this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
@@ -371,7 +383,6 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
    std::cout << "numberOfComponents: " << numberOfComponents << std::endl;
      }
 
-
      int dim[3];
 
      data->GetDimensions(dim);
@@ -383,17 +394,7 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
      // OSPRenderer renderer = ospNewRenderer("raycast_volume_renderer");
      OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
-     this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
-     OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
-     OSPModel model = ospNewModel();
      // exitOnCondition(renderer == NULL, "could not create OSPRay renderer object");
-
-
-      //! Create an OSPRay light source.
-      OSPLight light = ospNewLight(NULL, "DirectionalLight");  ospSet3f(light, "direction", 1.0f, -2.0f, -1.0f);  ospSet3f(light, "color", 1.0f, 1.0f, 1.0f);
-
-  //! Set the light source on the renderer.
-  ospCommit(light);  ospSetData(renderer, "lights", ospNewData(1, OSP_OBJECT, &light));
 
   //! Create an OSPRay transfer function.
   OSPTransferFunction transferFunction = ospNewTransferFunction("piecewise_linear");  
@@ -427,11 +428,6 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     colors[i+colors.size()/2] = colorsl[1]*(1.0-v) + colorsl[2]*v;
   }
 
-      // if(scalarOpacity->GetMTime() > this->BuildTime ||
-      //    (this->LastBlendMode!=blendMode)
-      //    || (blendMode==vtkVolumeMapper::COMPOSITE_BLEND &&
-      //        this->LastSampleDistance!=sampleDistance)
-      //    || needUpdate || !this->Loaded)
 
   vtkVolumeProperty* volProperty = vol->GetProperty();
   vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
@@ -465,10 +461,8 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
    ospCommit(transferFunction);
 
   //! Set the dynamic model on the renderer.
-  ospSetObject(renderer, "dynamic_model", dynamicModel);
   printf("voxelType: %s\n", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar"); 
   fflush(stdout);
-  OSPVolume volume = ospNewVolume("block_bricked_volume");
   if (!volume)
   {
     std::cerr << "could not create ospray volume!\n";
@@ -490,6 +484,17 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   // set to 1 to enable gradient shading
   ospSet1i(volume, "gradientShadingEnabled", 0);
 
+//}
+      //! Create an OSPRay light source.
+      OSPLight light = ospNewLight(NULL, "DirectionalLight");  
+      ospSet3f(light, "direction", 1.0f, -2.0f, -1.0f);  
+      ospSet3f(light, "color", 1.0f, 1.0f, 1.0f);
+
+  //! Set the light source on the renderer.
+  ospCommit(light);  
+  ospSetData(renderer, "lights", ospNewData(1, OSP_OBJECT, &light));
+
+  ospSetObject(renderer, "dynamic_model", dynamicModel);
   ospCommit(volume);
   ospAddVolume(model,(OSPVolume)volume);
   ospCommit(model);
@@ -537,8 +542,6 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   // ospCommitCatalog(catalog);  ospCommit(model);  models.push_back(model);
 
   // }
-    }
-    #endif
     return;
 
 

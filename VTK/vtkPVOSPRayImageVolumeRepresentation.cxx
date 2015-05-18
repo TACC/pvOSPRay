@@ -358,6 +358,7 @@ void vtkPVOSPRayImageVolumeRepresentation::SetInterpolationType(int val)
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetColor(vtkColorTransferFunction* lut)
 {
+  std::cout << __PRETTY_FUNCTION__ << "\n";
   this->Property->SetColor(lut);
 }
 

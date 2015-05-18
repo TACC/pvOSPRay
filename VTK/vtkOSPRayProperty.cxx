@@ -344,9 +344,14 @@ void vtkOSPRayProperty::CreateOSPRayProperty()
 // float diffusef[] = {1, 0, 0};
           float specularf[] = {specular[0],specular[1],specular[2]};
           ospSet3fv(oMaterial,"Kd",diffusef);
+          printf("Kd %f %f %f\n", diffusef[0], diffusef[1], diffusef[2]);
           ospSet3fv(oMaterial,"Ks",specularf);
+          printf("Ks %f %f %f\n", specularf[0], specularf[1], specularf[2]);
           ospSet1f(oMaterial,"Ns",float(this->GetSpecularPower()));
+          ospSet1f(oMaterial,"Ns",1.0f);
+          printf("Ns %f\n", float(this->GetSpecularPower()));
           ospSet1f(oMaterial,"d", float(this->GetOpacity()));
+          printf("d %f\n", float(this->GetOpacity()));
 
           ospCommit(oMaterial);
           // std::cerr << "creating ospray material with diffuse color " << diffuse[0] << " " << diffuse[1] << " " << diffuse[2] << std::endl;

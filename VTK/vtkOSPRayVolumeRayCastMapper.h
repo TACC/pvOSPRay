@@ -29,7 +29,11 @@
                                       // and vtkVolumeRayCastDynamicInfo
 #include "vtkOSPRayModule.h"
 
-
+namespace osp
+{
+  class Volume;
+  class Model;
+}
 
 class vtkEncodedGradientEstimator;
 class vtkEncodedGradientShader;
@@ -272,6 +276,8 @@ protected:
 
 
   vtkOSPRayManager *OSPRayManager;
+  osp::Volume* volume;
+  osp::Model* model;
 
 
 private:
