@@ -30,6 +30,8 @@
 #include "vtkOSPRayModule.h"
 #include "vtkOpenGLRenderer.h"
 
+#include "vtkOSPRay.h"
+
 // //
 // //ospray
 // //
@@ -208,7 +210,10 @@ private:
   bool EngineInited;
   bool EngineStarted;
 
-  int ImageSize;
+  int ImageX;
+	int ImageY;
+	OSPFrameBuffer osp_framebuffer;
+
   float *ColorBuffer;
   float *DepthBuffer;
 

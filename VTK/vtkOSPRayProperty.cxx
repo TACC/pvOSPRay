@@ -340,9 +340,8 @@ void vtkOSPRayProperty::CreateOSPRayProperty()
             this->OSPRayMaterial = ospNewMaterial(renderer,"OBJMaterial");
           OSPMaterial oMaterial = (OSPMaterial)this->OSPRayMaterial;
           Assert(oMaterial);
-          float diffusef[] = {diffuse[0], diffuse[1], diffuse[2]};
-// float diffusef[] = {1, 0, 0};
-          float specularf[] = {specular[0],specular[1],specular[2]};
+          float diffusef[] = {(float)diffuse[0], (float)diffuse[1], (float)diffuse[2]};
+          float specularf[] = {(float)specular[0],(float)specular[1],(float)specular[2]};
           ospSet3fv(oMaterial,"Kd",diffusef);
           printf("Kd %f %f %f\n", diffusef[0], diffusef[1], diffusef[2]);
           ospSet3fv(oMaterial,"Ks",specularf);

@@ -25,6 +25,8 @@
 #ifndef __vtkOSPRay_h
 #define __vtkOSPRay_h
 
+#include "ospray/ospray.h"
+
 #include "vtkConfigure.h"
 #include "vtkOSPRayModule.h"
 
