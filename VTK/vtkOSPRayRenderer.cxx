@@ -157,7 +157,13 @@
 
   this->ColorBuffer = NULL;
   this->DepthBuffer = NULL;
-  this->ImageSize = -1;
+  // this->ImageSize = -1;
+  this->ImageX = -1;
+  this->ImageY = -1;
+  this->osp_framebuffer = NULL;
+  this->backgroundRGB[0] = 0.0;
+  this->backgroundRGB[1] = 0.0;
+  this->backgroundRGB[2] = 0.0;
 
   // this->OSPRayFactory->selectImageType( "rgba8zfloat" );
 
@@ -197,6 +203,23 @@
 //----------------------------------------------------------------------------
 vtkOSPRayRenderer::~vtkOSPRayRenderer()
 {
+  if (this->osp_framebuffer)
+  {
+    ospFreeFrameBuffer(this->osp_framebuffer);
+    this->osp_framebuffer = NULL;
+  }
+
+  if (this->ColorBuffer)
+  {
+   delete[] this->ColorBuffer;
+    this->ColorBuffer = NULL;
+  }
+
+  if (this->DepthBuffer)
+  {
+    delete[] this->DepthBuffer;
+    this->DepthBuffer = NULL;
+  }
   //cerr << "MR(" << this << ") DESTROY " << this->OSPRayManager << " "
   //     << this->OSPRayManager->GetReferenceCount() << endl;
 
@@ -246,7 +269,9 @@ void vtkOSPRayRenderer::InitEngine()
 void vtkOSPRayRenderer::SetBackground(double r, double g, double b)
 {
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
+  OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
   ospSet3f(oRenderer,"bgColor",r,g,b);
+  // ospSet3f(vRenderer,"bgColor",r,g,b);
 
   backgroundRGB[0] = r;
   backgroundRGB[1] = g;
@@ -527,7 +552,7 @@ void vtkOSPRayRenderer::LayerRender()
   int     rowLength,  OSPRaySize[2];
   int     minWidth,   minHeight;
   int     hOSPRayDiff, hRenderDiff;
-  int     renderPos0[2];
+  int     renderPos[2];
   int*    renderSize  = NULL;
   int*    renWinSize  = NULL;
   bool    stereoDumy;
@@ -539,8 +564,8 @@ void vtkOSPRayRenderer::LayerRender()
   renderSize = this->GetSize();
   renWinSize = this->GetRenderWindow()->GetActualSize();
   renViewport= this->GetViewport();
-  renderPos0[0] = int( renViewport[0] * renWinSize[0] + 0.5f );
-  renderPos0[1] = int( renViewport[1] * renWinSize[1] + 0.5f );
+  renderPos[0] = int( renViewport[0] * renWinSize[0] + 0.5f );
+  renderPos[1] = int( renViewport[1] * renWinSize[1] + 0.5f );
   // this->GetSyncDisplay()->getCurrentImage()->
     // getResolution( stereoDumy, OSPRaySize[0], OSPRaySize[1] );
   // OSPRayBase = dynamic_cast< const OSPRay::SimpleImageBase * >
@@ -574,32 +599,34 @@ void vtkOSPRayRenderer::LayerRender()
   static OSPFrameBuffer framebuffer = ospNewFrameBuffer(newSize,OSP_RGBA_I8);
   // memory allocation and acess to the OSPRay image
   int size = renderSize[0]*renderSize[1];
-  static  ospray::vec2i oldSize(renderSize[0],renderSize[1]);
-  if (this->ImageSize != size)
+  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1])
   {
-    if (this->ColorBuffer)
-      delete[] this->ColorBuffer;
-    if (this->DepthBuffer)
-      delete[] this->DepthBuffer;
-    this->ImageSize = size;
-    this->DepthBuffer = new float[ size ];
+    this->ImageX = renderSize[0];
+    this->ImageY = renderSize[1];
+
+    if (this->ColorBuffer) delete[] this->ColorBuffer;
     this->ColorBuffer = new float[ size ];
-// printf("setSize 2");
-    // if (framebuffer) ospFreeFrameBuffer(framebuffer);
-// printf("setSize 3");
+
+    if (this->DepthBuffer) delete[] this->DepthBuffer;
+    this->DepthBuffer = new float[ size ];
+
+    if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH);
   }
-  if (oldSize[0] != newSize[0] || oldSize[1] != newSize[1])
-  {
-   framebuffer = ospNewFrameBuffer(newSize,OSP_RGBA_I8);
- }
- oldSize = newSize;
     //TODO: save framebuffer
   // OSPRayBuffer = static_cast< float * >( OSPRayBase->getRawData(0) );
 
   // update this->ColorBuffer and this->DepthBuffer from the OSPRay
   // RGBA8ZfloatPixel array
  double *clipValues = this->GetActiveCamera()->GetClippingRange();
- double depthScale  = 1.0f / ( clipValues[1] - clipValues[0] );
+ // double depthScale  = 1.0f / ( clipValues[1] - clipValues[0] );
+ double viewAngle = this->GetActiveCamera()->GetViewAngle();
+ //
+ // Closest point is center of near clipping plane - farthest is
+ // corner of far clipping plane
+ double clipMin = clipValues[0];
+ double clipMax = clipValues[1] / pow(cos(viewAngle / 2.0), 2.0);
+ double clipDiv = 1.0 / (clipMax - clipMin);
 
   //
   //  OSPRay
@@ -657,17 +684,34 @@ void vtkOSPRayRenderer::LayerRender()
    ospCommit(vdModel);
    ospCommit(vRenderer);
 
-   ospRenderFrame(framebuffer,vRenderer);
+   ospRenderFrame(osp_framebuffer,vRenderer);
  }
  else
  {
-  ospRenderFrame(framebuffer,renderer);
+                OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
+               OSPModel ospModel = ((OSPModel)this->OSPRayManager->OSPRayModel);
+
+               ospCommit(renderer);
+               ospCommit(ospModel);
+  ospRenderFrame(osp_framebuffer,renderer);
 }
 
 
 
 
-float* ospBuffer = (float *) ospMapFrameBuffer(framebuffer);
+float* ospBuffer = (float *) ospMapFrameBuffer(osp_framebuffer, OSP_FB_DEPTH);
+float* s = (float*)ospBuffer;
+float *d = this->DepthBuffer;
+for (int i = 0; i < size; i++, s++, d++)
+   *d = isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
+
+ this->GetRenderWindow()->MakeCurrent();
+ glDepthFunc(GL_ALWAYS);
+ this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
+            renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+ const void* rgba = ospMapFrameBuffer(this->osp_framebuffer);
+ memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));
+ ospUnmapFrameBuffer(rgba, this->osp_framebuffer);
   #endif
 
        // this->OSPRayManager->ospModel = ospNewModel();
@@ -717,9 +761,9 @@ if ( this->GetLayer() == 0 )
     //                   this->DepthBuffer );
 
   this->GetRenderWindow()->
-  SetRGBACharPixelData( renderPos0[0],  renderPos0[1],
-    renderPos0[0] + renderSize[0] - 1,
-    renderPos0[1] + renderSize[1] - 1,
+  SetRGBACharPixelData( renderPos[0],  renderPos[1],
+    renderPos[0] + renderSize[0] - 1,
+    renderPos[1] + renderSize[1] - 1,
     (unsigned char*)this->ColorBuffer, 0, 0 );
   glFinish();
 }
@@ -728,9 +772,9 @@ else
     //layers on top add the colors of their non background pixels
   unsigned char*  GLbakBuffer = NULL;
   GLbakBuffer = this->GetRenderWindow()->
-  GetRGBACharPixelData( renderPos0[0],  renderPos0[1],
-    renderPos0[0] + renderSize[0] - 1,
-    renderPos0[1] + renderSize[1] - 1, 0 );
+  GetRGBACharPixelData( renderPos[0],  renderPos[1],
+    renderPos[0] + renderSize[0] - 1,
+    renderPos[1] + renderSize[1] - 1, 0 );
 
   bool anyhit = false;
   unsigned char *optr = GLbakBuffer;
@@ -759,9 +803,9 @@ else
   {
       // submit the modified RGB colors to GL BACK buffer
     this->GetRenderWindow()->
-    SetRGBACharPixelData( renderPos0[0],  renderPos0[1],
-      renderPos0[0] + renderSize[0] - 1,
-      renderPos0[1] + renderSize[1] - 1,
+    SetRGBACharPixelData( renderPos[0],  renderPos[1],
+      renderPos[0] + renderSize[0] - 1,
+      renderPos[1] + renderSize[1] - 1,
       GLbakBuffer, 0, 0 );
   }
 
@@ -771,7 +815,7 @@ else
     //
     // ospray
     //
-ospUnmapFrameBuffer(ospBuffer,framebuffer);
+ospUnmapFrameBuffer(ospBuffer,osp_framebuffer);
     // this->OSPRayManager->ospModel = ospNewModel();
     // ospSetParam(renderer,"world",this->OSPRayManager->ospModel);
     // ospSetParam(renderer,"model",this->OSPRayManager->ospModel);
