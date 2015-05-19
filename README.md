@@ -2,7 +2,7 @@ pvOSPRay
 ======
 
 <h2>About</h2>
-pvOSPRay is a ParaView plugin which creates a custom view using vtkOSPRay for rendering. Currently tested using ParaView 4.1.0 on linux using ICC.  The code for ParaView, the plugin, and the base VTK code are all contained in the base of the vtkOSRPay repository.
+pvOSPRay is a ParaView plugin which creates a custom view using vtkOSPRay for rendering. Currently tested using ParaView 4.1.0 on linux using ICC.
 
 <h2>Using Existing modules on Stampede and Maverick</h2>
 <p>modules are provided for running on TACC's Stampede and Maverick clusters.  A system wide release is planned, but for now module files must of custom loaded with the below instructions </p>
@@ -65,8 +65,18 @@ git clone https://github.com/TACC/pvOSPRay.git pvOSPRay
 cd paraview_build_dir
 </li>
 <li>
-CXX="icpc" CC="icc" ccmake paraview_source_dir .  configure. enable PARAVIEW_BUILD_PLUGIN_OSPRayView. 
-you will need to set the relevant OSPRAY_DIR and OSPRAY_BUILD_DIR to path_to_ospray_dir.
+CXX="icpc" CC="icc" ccmake paraview_source_dir .  
+</li>
+<li>
+configure 
+</li>
+<li>
+enable PARAVIEW_BUILD_PLUGIN_OSPRayView
+</li>
+<li>
+you will need to set the relevant OSPRAY_DIR and OSPRAY_BUILD_DIR to path_to_ospray_dir
+</li>
+<li>
 generate
 </li>
 <li>
@@ -74,20 +84,8 @@ make -j4
 </li>
 </ul>
 
-<h3>Troubleshooting</h3>
-Note that some older version of ICC may run into issues, there is currently a known issue building the plugin with icc 14.0.1 which is being fixed.  If you run into this error in constants.h, remove the instantiation of "True" and "False", and instead change any calls in other files to "TrueTy()" or "FalseTy".
-
 <h2>Running</h2>
 Under Tools->"Manage Plugins" select "Load New..." and navigate to the libOSPRayView.so library. Select OSPRayView and click load selected.  Close the plugins window.
 Click the "x" on the top right of the window to close the rendering, and select "OSPRay" to create a pvOSPRay rendering view.
-
-vtkOSPRay
-======
-
-<h2>About</h2>
-The base VTK code without ParaView is contained in the VTK directory and makes up vtkOSPRay.  vtkOSPRay is a VTK module which utilizes Intel's OSPRay ray tracing framework (http://ospray.github.io) for rendering.  This is currently bundled with pvOSPRay.
-
-<h2>Building</h2>
-VTK support is built with CMake and tested with the VTK release in ParaView 4.1.0.  
 
 
