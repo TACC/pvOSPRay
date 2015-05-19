@@ -130,6 +130,7 @@
   ospSetParam(oRenderer,"camera",oCamera);
   ospSet1i(oRenderer,"spp",Samples);
   ospSet3f(oRenderer,"bgColor",0.83,0.35,0.43);
+  ospSet1f(oRenderer,"epsilon", 10e-5);
   ospCommit(oModel);
   ospCommit(oCamera);
   ospCommit(oRenderer);
@@ -312,7 +313,7 @@ int vtkOSPRayRenderer::UpdateLights()
         ospSet3f(ospLight, "color", color[0],color[1],color[2]);
         ospSet3f(ospLight, "position", position[0],position[1],position[2]);
         ospCommit(ospLight);
-        // lights.push_back(ospLight);
+        lights.push_back(ospLight);
     // std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
     // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
     // ospSetData(renderer, "pointLights", pointLightArray); 
@@ -328,12 +329,15 @@ int vtkOSPRayRenderer::UpdateLights()
         direction[1] = position[1] - focal[1];
         direction[2] = position[2] - focal[2];
         OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
-        ospSetString(ospLight, "name", "sun" );
-        ospSet3f(ospLight, "color", color[0],color[1],color[2]);
-        ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
+        ospSetString(ospLight, "name", "directional" );
+        ospSet3f(ospLight, "color", color[0]*0.4,color[1]*0.4,color[2]*0.4);
+        osp::vec3f dir(-direction[0],-direction[1],-direction[2]);
+        dir = normalize(dir); 
+        ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
         ospCommit(ospLight);
-        // lights.push_back(ospLight);
-    // std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << " \n";
+        lights.push_back(ospLight);
+    // std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << 
+    // direction[0] << " " << direction[1] << " " << direction[2] << " \n";
         // OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
     // ospSetData(renderer, "directionalLights", pointLightArray);
 
@@ -361,20 +365,24 @@ int vtkOSPRayRenderer::UpdateLights()
       {
       }
     }
-
+{
             OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
         ospSetString(ospLight, "name", "sun" );
         ospSet3f(ospLight, "color", 0.5,0.5,.5);
         ospSet3f(ospLight, "direction", 1,1,1);
         ospCommit(ospLight);
-        lights.push_back(ospLight);
-    //       double* color = this->Ambient;
-    //     OSPLight ospLight = ospNewLight(renderer, "AmbientLight");
-    // ospSetString(ospLight, "name", "ambient" );
-    // ospSet3f(ospLight, "color", color[0],color[1],color[2]);
-    // // ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
-    // ospCommit(ospLight);
-    // lights.push_back(ospLight);
+        // lights.push_back(ospLight);
+      }
+      {
+          double* color = this->Ambient;
+        OSPLight ospLight = ospNewLight(renderer, "AmbientLight");
+    ospSetString(ospLight, "name", "ambient" );
+    ospSet3f(ospLight, "color", .5,.5,.5);
+    ospSet1f(ospLight, "intensity", 1.0f);
+    // ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
+    ospCommit(ospLight);
+    lights.push_back(ospLight);
+  }
 
 
     OSPData lightsArray = ospNewData(lights.size(), OSP_OBJECT, &lights[0], 0);
