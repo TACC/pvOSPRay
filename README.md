@@ -1,8 +1,5 @@
-pvOSPRay
+pvOSPRay <a href="https://tacc.github.io/pvOSPRay/">https://tacc.github.io/pvOSPRay</a>
 ======
-<h1>Main Site</h1>
-Visit the pvOSPRay main site at <a href="https://tacc.github.io/pvOSPRay/">https://tacc.github.io/pvOSPRay</a>
-
 <h2>About</h2>
 pvOSPRay is a ParaView plugin which creates a custom view using vtkOSPRay for rendering. Currently tested using ParaView 4.1.0 on linux using ICC.
 
