@@ -28,6 +28,7 @@
 project(vtkOSPRay)
 
 
+
 #Configure vtkOSPRay source proper ############################################
 
 # Define a flag
@@ -47,6 +48,11 @@ INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
 # message("project binary dir: " ${PROJECT_BINARY_DIR})
 
 
+# if(PARAVIEW_BUILD_QT_GUI)
+#   INCLUDE(${QT_USE_FILE})
+# endif(PARAVIEW_BUILD_QT_GUI)
+FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
 
 # Set vtkOSPRay source files.
 SET ( OSPRAY_CLASSES
@@ -83,11 +89,11 @@ SET ( OSPRAY_SRCS
 
 set (${vtk-module}_NO_HeaderTest 1)
 
-vtk_module_library(${vtk-module} ${OSPRAY_SRCS})
+vtk_module_library(${vtk-module} ${OSPRAY_SRCS} ${MOCSrcs} ${UISrcs})
 find_package(OSPRay)
 # MESSAGE("ospray libs:" + ${OSPRAY_LIBRARIES})
 # MESSAGE("vtk-module: " + ${vtk-module})
-TARGET_LINK_LIBRARIES (${vtk-module} LINK_PRIVATE ${OSPRAY_LIBRARIES})
+TARGET_LINK_LIBRARIES (${vtk-module} LINK_PRIVATE ${OSPRAY_LIBRARIES} ${QT_LIBRARIES})
 
 # OSPRay_Core uses MMTime which is in it's own special library.
 if(WIN32)

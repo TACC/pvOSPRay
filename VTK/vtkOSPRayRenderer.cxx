@@ -36,6 +36,8 @@
 #include "vtkRenderWindow.h"
 #include "vtkTimerLog.h"
 
+#include <QTimer.h>
+
 // #include <Core/Color/Color.h>
 // #include <Core/Color/ColorDB.h>
 // #include <Core/Color/RGBColor.h>
@@ -57,6 +59,15 @@
 
 #include "vtkImageData.h"
 #include "vtkPNGWriter.h"
+#include "vtkPolyDataMapper.h"
+#include "vtkPolyData.h"
+
+#include <vtkSmartPointer.h>
+#include <vtkCommand.h>
+#include <vtkRenderer.h>
+#include <vtkRendererCollection.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
 //
 //  VBOs
@@ -72,6 +83,31 @@
 
    vtkStandardNewMacro(vtkOSPRayRenderer);
 
+   class vtkTimerCallback : public vtkCommand
+{
+  public:
+    static vtkTimerCallback *New()
+    {
+      vtkTimerCallback *cb = new vtkTimerCallback;
+      cb->TimerCount = 0;
+      return cb;
+    }
+ 
+    virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId,
+                         void *vtkNotUsed(callData))
+    {
+      if (vtkCommand::TimerEvent == eventId)
+        {
+        ++this->TimerCount;
+        }
+        std::cout << "timer " << this->TimerCount << std::endl;
+    }
+ 
+  private:
+    int TimerCount;
+ 
+};
+
 //----------------------------------------------------------------------------
    vtkOSPRayRenderer::vtkOSPRayRenderer()
 //:
@@ -82,6 +118,7 @@
     hasVolumeHack= false;
   //cerr << "MR(" << this << ") CREATE" << endl;
 
+    this->EngineInited=false;
   // Default options
     this->NumberOfWorkers = 1;
     this->EnableShadows = 0;
@@ -182,6 +219,8 @@
 
   // this->DefaultLight = NULL;
   #endif
+
+
 }
 
 //----------------------------------------------------------------------------
@@ -229,6 +268,29 @@ vtkOSPRayRenderer::~vtkOSPRayRenderer()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::InitEngine()
 {
+      // vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::New(); 
+   // iren->SetRenderWindow(this->GetRenderWindow());
+  //  vtkRenderWindowInteractor* iren = this->GetRenderWindow()->GetInteractor();
+  //  // iren->Initialize();
+
+  //  // iren->AddObserver TimerEvent {if {$val == 0} exit}
+
+  //  // Sign up to receive TimerEvent
+  // vtkSmartPointer<vtkTimerCallback> cb = 
+  //   vtkSmartPointer<vtkTimerCallback>::New();
+  // iren->AddObserver(vtkCommand::TimerEvent, cb);
+
+
+  //  iren->CreateRepeatingTimer(1000);
+
+  //  printf("starting timer!\n");
+  //  iren->Start();
+  //  printf("started timer!\n");
+   this->EngineInited = true;
+
+    // QTimer *timer = new QTimer(this);
+    // connect(timer, SIGNAL(timeout()), this, SLOT(update()));
+    // timer->start(1000);
 }
 
 //----------------------------------------------------------------------------
@@ -446,7 +508,7 @@ int vtkOSPRayRenderer::UpdateLights()
 //----------------------------------------------------------------------------
   void vtkOSPRayRenderer::DeviceRender()
   {
-  //cerr << "MR(" << this << ") DeviceRender" << endl;
+  cerr << "MR(" << this << ") DeviceRender" << endl;
 
   // In ParaView, we are wasting time in rendering the "sync layer" with
   // empty background image just to be dropped in LayerRender(). We just
@@ -517,6 +579,36 @@ int vtkOSPRayRenderer::UpdateLights()
   vtkTimerLog::MarkEndEvent("Total LayerRender");
 
   vtkTimerLog::MarkEndEvent("OSPRay Dev Render");
+
+//
+//try to hack in updates for progressive rendering!
+//
+  // this->GetRenderWindow()->Modified();
+//       vtkActorCollection* actors = this->GetActors();
+//   printf("num actors: %d\n", this->GetActors()->GetNumberOfItems());
+//   actors->InitTraversal();
+//   for(vtkIdType i = 0; i < actors->GetNumberOfItems(); i++)
+//   {
+//   vtkActor* act = actors->GetNextActor();
+//   if (act)
+//   {
+//     printf("found actor %d\n", i);
+//   act->Modified();
+//   vtkPolyDataMapper* mapper = dynamic_cast<vtkPolyDataMapper*>(act->GetMapper());
+//   if (mapper)
+//   {
+//     printf("found mapper\n");
+//   vtkPolyData* dat = mapper->GetInput();
+//   if (dat)
+//   {
+//   printf("updating actor\n");
+//   dat->Modified();
+// }
+
+// }
+// }
+//   // act->Update();
+//   }
 }
 
 //----------------------------------------------------------------------------

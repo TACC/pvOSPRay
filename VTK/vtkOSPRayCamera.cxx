@@ -36,7 +36,7 @@
 //
 //  vbos
 //
-#include <GL/glu.h>
+#include <GL/glu.h>   
 
 
 vtkStandardNewMacro(vtkOSPRayCamera);
