@@ -21,8 +21,8 @@ To do this, load the OpenSWR module and substitute it for the VirtualGL vglrun c
 <li>module use /work/01336/carson/opt/modulefiles</li>
 <li>module load paraview</li>
 <li>module load pvospray</li>
-<li>module load openswr</li>
-<li>openswr paraview</li>
+<li>module load swr</li>
+<li>swr paraview</li>
 <li>the plugin should automatically be loaded. Click the "x" on the top right of the window to close the rendering, and select "OSPRay" to create a pvOSPRay rendering view.</li>
 </ul>
 
