@@ -39,12 +39,12 @@
 <h2>Using pvOSPRay at TACC</h2>
 
 <p>Modules are provided for running on TACC's Stampede and Maverick clusters.  A system wide release is planned, but for now module files must of custom loaded with the below instructions. 
-Note that the $WORK filesystem is shared between Stampede and Maverick (along with other TACC machines) so these steps will work for both machines.</p>
+Note that the <code>$WORK</code> filesystem is shared between Stampede and Maverick (along with other TACC machines) so these steps will work for both machines.</p>
 <ul>
-<li>module use /work/01336/carson/opt/modulefiles</li>
-<li>module load paraview</li>
-<li>module load pvospray</li>
-<li>vglrun paraview</li>
+<li><code>module use /work/01336/carson/opt/modulefiles</code></li>
+<li><code>module load paraview</code></li>
+<li><code>module load pvospray</code></li>
+<li><code>vglrun paraview</code></li>
 <li>the plugin should automatically be loaded. Click the "x" on the top right of the window to close the rendering, and select "OSPRay" to create a pvOSPRay rendering view.</li>
 </ul>
 
@@ -52,11 +52,11 @@ Note that the $WORK filesystem is shared between Stampede and Maverick (along wi
 To do this, load the OpenSWR module and substitute it for the VirtualGL vglrun command.
 </p>
 <ul>
-<li>module use /work/01336/carson/opt/modulefiles</li>
-<li>module load paraview</li>
-<li>module load pvospray</li>
-<li>module load openswr</li>
-<li>openswr paraview</li>
+<li><code>module use /work/01336/carson/opt/modulefiles</code></li>
+<li><code>module load paraview</code></li>
+<li><code>module load pvospray</code></li>
+<li><code>module load swr</code></li>
+<li><code>swr paraview</code></li>
 <li>the plugin should automatically be loaded. Click the "x" on the top right of the window to close the rendering, and select "OSPRay" to create a pvOSPRay rendering view.</li>
 </ul>
 
