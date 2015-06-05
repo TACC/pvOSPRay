@@ -36,7 +36,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkTimerLog.h"
 
-#include <QTimer.h>
+// #include <QTimer.h>
 
 // #include <Core/Color/Color.h>
 // #include <Core/Color/ColorDB.h>
