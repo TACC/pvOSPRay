@@ -126,6 +126,7 @@ vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
 
 
   volume = ospNewVolume("block_bricked_volume");
+  transferFunction = ospNewTransferFunction("piecewise_linear"); 
   model = ospNewModel();
 }
 
@@ -355,6 +356,8 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
      this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
      OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
+     
+     OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
 
   // if(scalarOpacity->GetMTime() > this->BuildTime ||
   //        (this->LastBlendMode!=blendMode)
@@ -362,6 +365,9 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   //            this->LastSampleDistance!=sampleDistance)
   //        || needUpdate || !this->Loaded)
   // {
+     if (this->GetInput()->GetMTime() > this->BuildTime)
+     {
+      printf("volume rebuild!\n");
 
      void* ScalarDataPointer =
       this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
@@ -393,11 +399,10 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
      // ospCommit(dynamicModel);
 
      // OSPRenderer renderer = ospNewRenderer("raycast_volume_renderer");
-     OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
      // exitOnCondition(renderer == NULL, "could not create OSPRay renderer object");
 
   //! Create an OSPRay transfer function.
-  OSPTransferFunction transferFunction = ospNewTransferFunction("piecewise_linear");  
+ 
   // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
 
   std::vector<float> alphas;
@@ -483,6 +488,9 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
   // set to 1 to enable gradient shading
   ospSet1i(volume, "gradientShadingEnabled", 0);
+    this->BuildTime.Modified();
+}
+
 
 //}
       //! Create an OSPRay light source.

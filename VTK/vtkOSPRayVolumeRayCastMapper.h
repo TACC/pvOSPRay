@@ -33,6 +33,7 @@ namespace osp
 {
   class Volume;
   class Model;
+  class TransferFunction;
 }
 
 class vtkEncodedGradientEstimator;
@@ -278,6 +279,8 @@ protected:
   vtkOSPRayManager *OSPRayManager;
   osp::Volume* volume;
   osp::Model* model;
+  vtkTimeStamp  BuildTime;
+  osp::TransferFunction* transferFunction;
 
 
 private:
