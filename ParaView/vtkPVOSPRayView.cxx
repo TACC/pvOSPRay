@@ -19,6 +19,7 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
+#include <QTimer>
 #include "vtkPVOSPRayView.h"
 
 #include "vtkCamera.h"
@@ -32,10 +33,15 @@
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkRenderViewBase.h"
 
+#include "vtkQtProgressiveRenderer.h"
+#include "vtkCommand.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
+
 vtkStandardNewMacro(vtkPVOSPRayView);
 //----------------------------------------------------------------------------
 vtkPVOSPRayView::vtkPVOSPRayView()
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->SynchronizedRenderers->SetDisableIceT(true);
 
   vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::New();
@@ -72,7 +78,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   OSPRayRenderer->AddLight(this->Light);
   OSPRayRenderer->SetAutomaticLightCreation(0);
 
-//  this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
+  //  this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
 
   if (this->Interactor)
     {
@@ -84,6 +90,17 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   //this->GetRenderer()->AddActor(this->CenterAxes);
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
+
+    vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer);
+  // this->AddObserver(vtkCommand::UpdateDataEvent,
+      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
+  this->Interactor->AddObserver(
+      vtkCommand::StartInteractionEvent,
+      progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+this->Interactor->AddObserver(
+      vtkCommand::EndInteractionEvent,
+      progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
+
 
 }
 

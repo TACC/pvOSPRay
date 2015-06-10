@@ -32,7 +32,9 @@ IF(PARAVIEW_BUILD_QT_GUI)
   QT4_WRAP_CPP(MOC_SRCS
     OSPRayView.h
     OSPRayDisplay.h
-    OSPRayViewOptions.h)
+    OSPRayViewOptions.h
+    vtkQtProgressiveRenderer.h
+    )
 
   QT4_WRAP_UI(UI_SRCS
     OSPRayDisplay.ui
@@ -78,6 +80,7 @@ add_paraview_plugin(
     ${VIEW_IFACE_SRCS} ${OPTIONS_IFACE_SRCS} ${DISPLAY_IFACE_SRCS} ${UI_SRCS}
     ${MOC_SRCS}
     OSPRayView.cxx
+    vtkQtProgressiveRenderer.cxx
     OSPRayDisplay.cxx
     OSPRayViewOptions.cxx
 )

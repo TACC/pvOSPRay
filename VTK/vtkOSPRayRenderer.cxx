@@ -19,6 +19,7 @@
    Copyright (c) 2007, Los Alamos National Security, LLC
    ======================================================================================= */
 
+
 #include "ospray/ospray.h"
 #include "ospray/common/OSPCommon.h"
 
@@ -36,7 +37,6 @@
 #include "vtkRenderWindow.h"
 #include "vtkTimerLog.h"
 
-// #include <QTimer.h>
 
 // #include <Core/Color/Color.h>
 // #include <Core/Color/ColorDB.h>
@@ -115,6 +115,7 @@
   //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
   //OSPRayLightSet( 0 ), OSPRayCamera( 0 ), SyncDisplay( 0 )
    {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
     hasVolumeHack= false;
   //cerr << "MR(" << this << ") CREATE" << endl;
 
@@ -287,10 +288,6 @@ void vtkOSPRayRenderer::InitEngine()
   //  iren->Start();
   //  printf("started timer!\n");
    this->EngineInited = true;
-
-    // QTimer *timer = new QTimer(this);
-    // connect(timer, SIGNAL(timeout()), this, SLOT(update()));
-    // timer->start(1000);
 }
 
 //----------------------------------------------------------------------------

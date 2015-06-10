@@ -23,7 +23,8 @@
 // .SECTION Description
 // A  View that sets up the display pipeline so that it
 // works with OSPRay.
-
+#include <QTimer>
+#include "vtkCommand.h"
 #include "vtkSMOSPRayViewProxy.h"
 #include "vtkObjectFactory.h"
 
@@ -35,6 +36,9 @@
 #include "vtkSMSession.h"
 #include "vtkSMRepresentationProxy.h"
 #include "vtkSMSourceProxy.h"
+
+#include "vtkQtProgressiveRenderer.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
 
 #include <assert.h>
 
@@ -97,6 +101,18 @@ vtkSMRepresentationProxy* vtkSMOSPRayViewProxy::CreateDefaultRepresentation(
   pp->AddUncheckedInputConnection(source, opport);
   bool g = (pp->IsInDomains()>0);
   pp->RemoveAllUncheckedProxies();
+
+
+//   vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer();
+//   this->AddObserver(vtkCommand::UpdateDataEvent,
+//       progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
+//   this->GetInteractor()->AddObserver(
+//       vtkCommand::StartInteractionEvent,
+//       progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+// this->GetInteractor()->AddObserver(
+//       vtkCommand::EndInteractionEvent,
+//       progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
+
   if (g)
     {
     return vtkSMRepresentationProxy::SafeDownCast(

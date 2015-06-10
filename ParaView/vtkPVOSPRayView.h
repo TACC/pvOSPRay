@@ -26,9 +26,12 @@
 #ifndef __vtkPVOSPRayView_h
 #define __vtkPVOSPRayView_h
 
+
 #include "vtkPVRenderView.h"
 
 class vtkDataRepresentation;
+
+
 
 class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {

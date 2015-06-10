@@ -60,6 +60,8 @@ INCLUDE_DIRECTORIES(${OSPRAY_INCLUDE_DIRS})
 find_package(X11 REQUIRED)
 INCLUDE_DIRECTORIES(${X11_X11_INCLUDE_PATH})
 
+FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
 
 # -----------------------------------------------------------------------------
 # Process all vtk-modules defined in this plugin. This generates the necessary
