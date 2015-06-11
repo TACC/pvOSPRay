@@ -9,26 +9,29 @@
   <ProxyGroup name="views">
     <OSPRayViewProxy name="OSPRayView" class="vtkPVOSPRayView"
         processes="client|renderserver|dataserver"
-        base_proxygroup="views" base_proxyname="RenderView">
+        base_proxygroup="views" base_proxyname="RenderView"
+        label="OSPRay Rendered 3D View">
 
      <SubProxy>
        <Proxy name="ActiveCamera" proxyname="OSPRayCamera" proxygroup="camera"
               override="1">
        </Proxy>
        <ExposedProperties>
-         <Property name="CameraPositionInfo" />
-         <Property name="CameraPosition" />
-         <Property name="CameraFocalPointInfo" />
-         <Property name="CameraFocalPoint" />
-         <Property name="CameraViewUpInfo" />
-         <Property name="CameraViewUp" />
-         <Property name="CameraViewAngle" />
-         <Property name="CameraClippingRangeInfo" />
-         <Property name="CameraClippingRange" />
-         <Property name="CameraParallelScale" />
-         <Property name="CameraParallelScaleInfo" />
-         <Property name="CameraParallelProjection" />
-         <Property name="EyeAngle" />
+         <Property name="CameraPositionInfo" panel_visibility="never"/>
+         <Property name="CameraPosition" panel_visibility="never"/>
+         <Property name="CameraFocalPointInfo" panel_visibility="never"/>
+         <Property name="CameraFocalPoint" panel_visibility="never"/>
+         <Property name="CameraViewUpInfo" panel_visibility="never"/>
+         <Property name="CameraViewUp" panel_visibility="never"/>
+         <Property name="CameraViewAngle" panel_visibility="never"/>
+         <Property name="CameraClippingRangeInfo" panel_visibility="never"/>
+         <Property name="CameraClippingRange" panel_visibility="never"/>
+         <Property name="CameraParallelScale" panel_visibility="never"/>
+         <Property name="CameraParallelScaleInfo" panel_visibility="never"/>
+         <Property name="CameraParallelProjection" panel_visibility="advanced"/>
+         <Property name="EyeAngle" panel_visibility="never"/>
+         <Property name="EyeTransformMatrix" />
+         <Property name="ModelTransformMatrix" />
        </ExposedProperties>
      </SubProxy>
 
@@ -36,6 +39,7 @@
         command="SetThreads"
         immediate_update="1"
         number_of_elements="1"
+        panel_visibility="default"
         default_values="1">
         <IntRangeDomain name="range" min="1" />
         <Documentation>
@@ -47,6 +51,7 @@
         command="SetEnableShadows"
         immediate_update="1"
         number_of_elements="1"
+        panel_visibility="default"
         default_values="0">
         <BooleanDomain name="bool" />
         <Documentation>
@@ -54,21 +59,11 @@
         </Documentation>
       </IntVectorProperty>
 
-      <IntVectorProperty name="EnableAO"
-        command="SetEnableAO"
-        immediate_update="1"
-        number_of_elements="1"
-        default_values="0">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Turns on AO.
-        </Documentation>
-      </IntVectorProperty>
-
       <IntVectorProperty name="Samples"
         command="SetSamples"
         immediate_update="1"
         number_of_elements="1"
+        panel_visibility="default"
         default_values="1">
         <IntRangeDomain name="range" min="1" />
         <Documentation>
@@ -80,6 +75,7 @@
         command="SetMaxDepth"
         immediate_update="1"
         number_of_elements="1"
+        panel_visibility="advanced"
         default_values="5">
         <IntRangeDomain name="range" min="1" />
         <Documentation>
@@ -98,13 +94,6 @@
   </ProxyGroup>
 
   <ProxyGroup name="representations">
-
-    <RepresentationProxy name="OSPRayOutlineRepresentation"
-                         class="vtkPVOSPRayOutlineRepresentation"
-                         processes="client|renderserver|dataserver"
-                         base_proxygroup="representations"
-                         base_proxyname="SurfaceRepresentation">
-    </RepresentationProxy>
 
     <RepresentationProxy name="OSPRaySurfaceRepresentation"
                          class="vtkPVOSPRayRepresentation"
@@ -161,24 +150,28 @@
 
     </RepresentationProxy>
 
+    <PVRepresentationProxy name="OSPRayGeometryRepresentation"
+                           class="vtkPVCompositeRepresentation"
+                           processes="client|renderserver|dataserver">
 
-        <RepresentationProxy name="OSPRayVolumeRepresentation"
-                         class="vtkPVOSPRayImageVolumeRepresentation"
-                         processes="client|renderserver|dataserver"
-                         si_class="vtkSIUniformGridVolumeRepresentationProxy">
-    <!-- proxy that sets up ospray display pipeline at vtk level -->
- <InputProperty command="SetInputConnection"
-                     name="Input">
-        <DataTypeDomain composite_data_supported="0"
-                        name="input_type">
-          <DataType value="vtkImageData" />
-        </DataTypeDomain>
-        <Documentation>Set the input to the representation.</Documentation>
-      </InputProperty>
+
+      <!--
+      This is all a copy of representations/GeometryRepresentation (and its parent).
+      All I do differently is instantiate the above OSPRay surface representation.
+      The hack is necessary since xml overrides didn't work
+      (shared properties I think), and because at the C++
+      level it is too late to change them by the time the subclass is created.
+      -->
+
+      <Documentation>
+        Top level representation for objects shown in a OSPRay view.
+      </Documentation>
+
       <IntVectorProperty command="SetVisibility"
                          default_values="1"
                          name="Visibility"
-                         number_of_elements="1">
+                         number_of_elements="1"
+                         panel_visibility="never">
         <BooleanDomain name="bool" />
         <Documentation>Set the visibility for this
         representation.</Documentation>
@@ -209,321 +202,90 @@
         set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
         Instead, ForcedCacheKey is used.</Documentation>
       </DoubleVectorProperty>
-      <IntVectorProperty command="SetColorAttributeType"
-                         default_values="0"
-                         name="ColorAttributeType"
-                         number_of_elements="1">
-        <EnumerationDomain name="enum">
-          <Entry text="POINT_DATA"
-                 value="0" />
-          <Entry text="CELL_DATA"
-                 value="1" />
-        </EnumerationDomain>
+      <IntVectorProperty command="SetSelectionVisibility"
+                         default_values="1"
+                         name="SelectionVisibility"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>Set the visibility for the selection, if
+        any.</Documentation>
       </IntVectorProperty>
-      <StringVectorProperty command="SetColorArrayName"
-                            default_values=""
-                            name="ColorArrayName"
-                            number_of_elements="1">
-        <Documentation>Set the array name to color by. Set it to empty string
-        to use solid color.</Documentation>
-        <ArrayListDomain attribute_type="Scalars"
-                         input_domain_name="input_array_any"
-                         name="array_list">
+      <IntVectorProperty command="SetCubeAxesVisibility"
+                         default_values="0"
+                         name="CubeAxesVisibility"
+                         number_of_elements="1"
+                         panel_visibility="never">
+        <BooleanDomain name="bool" />
+        <Documentation>Set the visibility for the cube axes.</Documentation>
+      </IntVectorProperty>
+      <RepresentationType subproxy="SurfaceRepresentation"
+                          subtype="Points"
+                          text="Points" />
+      <RepresentationType subproxy="SurfaceRepresentation"
+                          subtype="Wireframe"
+                          text="Wireframe" />
+      <RepresentationType subproxy="SurfaceRepresentation"
+                          subtype="Surface"
+                          text="Surface" />
+      <RepresentationType subproxy="SurfaceRepresentation"
+                          subtype="Surface With Edges"
+                          text="Surface With Edges" />
+      <StringVectorProperty command="GetRepresentationTypes"
+                            information_only="1"
+                            name="RepresentationTypesInfo"
+                            si_class="vtkSIDataArrayProperty">
+        <Documentation>Property that lists the available representation types.
+        This is used by the domain for "Representation" to setup the list of
+        types available correctly.</Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty command="SetActiveRepresentation"
+                            default_values="Surface"
+                            name="Representation"
+                            number_of_elements="1"
+                            panel_visibility="default"
+                            panel_widget="display_representation_selector" >
+        <Documentation>Choose the type for the representation.</Documentation>
+        <RepresentationTypeDomain name="list">
           <RequiredProperties>
+            <Property function="StringList"
+                      name="RepresentationTypesInfo" />
             <Property function="Input"
                       name="Input" />
           </RequiredProperties>
-        </ArrayListDomain>
+        </RepresentationTypeDomain>
       </StringVectorProperty>
-      <DoubleVectorProperty command="SetPosition"
-                            default_values="0 0 0"
-                            name="Position"
-                            number_of_elements="3">
-        <DoubleRangeDomain name="range" />
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetScale"
-                            default_values="1 1 1"
-                            name="Scale"
-                            number_of_elements="3">
-        <DoubleRangeDomain name="range" />
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetOrientation"
-                            default_values="0 0 0"
-                            name="Orientation"
-                            number_of_elements="3">
-        <DoubleRangeDomain name="range" />
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetOrigin"
-                            default_values="0 0 0"
-                            name="Origin"
-                            number_of_elements="3">
-        <DoubleRangeDomain name="range" />
-      </DoubleVectorProperty>
-      <IntVectorProperty command="SetPickable"
-                         default_values="1"
-                         name="Pickable"
-                         number_of_elements="1">
-        <Hints>
-          <NoDefault />
-        </Hints>
-        <BooleanDomain name="bool" />
-      </IntVectorProperty>
-      <IntVectorProperty command="SetInterpolationType"
-                         default_values="2"
-                         name="InterpolationType"
-                         number_of_elements="1">
-        <EnumerationDomain name="enum">
-          <Entry text="Nearest"
-                 value="0" />
-          <Entry text="Linear"
-                 value="1" />
-          <Entry text="Cubic"
-                 value="2" />
-        </EnumerationDomain>
-      </IntVectorProperty>
-      <ProxyProperty command="SetColor"
-                     name="LookupTable" >
-        <ProxyGroupDomain name="groups">
-          <Group name="transfer_functions" />
-        </ProxyGroupDomain>
-      </ProxyProperty>
-      <DoubleVectorProperty command="SetAmbient"
-                            default_values="0.0"
-                            name="Ambient"
-                            number_of_elements="1">
-        <DoubleRangeDomain max="1"
-                           min="0"
-                           name="range" />
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetDiffuse"
-                            default_values="1.0"
-                            name="Diffuse"
-                            number_of_elements="1">
-        <DoubleRangeDomain max="1"
-                           min="0"
-                           name="range" />
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetSpecular"
-                            default_values="0.1"
-                            name="Specular"
-                            number_of_elements="1">
-        <DoubleRangeDomain max="1"
-                           min="0"
-                           name="range" />
-      </DoubleVectorProperty>
-      <DoubleVectorProperty command="SetSpecularPower"
-                            default_values="100.0"
-                            name="SpecularPower"
-                            number_of_elements="1">
-        <DoubleRangeDomain max="100"
-                           min="0"
-                           name="range" />
-      </DoubleVectorProperty>
-      <IntVectorProperty command="SetShade"
-                         default_values="0"
-                         name="Shade"
-                         number_of_elements="1">
-        <BooleanDomain name="bool" />
-        <Documentation>Enable/Disable shading.</Documentation>
-      </IntVectorProperty>
-      <IntVectorProperty command="SetIndependantComponents"
-                         default_values="1"
-                         name="MapScalars"
-                         number_of_elements="1">
-        <BooleanDomain name="bool" />
-        <Documentation>Enable/Disable independant component usage such a
-        unsigned char RGBA data array.</Documentation>
-      </IntVectorProperty>
-      <ProxyProperty command="SetScalarOpacity"
-                     name="ScalarOpacityFunction" >
-        <ProxyGroupDomain name="groups">
-          <Group name="piecewise_functions" />
-        </ProxyGroupDomain>
-      </ProxyProperty>
-      <IntVectorProperty command="SetRequestedRenderMode"
-                         default_values="0"
-                         name="VolumeRenderingMode"
-                         number_of_elements="1">
-        <EnumerationDomain name="enum">
-          <Entry text="Smart"
-                 value="0" />
-          <Entry text="Ray Cast and Texture Mapping"
-                 value="1" />
-          <Entry text="Ray Cast Only"
-                 value="2" />
-          <Entry text="Texture Mapping Only"
-                 value="3" />
-          <Entry text="GPU Based"
-                 value="4" />
-        </EnumerationDomain>
-      </IntVectorProperty>
-      <DoubleVectorProperty command="SetScalarOpacityUnitDistance"
-                            default_values="1"
-                            name="ScalarOpacityUnitDistance"
-                            number_of_elements="1"></DoubleVectorProperty>
-      <!-- end of UniformGridVolumeRepresentation -->
-
-    </RepresentationProxy>
-
-    <PVRepresentationProxy name="OSPRayGeometryRepresentation"
-                           class="vtkPVCompositeRepresentation"
-                           processes="client|renderserver|dataserver">
-
-
-      <!--
-      This is all a copy of representations/GeometryRepresentation (and its parent).
-      All I do differently is instantiate the above OSPRay surface representation.
-      The hack is necessary since xml overrides didn't work
-      (shared properties I think), and because at the C++
-      level it is too late to change them by the time the subclass is created.
-      -->
-
-      <Documentation>
-        Top level representation for objects shown in a OSPRay view.
-      </Documentation>
-
-      <IntVectorProperty name="Visibility"
-        command="SetVisibility"
-        number_of_elements="1"
-        default_values="1">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Set the visibility for this representation.
-        </Documentation>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="ForceUseCache"
-        command="SetForceUseCache"
-        is_internal="1"
-        number_of_elements="1"
-        default_values="0">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Typically UseCache and CacheKey are updated by the View and
-          representations cache based on what the view tells it. However in some
-          cases we may want to force a representation to cache irrespective of
-          the view (e.g. comparative views). In which case these ivars can up
-          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
-          Instead, ForcedCacheKey is used.
-        </Documentation>
-      </IntVectorProperty>
-
-      <DoubleVectorProperty name="ForcedCacheKey"
-        command="SetForcedCacheKey"
-        is_internal="1"
-        number_of_elements="1"
-        default_values="none">
-        <DoubleRangeDomain name="range" />
-        <Documentation>
-          Typically UseCache and CacheKey are updated by the View and
-          representations cache based on what the view tells it. However in some
-          cases we may want to force a representation to cache irrespective of
-          the view (e.g. comparative views). In which case these ivars can up
-          set. If ForcedCacheKey is true, it overrides UseCache and CacheKey.
-          Instead, ForcedCacheKey is used.
-        </Documentation>
-      </DoubleVectorProperty>
-
-      <!--
-      <IntVectorProperty name="SelectionVisibility"
-        command="SetSelectionVisibility"
-        number_of_elements="1"
-        default_values="1" >
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Set the visibility for the selection, if any.
-        </Documentation>
-      </IntVectorProperty>
-      -->
-
-      <!--
-      <IntVectorProperty name="CubeAxesVisibility"
-        command="SetCubeAxesVisibility"
-        number_of_elements="1"
-        default_values="0" >
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Set the visibility for the cube axes.
-        </Documentation>
-      </IntVectorProperty>
-      -->
-
-      <RepresentationType
-        subproxy="OutlineRepresentation" text="Outline"/>
-      <RepresentationType
-        subproxy="SurfaceRepresentation" text="Points" subtype="Points" />
-      <RepresentationType
-        subproxy="VolumeRepresentation" text="Volume" subtype="Volume" />
-      <RepresentationType
-        subproxy="SurfaceRepresentation" text="Wireframe" subtype="Wireframe" />
-      <RepresentationType
-        subproxy="SurfaceRepresentation" text="Surface" subtype="Surface" />
-      <RepresentationType
-        subproxy="SurfaceRepresentation" text="Surface With Edges"
-        subtype="Surface With Edges" />
-      <RepresentationType
-        subproxy="Glyph3DRepresentation" text="3D Glyphs" subtype="Surface" />
-
-
-      <StringVectorProperty name="RepresentationTypesInfo"
-        command="GetRepresentationTypes"
-        information_only="1"
-        si_class="vtkSIDataArrayProperty">
-        <Documentation>
-          Property that lists the available representation types. This is used
-          by the domain for "Representation" to setup the list of types
-          available correctly.
-        </Documentation>
-      </StringVectorProperty>
-
-      <StringVectorProperty
-        name="Representation"
-        command="SetActiveRepresentation"
-        number_of_elements="1"
-        default_values="Surface">
-        <Documentation>
-          Choose the type for the representation.
-        </Documentation>
-        <StringListDomain name="list">
+      <StringVectorProperty command="SetCellFieldDataArrayName"
+                            default_values="vtkOriginalCellIds"
+                            name="SelectionCellFieldDataArrayName"
+                            number_of_elements="1"
+                            panel_visibility="never">
+        <ArrayListDomain input_domain_name="input_array_cell"
+                         name="array_list">
           <RequiredProperties>
-            <Property name="RepresentationTypesInfo" function="StringList" />
-          </RequiredProperties>
-        </StringListDomain>
-      </StringVectorProperty>
-    
-
-      <!--
-      <StringVectorProperty name="SelectionCellFieldDataArrayName"
-        command="SetCellFieldDataArrayName"
-        number_of_elements="1"
-        default_values="vtkOriginalCellIds" >
-        <ArrayListDomain name="array_list" input_domain_name="input_array_cell">
-          <RequiredProperties>
-             <Property name="Input" function="Input"/>
+            <Property function="Input" name="Input" />
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
-      -->
-
-      <!--
-      <StringVectorProperty name="SelectionPointFieldDataArrayName"
-        command="SetPointFieldDataArrayName"
-        number_of_elements="1"
-        default_values="vtkOriginalPointIds" >
-        <ArrayListDomain name="array_list" input_domain_name="input_array_point">
+      <StringVectorProperty command="SetPointFieldDataArrayName"
+                            default_values="vtkOriginalPointIds"
+                            name="SelectionPointFieldDataArrayName"
+                            number_of_elements="1"
+                            panel_visibility="never">
+        <ArrayListDomain input_domain_name="input_array_point"
+                         name="array_list">
           <RequiredProperties>
-             <Property name="Input" function="Input"/>
+            <Property function="Input" name="Input" />
           </RequiredProperties>
         </ArrayListDomain>
       </StringVectorProperty>
-      -->
-
       <SubProxy>
         <Proxy name="SurfaceRepresentation"
-          proxygroup="representations"
-          proxyname="OSPRaySurfaceRepresentation"> <!-- this is the only thing different -->
+               proxygroup="representations"
+               proxyname="OSPRaySurfaceRepresentation"> <!-- this is the only thing different -->
         </Proxy>
         <ExposedProperties>
+<!-- <<<<<<< Updated upstream -->
 <PropertyGroup panel_visibility="default"
                            label="Color"
                            panel_widget="ColorEditor">
@@ -576,92 +338,194 @@
                       panel_visibility="never" />
           </ExposedProperties>
       </SubProxy>
+<!-- =======
+          <PropertyGroup panel_visibility="default"
+                         panel_widget="ColorEditor"
+                         label="Coloring" >
+            <Property name="Ambient" />
+            <Property name="AmbientColor" />
+            <Property name="ColorArrayName" />
+            <Property name="Diffuse" />
+            <Property name="DiffuseColor" />
+            <Property name="LookupTable" />
+          </PropertyGroup>
+>>>>>>> Stashed changes
+ -->
+          <PropertyGroup label="Scalar Coloring">
+            <Property name="MapScalars"
+                      panel_visibility="advanced" />
+            <Property name="InterpolateScalarsBeforeMapping"
+                      panel_visibility="advanced" />
+          </PropertyGroup>
 
+          <PropertyGroup label="Styling">
+            <Property name="Opacity"
+                      panel_visibility="default" />
+            <Property name="PointSize"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="points" />
+            <Property name="LineWidth"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="wireframe" />
+          </PropertyGroup>
 
-      <SubProxy>
-        <Proxy name="VolumeRepresentation"
-          proxygroup="representations"
-          proxyname="OSPRayVolumeRepresentation"> <!-- this is the only thing different -->
-        </Proxy>
-      </SubProxy>
+          <PropertyGroup label="Lighting">
+            <Property name="Interpolation"
+                      panel_visibility="advanced" />
+            <Property name="Specular"
+                      panel_visibility="default" />
+            <Property name="SpecularColor"
+                      panel_widget="color_selector"
+                      panel_visibility="advanced" />
+            <Property name="SpecularPower"
+                      panel_visibility="advanced" />
+          </PropertyGroup>
 
-      <SubProxy>
-        <Proxy name="OutlineRepresentation"
-          proxygroup="representations"
-          proxyname="OSPRayOutlineRepresentation">
-        </Proxy>
-        <ShareProperties subproxy="SurfaceRepresentation">
-          <Exception name="Input" />
-          <Exception name="Visibility" />
-        </ShareProperties>
-      </SubProxy>
+          <PropertyGroup label="Edge Styling">
+            <Property name="EdgeColor"
+                      panel_widget="color_selector"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="Surface With Edges" />
+          </PropertyGroup>
 
-      <SubProxy>
-        <Proxy name="Glyph3DRepresentation"
-          proxygroup="representations" proxyname="Glyph3DRepresentation">
-        </Proxy>
-        <!--
-        <ExposedProperties>
-          <Property name="Masking" />
-          <Property name="MeshVisibility" />
-          <Property name="Orient" />
-          <Property name="OrientationMode" />
-          <Property name="ScaleFactor" />
-          <Property name="ScaleMode" />
-          <Property name="Scaling" />
-          <Property name="SelectMaskArray" />
-          <Property name="SelectOrientationVectors" />
-          <Property name="SelectScaleArray" />
-          <Property name="Source" />
+          <PropertyGroup label="Backface Styling">
+            <Property name="BackfaceRepresentation"
+                      panel_visibility="advanced" />
+            <Property name="BackfaceAmbientColor"
+                      panel_widget="color_selector"
+                      panel_visibility="advanced" />
+            <Property name="BackfaceDiffuseColor"
+                      panel_widget="color_selector"
+                      panel_visibility="advanced" />
+            <Property name="BackfaceOpacity"
+                      panel_visibility="advanced" />
+          </PropertyGroup>
+
+          <PropertyGroup label="Transforming">
+            <Property name="Position"
+                      panel_visibility="advanced" />
+            <Property name="Scale"
+                      panel_visibility="advanced" />
+            <Property name="Orientation"
+                      panel_visibility="advanced" />
+            <Property name="Origin"
+                      panel_visibility="advanced" />
+          </PropertyGroup>
+
+          <PropertyGroup label="Miscellaneous">
+            <Property name="Pickable"
+                      panel_visibility="advanced" />
+            <Property name="StaticMode"
+                      panel_visibility="never" />
+            <Property name="SuppressLOD"
+                      panel_visibility="never" />
+            <Property name="Texture"
+                      panel_visibility="advanced" />
+            <Property name="UserTransform"
+                      panel_visibility="never" />
+            <Property name="NonlinearSubdivisionLevel"
+                      panel_visibility="advanced" />
+            <Property name="BlockVisibility"
+                      panel_visibility="never" />
+            <Property name="BlockColor"
+                      panel_visibility="never" />
+            <Property name="BlockOpacity"
+                      panel_visibility="never" />
+          </PropertyGroup>
+          <PropertyGroup label="OSPRay Options">
+            <!-- OSPRay specific properties -->
+            <Property name="MaterialType" />
+            <Property name="Reflectance" />
+            <Property name="Thickness" />
+            <Property name="Eta" />
+            <Property name="N" />
+            <Property name="Nt" />
+          </PropertyGroup>
         </ExposedProperties>
-        -->
-        <ShareProperties subproxy="SurfaceRepresentation">
-          <Exception name="Input" />
-          <Exception name="Visibility" />
-        </ShareProperties>
       </SubProxy>
-
       <SubProxy>
         <Proxy name="CubeAxesRepresentation"
-          proxygroup="representations"
-          proxyname="CubeAxesRepresentation">
-        </Proxy>
-        <!--
+               proxygroup="representations"
+               proxyname="CubeAxesRepresentation"></Proxy>
         <ExposedProperties>
-          <Property exposed_name="CubeAxesColor" name="Color" />
-          <Property exposed_name="CubeAxesCornerOffset" name="CornerOffset" />
-          <Property exposed_name="CubeAxesFlyMode" name="FlyMode" />
-          <Property exposed_name="CubeAxesInertia" name="Inertia" />
-          <Property exposed_name="CubeAxesTickLocation" name="TickLocation" />
-          <Property exposed_name="CubeAxesXAxisMinorTickVisibility" name="XAxisMinorTickVisibility" />
-          <Property exposed_name="CubeAxesXAxisTickVisibility" name="XAxisTickVisibility" />
-          <Property exposed_name="CubeAxesXAxisVisibility" name="XAxisVisibility" />
-          <Property exposed_name="CubeAxesXGridLines" name="XGridLines" />
-          <Property exposed_name="CubeAxesXTitle" name="XTitle" />
-          <Property exposed_name="CubeAxesYAxisMinorTickVisibility" name="YAxisMinorTickVisibility" />
-          <Property exposed_name="CubeAxesYAxisTickVisibility" name="YAxisTickVisibility" />
-          <Property exposed_name="CubeAxesYAxisVisibility" name="YAxisVisibility" />
-          <Property exposed_name="CubeAxesYGridLines" name="YGridLines" />
-          <Property exposed_name="CubeAxesYTitle" name="YTitle" />
-          <Property exposed_name="CubeAxesZAxisMinorTickVisibility" name="ZAxisMinorTickVisibility" />
-          <Property exposed_name="CubeAxesZAxisTickVisibility" name="ZAxisTickVisibility" />
-          <Property exposed_name="CubeAxesZAxisVisibility" name="ZAxisVisibility" />
-          <Property exposed_name="CubeAxesZGridLines" name="ZGridLines" />
-          <Property exposed_name="CubeAxesZTitle" name="ZTitle" />
-          <Property name="CustomBounds"/>
-          <Property name="CustomBoundsActive"/>
+          <PropertyGroup label="Cube Axes"
+                         panel_visibility="default"
+                         panel_widget="CubeAxes">
+            <Property exposed_name="CubeAxesColor"
+                      name="Color" />
+            <Property exposed_name="CubeAxesCornerOffset"
+                      name="CornerOffset" />
+            <Property exposed_name="CubeAxesFlyMode"
+                      name="FlyMode" />
+            <Property exposed_name="CubeAxesInertia"
+                      name="Inertia" />
+            <Property exposed_name="CubeAxesTickLocation"
+                      name="TickLocation" />
+            <Property exposed_name="CubeAxesXAxisMinorTickVisibility"
+                      name="XAxisMinorTickVisibility" />
+            <Property exposed_name="CubeAxesXAxisTickVisibility"
+                      name="XAxisTickVisibility" />
+            <Property exposed_name="CubeAxesXAxisVisibility"
+                      name="XAxisVisibility" />
+            <Property exposed_name="CubeAxesXGridLines"
+                      name="XGridLines" />
+            <Property exposed_name="CubeAxesXTitle"
+                      name="XTitle" />
+            <Property exposed_name="CubeAxesUseDefaultXTitle"
+                      name="UseDefaultXTitle" />
+            <Property exposed_name="CubeAxesYAxisMinorTickVisibility"
+                      name="YAxisMinorTickVisibility" />
+            <Property exposed_name="CubeAxesYAxisTickVisibility"
+                      name="YAxisTickVisibility" />
+            <Property exposed_name="CubeAxesYAxisVisibility"
+                      name="YAxisVisibility" />
+            <Property exposed_name="CubeAxesYGridLines"
+                      name="YGridLines" />
+            <Property exposed_name="CubeAxesYTitle"
+                      name="YTitle" />
+            <Property exposed_name="CubeAxesUseDefaultYTitle"
+                      name="UseDefaultYTitle" />
+            <Property exposed_name="CubeAxesZAxisMinorTickVisibility"
+                      name="ZAxisMinorTickVisibility" />
+            <Property exposed_name="CubeAxesZAxisTickVisibility"
+                      name="ZAxisTickVisibility" />
+            <Property exposed_name="CubeAxesZAxisVisibility"
+                      name="ZAxisVisibility" />
+            <Property exposed_name="CubeAxesZGridLines"
+                      name="ZGridLines" />
+            <Property exposed_name="CubeAxesZTitle"
+                      name="ZTitle" />
+            <Property exposed_name="CubeAxesUseDefaultZTitle"
+                      name="UseDefaultZTitle" />
+            <Property exposed_name="CubeAxesGridLineLocation"
+                      name="GridLineLocation" />
+            <Property name="DataBounds" />
+            <Property name="CustomBounds" />
+            <Property name="CustomBoundsActive" />
+            <Property name="OriginalBoundsRangeActive" />
+            <Property name="CustomRange" />
+            <Property name="CustomRangeActive" />
+            <Property name="UseAxesOrigin" />
+            <Property name="AxesOrigin" />
+            <Property exposed_name="CubeAxesXLabelFormat"
+                      name="XLabelFormat" />
+            <Property exposed_name="CubeAxesYLabelFormat"
+                      name="YLabelFormat" />
+            <Property exposed_name="CubeAxesZLabelFormat"
+                      name="ZLabelFormat" />
+      <Property name="StickyAxes" />
+      <Property name="CenterStickyAxes" />
+          </PropertyGroup>
         </ExposedProperties>
-        -->
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy>
-
       <SubProxy>
         <Proxy name="SelectionRepresentation"
-          proxygroup="representations"
-          proxyname="SelectionRepresentation" />
+               proxygroup="representations"
+               proxyname="SelectionRepresentation" />
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
@@ -671,36 +535,38 @@
           <Exception name="Opacity" />
           <Exception name="PointSize" />
         </ShareProperties>
-        <!--
         <ExposedProperties>
-          <Property name="CellLabelBold" exposed_name="SelectionCellLabelBold" />
-          <Property name="CellLabelColor" exposed_name="SelectionCellLabelColor" />
-          <Property name="CellLabelFontFamily" exposed_name="SelectionCellLabelFontFamily" />
-          <Property name="CellLabelFontSize" exposed_name="SelectionCellLabelFontSize" />
-          <Property name="CellLabelFormat" exposed_name="SelectionCellLabelFormat" />
-          <Property name="CellLabelItalic" exposed_name="SelectionCellLabelItalic" />
-          <Property name="CellLabelJustification" exposed_name="SelectionCellLabelJustification" />
-          <Property name="CellLabelOpacity" exposed_name="SelectionCellLabelOpacity" />
-          <Property name="CellLabelShadow" exposed_name="SelectionCellLabelShadow" />
-          <Property name="CellLabelVisibility" exposed_name="SelectionCellLabelVisibility" />
-          <Property name="Color" exposed_name="SelectionColor" />
-          <Property name="LineWidth" exposed_name="SelectionLineWidth" />
-          <Property name="Opacity" exposed_name="SelectionOpacity" />
-          <Property name="PointLabelBold" exposed_name="SelectionPointLabelBold" />
-          <Property name="PointLabelColor" exposed_name="SelectionPointLabelColor" />
-          <Property name="PointLabelFontFamily" exposed_name="SelectionPointLabelFontFamily" />
-          <Property name="PointLabelFontSize" exposed_name="SelectionPointLabelFontSize" />
-          <Property name="PointLabelFormat" exposed_name="SelectionPointLabelFormat" />
-          <Property name="PointLabelItalic" exposed_name="SelectionPointLabelItalic" />
-          <Property name="PointLabelJustification" exposed_name="SelectionPointLabelJustification" />
-          <Property name="PointLabelOpacity" exposed_name="SelectionPointLabelOpacity" />
-          <Property name="PointLabelShadow" exposed_name="SelectionPointLabelShadow" />
-          <Property name="PointLabelVisibility" exposed_name="SelectionPointLabelVisibility" />
-          <Property name="PointSize" exposed_name="SelectionPointSize" />
-          <Property name="Representation" exposed_name="SelectionRepresentation" />
-          <Property name="UseOutline" exposed_name="SelectionUseOutline"/>
+          <Property exposed_name="SelectionColor" name="Color" panel_visibility="never" />
+          <Property exposed_name="SelectionOpacity" name="Opacity" panel_visibility="never" />
+          <Property exposed_name="SelectionUseOutline" name="UseOutline" panel_visibility="never" />
+          <Property exposed_name="SelectionRepresentation" name="Representation" panel_visibility="never" />
+          <Property exposed_name="SelectionPointSize" name="PointSize" panel_visibility="never" />
+          <Property exposed_name="SelectionLineWidth" name="LineWidth" panel_visibility="never" />
+          <Property exposed_name="SelectionCellLabelVisibility" name="CellLabelVisibility" panel_visibility="never"/>
+          <PropertyGroup label="Cell Label Font" panel_visibility="never" panel_widget="FontEditor">
+            <Property exposed_name="SelectionCellLabelBold" name="CellLabelBold" function="Bold"/>
+            <Property exposed_name="SelectionCellLabelColor" name="CellLabelColor" function="Color"/>
+            <Property exposed_name="SelectionCellLabelFontFamily" name="CellLabelFontFamily" function="Family"/>
+            <Property exposed_name="SelectionCellLabelFontSize" name="CellLabelFontSize" function="Size"/>
+            <Property exposed_name="SelectionCellLabelFormat" name="CellLabelFormat" />
+            <Property exposed_name="SelectionCellLabelItalic" name="CellLabelItalic" function="Italics"/>
+            <Property exposed_name="SelectionCellLabelJustification" name="CellLabelJustification" />
+            <Property exposed_name="SelectionCellLabelOpacity" name="CellLabelOpacity" function="Opacity"/>
+            <Property exposed_name="SelectionCellLabelShadow" name="CellLabelShadow" function="Shadow"/>
+          </PropertyGroup>
+          <Property exposed_name="SelectionPointLabelVisibility" name="PointLabelVisibility" panel_visibility="never"/>
+          <PropertyGroup label="Point Label Font" panel_visibility="never" panel_widget="FontEditor">
+            <Property exposed_name="SelectionPointLabelBold" name="PointLabelBold" function="Bold"/>
+            <Property exposed_name="SelectionPointLabelColor" name="PointLabelColor" function="Color"/>
+            <Property exposed_name="SelectionPointLabelFontFamily" name="PointLabelFontFamily" function="Family"/>
+            <Property exposed_name="SelectionPointLabelFontSize" name="PointLabelFontSize" function="Size"/>
+            <Property exposed_name="SelectionPointLabelFormat" name="PointLabelFormat"/>
+            <Property exposed_name="SelectionPointLabelItalic" name="PointLabelItalic" function="Italics"/>
+            <Property exposed_name="SelectionPointLabelJustification" name="PointLabelJustification"/>
+            <Property exposed_name="SelectionPointLabelOpacity" name="PointLabelOpacity" function="Opacity"/>
+            <Property exposed_name="SelectionPointLabelShadow" name="PointLabelShadow" function="Shadow"/>
+          </PropertyGroup>
         </ExposedProperties>
-        -->
       </SubProxy>
 
       <InputProperty name="Input" command="SetInputConnection">
@@ -717,10 +583,11 @@
           Set the input to the representation.
         </Documentation>
       </InputProperty>
-
     </PVRepresentationProxy>
+<!-- <<<<<<< Updated upstream
 
-    <!-- End Volume -->
-  </ProxyGroup>
-
+    End Volume
+=======
+>>>>>>> Stashed changes
+ -->  </ProxyGroup>
 </ServerManagerConfiguration>

@@ -187,6 +187,7 @@ void vtkPVOSPRayImageVolumeRepresentation::PassOrderedCompositingInformation(
       vtkStreamingDemandDrivenPipeline::SafeDownCast(inputAlgo->GetExecutive());
     vtkExtentTranslator* translator =
       sddp->GetExtentTranslator(connection->GetIndex());
+ //   vtkStreamingDemandDrivenPipeline::GetExtentTranslator(sddp->GetExecutive()->GetOutputPort());
 
     int extent[6] = {1, -1, 1, -1, 1, -1};
     sddp->GetWholeExtent(sddp->GetOutputInformation(connection->GetIndex()),

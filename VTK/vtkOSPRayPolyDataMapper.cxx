@@ -54,6 +54,7 @@
 #include "vtkPoints.h"
 #include "vtkPolyData.h"
 #include "vtkProperty.h"
+#include "vtkScalarsToColors.h"
 #include "vtkSphereSource.h"
 #include "vtkTransform.h"
 #include "vtkTubeFilter.h"
