@@ -110,7 +110,8 @@
 
 //----------------------------------------------------------------------------
    vtkOSPRayRenderer::vtkOSPRayRenderer()
-//:
+:
+Accumulate(false)
   //EngineInited( false ), EngineStarted( false ),
   //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
   //OSPRayLightSet( 0 ), OSPRayCamera( 0 ), SyncDisplay( 0 )
@@ -168,7 +169,7 @@
   ospSetParam(oRenderer,"camera",oCamera);
   ospSet1i(oRenderer,"spp",Samples);
   ospSet3f(oRenderer,"bgColor",0.83,0.35,0.43);
-  ospSet1f(oRenderer,"epsilon", 10e-5);
+  ospSet1f(oRenderer,"epsilon", 10e-2);
   ospCommit(oModel);
   ospCommit(oCamera);
   ospCommit(oRenderer);
@@ -311,7 +312,16 @@ void vtkOSPRayRenderer::ClearLights(void)
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::Clear()
 {
+  // if (osp_framebuffer)
+    // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
 }
+//----------------------------------------------------------------------------
+void vtkOSPRayRenderer::ClearAccumulation()
+{
+  if (osp_framebuffer)
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
+}
+
 
 //----------------------------------------------------------------------------
 // Ask lights to load themselves into graphics pipeline.
@@ -673,9 +683,9 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   }
-
   if (hasVolumeHack)
   {
    OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
@@ -703,7 +713,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(renderer);
     ospCommit(ospModel);
 
-    ospRenderFrame(this->osp_framebuffer,renderer);
+    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
   }
 
   double *clipValues = this->GetActiveCamera()->GetClippingRange();

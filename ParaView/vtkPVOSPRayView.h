@@ -67,6 +67,8 @@ public:
   // renderer.
   virtual void SetActiveCamera(vtkCamera*);
 
+  void RenderUpdate();
+
 //BTX
 protected:
   vtkPVOSPRayView();

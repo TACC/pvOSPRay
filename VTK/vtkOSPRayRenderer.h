@@ -94,6 +94,12 @@ public:
   void SetSamples(int);
   vtkGetMacro(Samples, int);
 
+  vtkGetMacro(Accumulate, bool);
+  void SetAccumulate(bool st)
+  {
+    Accumulate = st;
+  }
+
   //Description:
   //Controls maximum ray bounce depth.
   //More looks better, but is slower.
@@ -113,6 +119,7 @@ public:
 
 
   void Clear();
+  void ClearAccumulation();
 
   //Description:
   //Access to the OSPRay rendered image
@@ -237,6 +244,7 @@ private:
   int EnableAO;
   int Samples;
   int MaxDepth;
+  bool Accumulate;
 
   double backgroundRGB[3];
 
