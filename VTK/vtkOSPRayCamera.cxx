@@ -72,6 +72,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
     {
     return;
     }
+    OSPRayRenderer->ClearAccumulation();
 
   // if (!this->OSPRayCamera)
   //   {
@@ -147,5 +148,6 @@ void vtkOSPRayCamera::Render(vtkRenderer *ren)
     this->OrientOSPRayCamera(ren);
 
     this->LastRenderTime.Modified();
+
     }
 }

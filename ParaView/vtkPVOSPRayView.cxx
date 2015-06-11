@@ -37,6 +37,15 @@
 #include "vtkCommand.h"
 #include "vtkPVGenericRenderWindowInteractor.h"
 
+static void RenderUpdateCallback(void* pvView)
+{
+  // printf("callback\n");
+  // vtkPVOSPRayView* view = dynamic_cast<vtkPVOSPRayView*>(pvView);
+  vtkPVOSPRayView* view = (vtkPVOSPRayView*)pvView;
+  if (view)
+    view->RenderUpdate();
+}
+
 vtkStandardNewMacro(vtkPVOSPRayView);
 //----------------------------------------------------------------------------
 vtkPVOSPRayView::vtkPVOSPRayView()
@@ -92,6 +101,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   this->SetInteractionMode(INTERACTION_MODE_3D);
 
     vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer);
+    progressiveRenderer->SetCallback(RenderUpdateCallback, this);
   // this->AddObserver(vtkCommand::UpdateDataEvent,
       // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
   this->Interactor->AddObserver(
@@ -202,4 +212,13 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
   //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
     //(this->RenderView->GetRenderer());
   //OSPRayRenderer->SetMaxDepth(this->MaxDepth);
+}
+
+
+void vtkPVOSPRayView::RenderUpdate()
+{
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  this->StillRender();
+  // this->Update();
+  // this->StreamingUpdate(true);
 }

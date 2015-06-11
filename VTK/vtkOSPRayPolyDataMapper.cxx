@@ -282,7 +282,7 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act) {
     this->BuildTime.Modified();
   }
 
-input->Modified();
+// input->Modified();
 this->Update();
   input = NULL;
 // TODO: deal with timer ??
