@@ -38,11 +38,18 @@ public:
 
   /// constructor takes a bunch of init stuff and must have this signature to
   /// satisfy pqView
+  // pnav -- PV 4.1 wants the 6-arg version, PV 4.3 wants the 5-arg version
   OSPRayView(
          const QString& viewtype,
          const QString& group,
          const QString& name,
          vtkSMViewProxy* viewmodule,
+         pqServer* server,
+         QObject* p);
+  OSPRayView(
+         const QString& group,
+         const QString& name,
+         vtkSMProxy* viewmodule,
          pqServer* server,
          QObject* p);
   ~OSPRayView();

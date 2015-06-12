@@ -80,8 +80,10 @@ IF (BUILD_AGAINST_PARAVIEW)
     vtkPVOSPRayRepresentation.h
     vtkPVOSPRayOutlineRepresentation.cxx
     vtkPVOSPRayOutlineRepresentation.h
-    vtkPVOSPRayImageVolumeRepresentation.cxx
-    vtkPVOSPRayImageVolumeRepresentation.h
+    # pnav - ParaView 4.3 is unhappy with some code in these, disabling for now
+    #        something changed between the VTK in PV 4.1 and PV 4.3
+    #vtkPVOSPRayImageVolumeRepresentation.cxx
+    #vtkPVOSPRayImageVolumeRepresentation.h
     vtkOSPRayCompositeMapper.cxx)
 ENDIF (BUILD_AGAINST_PARAVIEW)
 

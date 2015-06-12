@@ -89,10 +89,11 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   //  this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
 
-  if (this->Interactor)
-    {
-    this->Interactor->SetRenderer(OSPRayRenderer);
-    }
+// pnav - not needed in PV 4.3?
+  // if (this->Interactor)
+  //   {
+  //   this->Interactor->SetRenderer(OSPRayRenderer);
+  //   }
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 

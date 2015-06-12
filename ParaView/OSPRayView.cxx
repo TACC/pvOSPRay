@@ -20,6 +20,7 @@
    ======================================================================================= */
 
 #include "OSPRayView.h"
+#include "vtkSMViewProxy.h"
 
 //-----------------------------------------------------------------------------
 OSPRayView::OSPRayView(
@@ -30,6 +31,17 @@ OSPRayView::OSPRayView(
   pqServer* server,
   QObject* p)
   : pqRenderView(viewType, group, name, viewProxy, server, p)
+{
+}
+
+OSPRayView::OSPRayView(
+  const QString& group,
+  const QString& name,
+  vtkSMProxy* viewProxy,
+  pqServer* server,
+  QObject* p)
+  : pqRenderView(OSPRayView::OSPRayViewType(), group, name, 
+    vtkSMViewProxy::SafeDownCast(viewProxy), server, p)
 {
 }
 
