@@ -34,6 +34,7 @@ IF(PARAVIEW_BUILD_QT_GUI)
     OSPRayDisplay.h
     OSPRayViewOptions.h
     vtkQtProgressiveRenderer.h
+    vtkOSPRayIsosurfaceFilter.h
     )
 
   QT4_WRAP_UI(UI_SRCS
@@ -72,8 +73,10 @@ add_paraview_plugin(
   SERVER_MANAGER_SOURCES
     vtkPVOSPRayView.cxx
     vtkSMOSPRayViewProxy.cxx
+    vtkOSPRayIsosurfaceFilter.cxx
   SERVER_MANAGER_XML
     OSPRayView.xml
+    OSPRayIsosurfaceFilter.xml
   GUI_INTERFACES
     ${VIEW_IFACE} ${OPTIONS_IFACE} ${DISPLAY_IFACE}
   GUI_SOURCES

@@ -42,6 +42,11 @@
 #include "vtkColorTransferFunction.h"
 #include "vtkPiecewiseFunction.h"
 
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkInformation.h"
+#include "vtkInformationDoubleKey.h"
+#include "vtkInformationDoubleVectorKey.h"
 
 #include "vtkOSPRayRenderer.h"
 #include "vtkOSPRayManager.h"
@@ -336,6 +341,19 @@
         this->GetInputAlgorithm()->Update();
       }
 
+      printf("inputinformation: \n");
+      this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
+      printf("end inputinformation\n");
+
+      printf("input port information: \n");
+      this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
+      printf("end inputinformation\n");
+
+            printf("inputinformation2: \n");
+      this->GetInput()->PrintSelf(std::cout,vtkIndent());
+      printf("end inputinformation2\n");
+
+
     //
     // OSPRay
     //
@@ -408,7 +426,7 @@
        std::vector<float> alphas;
        alphas.resize(512, 1.0);
        for (int i =0; i < 256;i++)
-        alphas[i] = float(i)/255.0f;
+        alphas[i] = float(0)/255.0f;
 
   //for (int i =64; i < 256;i++)
   //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
@@ -489,6 +507,21 @@
   // set to 1 to enable gradient shading
       ospSet1i(volume, "gradientShadingEnabled", 0);
       this->BuildTime.Modified();
+
+std::vector<float> isoValues;
+if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
+{
+    float isoValue = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
+    isoValues.push_back(isoValue);
+  std::cout << "isoValue: " << isoValue << std::endl;
+}
+// isoValues.push_back(150);
+
+      if (isoValues.size())
+      {
+      OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
+      ospSetData(volume, "isovalues", isovaluesData);
+      }
     }
 
 

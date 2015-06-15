@@ -22,7 +22,7 @@ using namespace std;
 vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,QObject* parent)
   :delayUpdate(false), renderer(r)
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // QTimer *timer = new QTimer();
   printf("connecting timer\n");
   QObject::connect(&_pqTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
@@ -81,18 +81,18 @@ void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
 
 void vtkQtProgressiveRenderer::onViewUpdated()
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   }
 
   void vtkQtProgressiveRenderer::onStartInteractionEvent()
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   delayUpdate=true;
   renderer->SetSamples(1);
   }
     void vtkQtProgressiveRenderer::onEndInteractionEvent()
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
     delayUpdate=false;
   _pqTimer.start(0);
   // renderer->SetSamples(64);

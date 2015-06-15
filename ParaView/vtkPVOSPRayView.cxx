@@ -217,7 +217,7 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 
 void vtkPVOSPRayView::RenderUpdate()
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->StillRender();
   // this->Update();
   // this->StreamingUpdate(true);

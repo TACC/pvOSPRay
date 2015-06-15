@@ -98,7 +98,7 @@ vtkOSPRayProperty::vtkOSPRayProperty()
   // : OSPRayMaterial(0), DiffuseTexture(0), SpecularTexture(0),
     // Reflectance(0.0), Eta(1.52), Thickness(1.0), N(1.0), Nt(1.0)
 {
-  cerr << "MP(" << this << ") CREATE" << endl;
+  // cerr << "MP(" << this << ") CREATE" << endl;
   this->MaterialType = NULL;
   this->SetMaterialType("default");
   this->OSPRayManager = NULL;
