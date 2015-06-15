@@ -91,7 +91,18 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   if (this->Interactor)
     {
-    this->Interactor->SetRenderer(OSPRayRenderer);
+      this->Interactor->SetRenderer(OSPRayRenderer);
+
+      vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer);
+      progressiveRenderer->SetCallback(RenderUpdateCallback, this);
+  // this->AddObserver(vtkCommand::UpdateDataEvent,
+      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
+      this->Interactor->AddObserver(
+        vtkCommand::StartInteractionEvent,
+        progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+      this->Interactor->AddObserver(
+        vtkCommand::EndInteractionEvent,
+        progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
     }
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
@@ -100,16 +111,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
 
-    vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer);
-    progressiveRenderer->SetCallback(RenderUpdateCallback, this);
-  // this->AddObserver(vtkCommand::UpdateDataEvent,
-      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
-  this->Interactor->AddObserver(
-      vtkCommand::StartInteractionEvent,
-      progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
-this->Interactor->AddObserver(
-      vtkCommand::EndInteractionEvent,
-      progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
 
 
 }
