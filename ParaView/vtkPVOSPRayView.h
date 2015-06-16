@@ -30,6 +30,7 @@
 #include "vtkPVRenderView.h"
 
 class vtkDataRepresentation;
+class vtkQtProgressiveRenderer;
 
 
 
@@ -63,6 +64,9 @@ public:
   virtual void SetMaxDepth(int val);
   vtkGetMacro(MaxDepth, int);
 
+  virtual void SetEnableProgressiveRefinement(int val);
+  vtkGetMacro(EnableProgressiveRefinement, int);
+
   // Overridden to ensure that we always use an vtkOpenGLCamera of the 2D
   // renderer.
   virtual void SetActiveCamera(vtkCamera*);
@@ -76,9 +80,12 @@ protected:
 
   int EnableShadows;
   int EnableAO;
+  int EnableProgressiveRefinement;
   int Threads;
   int Samples;
   int MaxDepth;
+
+  vtkQtProgressiveRenderer* ProgressiveRenderer;
 
 private:
   vtkPVOSPRayView(const vtkPVOSPRayView&); // Not implemented

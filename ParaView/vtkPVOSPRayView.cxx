@@ -92,17 +92,13 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   if (this->Interactor)
     {
       this->Interactor->SetRenderer(OSPRayRenderer);
-
-      vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer);
-      progressiveRenderer->SetCallback(RenderUpdateCallback, this);
-  // this->AddObserver(vtkCommand::UpdateDataEvent,
-      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
+      ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
       this->Interactor->AddObserver(
         vtkCommand::StartInteractionEvent,
-        progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
       this->Interactor->AddObserver(
         vtkCommand::EndInteractionEvent,
-        progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
     }
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
@@ -185,6 +181,18 @@ void vtkPVOSPRayView::SetEnableAO(int newval)
   //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
     //(this->RenderView->GetRenderer());
   //OSPRayRenderer->SetEnableShadows(this->EnableShadows);
+}
+
+void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
+{
+  if (newval && (newval != EnableProgressiveRefinement))
+  {
+    if (this->Interactor)
+    {
+  // this->AddObserver(vtkCommand::UpdateDataEvent,
+      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

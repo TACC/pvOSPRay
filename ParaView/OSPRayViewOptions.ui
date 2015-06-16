@@ -126,6 +126,22 @@
     </property>
     </widget> 
    </item> 
+    <item row="2" column="0">
+       <widget class="QCheckBox" name="progressiveRefinement">
+     <property name="toolTip">
+      <string>Enable/Disable Progressive Refinement</string>
+     </property>
+     <property name="text">
+      <string>Progressive Refinement</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+    </property>     
+    <property name="enabled">
+      <bool>true</bool>
+    </property>
+    </widget> 
+  </item>
   </layout>
  </widget>
  <resources/>

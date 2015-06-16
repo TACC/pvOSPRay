@@ -19,9 +19,10 @@
 
 using namespace std;
 
-vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,QObject* parent)
-  :delayUpdate(false), renderer(r)
+vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*cb)(void*), void* arg,QObject* parent)
+  :delayUpdate(false), renderer(r),disableAutomaticUpdates(false)
 {
+  Callback = cb; CallbackArg = arg;
   // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // QTimer *timer = new QTimer();
   printf("connecting timer\n");
@@ -56,11 +57,24 @@ void vtkQtProgressiveRenderer::onTimeout(){
     _pqTimer.start(100);
   else
   {
-    _pqTimer.start(0);
-    // printf("calling callback\n");
-    Callback(CallbackArg);
+    if (!disableAutomaticUpdates)
+    {
+      _pqTimer.start(0);
+      // printf("calling callback\n");
+     Callback(CallbackArg);
+    }
   }
 }
+
+  void vtkQtProgressiveRenderer::stopAutoUpdates()
+  {
+    disableAutomaticUpdates=true;
+  }
+  void vtkQtProgressiveRenderer::resumeAutoUpdates()
+  {
+    disableAutomaticUpdates=false;
+    _pqTimer.start(100);
+  }
 
 void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
 {

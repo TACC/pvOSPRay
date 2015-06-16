@@ -14,13 +14,12 @@ class vtkQtProgressiveRenderer : public QObject
 {
   Q_OBJECT
 public:
-  vtkQtProgressiveRenderer(vtkOSPRayRenderer* renderer,QObject* parent=0);
+  vtkQtProgressiveRenderer(vtkOSPRayRenderer* renderer,void (*cb)(void*), void* arg,QObject* parent=0);
   virtual ~vtkQtProgressiveRenderer(){}
 
-  void SetCallback(void (*cb)(void*), void* arg) { Callback = cb; CallbackArg = arg;}
-  void stopAutoUpdates(){}
-  void resumeAutoUpdates(){}
-  void triggerSingleUpdate(){}
+  void stopAutoUpdates();
+  void resumeAutoUpdates();
+  // void triggerSingleUpdate(){}
 
 public slots:
   // void onViewAdded()
