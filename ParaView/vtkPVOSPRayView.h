@@ -28,11 +28,10 @@
 
 
 #include "vtkPVRenderView.h"
+#include "vtkOSPRayRenderer.h"
 
 class vtkDataRepresentation;
 class vtkQtProgressiveRenderer;
-
-
 
 class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {
@@ -85,6 +84,7 @@ protected:
   int Samples;
   int MaxDepth;
 
+	vtkOSPRayRenderer *OSPRayRenderer;
   vtkQtProgressiveRenderer* ProgressiveRenderer;
 
 private:

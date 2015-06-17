@@ -69,7 +69,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
-//
+
 //  VBOs
 //
 #if USE_VBOS
@@ -111,6 +111,7 @@
 //----------------------------------------------------------------------------
    vtkOSPRayRenderer::vtkOSPRayRenderer()
 :
+prog_flag(false),
 Accumulate(false)
   //EngineInited( false ), EngineStarted( false ),
   //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
@@ -516,6 +517,14 @@ int vtkOSPRayRenderer::UpdateLights()
   void vtkOSPRayRenderer::DeviceRender()
   {
   // cerr << "MR(" << this << ") DeviceRender" << endl;
+ 
+		if (! prog_flag)
+		{
+			if (osp_framebuffer)
+				ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+		}
+		else
+			prog_flag = false;
 
   // In ParaView, we are wasting time in rendering the "sync layer" with
   // empty background image just to be dropped in LayerRender(). We just

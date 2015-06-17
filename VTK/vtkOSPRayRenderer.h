@@ -181,6 +181,7 @@ public:
   //ETX
 
   bool hasVolumeHack;
+	void SetProgressiveRenderFlag() {prog_flag = true; }
 
 protected:
   vtkOSPRayRenderer();
@@ -245,6 +246,7 @@ private:
   int Samples;
   int MaxDepth;
   bool Accumulate;
+	bool prog_flag;
 
   double backgroundRGB[3];
 

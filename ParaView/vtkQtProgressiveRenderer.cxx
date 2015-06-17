@@ -53,6 +53,7 @@ vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*c
 
 vtkQtProgressiveRenderer::~vtkQtProgressiveRenderer()
 {
+	_pqTimer.stop();
 }
 
 void vtkQtProgressiveRenderer::onTimeout(){
