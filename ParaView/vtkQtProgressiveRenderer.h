@@ -15,7 +15,7 @@ class vtkQtProgressiveRenderer : public QObject
   Q_OBJECT
 public:
   vtkQtProgressiveRenderer(vtkOSPRayRenderer* renderer,void (*cb)(void*), void* arg,QObject* parent=0);
-  virtual ~vtkQtProgressiveRenderer(){}
+  virtual ~vtkQtProgressiveRenderer();
 
   void stopAutoUpdates();
   void resumeAutoUpdates();

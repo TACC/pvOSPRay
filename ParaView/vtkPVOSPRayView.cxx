@@ -92,7 +92,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   if (this->Interactor)
     {
-      this->Interactor->SetRenderer(OSPRayRenderer);
+      // this->Interactor->SetRenderer(OSPRayRenderer);
       ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
       this->Interactor->AddObserver(
         vtkCommand::StartInteractionEvent,
@@ -115,6 +115,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 //----------------------------------------------------------------------------
 vtkPVOSPRayView::~vtkPVOSPRayView()
 {
+  delete ProgressiveRenderer;
 }
 
 //----------------------------------------------------------------------------

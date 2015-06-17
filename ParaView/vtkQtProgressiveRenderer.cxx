@@ -51,6 +51,10 @@ vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*c
 //   Callback=cb;
 // }
 
+vtkQtProgressiveRenderer::~vtkQtProgressiveRenderer()
+{
+}
+
 void vtkQtProgressiveRenderer::onTimeout(){
   // printf("timer!\n");
   if (delayUpdate)
