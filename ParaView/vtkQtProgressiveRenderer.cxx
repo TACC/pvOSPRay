@@ -72,10 +72,12 @@ void vtkQtProgressiveRenderer::onTimeout(){
 
   void vtkQtProgressiveRenderer::stopAutoUpdates()
   {
+    printf("stop timer\n");
     disableAutomaticUpdates=true;
   }
   void vtkQtProgressiveRenderer::resumeAutoUpdates()
   {
+    printf("resuming timer\n");
     disableAutomaticUpdates=false;
     _pqTimer.start(100);
   }

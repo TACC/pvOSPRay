@@ -162,21 +162,21 @@ void vtkPVOSPRayView::SetThreads(int newval)
 //-----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetEnableShadows(int newval)
 {
-  //if (newval == this->EnableShadows)
-    //{
-    //return;
-    //}
-  //this->EnableShadows = newval;
-  //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
-    //(this->RenderView->GetRenderer());
-  //OSPRayRenderer->SetEnableShadows(this->EnableShadows);
+  if (newval == this->EnableShadows)
+    {
+    return;
+    }
+  this->EnableShadows = newval;
+  vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
+    (this->RenderView->GetRenderer());
+  OSPRayRenderer->SetEnableShadows(this->EnableShadows);
 }
 void vtkPVOSPRayView::SetEnableAO(int newval)
 {
-  // if (newval == this->EnableAO)
-    // {
-    // return;
-    // }
+  if (newval == this->EnableAO)
+    {
+    return;
+    }
   this->EnableAO = newval;
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
   renderer->SetEnableAO(this->EnableAO);
@@ -187,10 +187,16 @@ void vtkPVOSPRayView::SetEnableAO(int newval)
 
 void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
 {
-  if (newval && (newval != EnableProgressiveRefinement))
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
+  if (newval != EnableProgressiveRefinement)
   {
+    EnableProgressiveRefinement = newval;
     if (this->Interactor)
     {
+      if (newval)
+        ProgressiveRenderer->resumeAutoUpdates();        
+      else
+        ProgressiveRenderer->stopAutoUpdates();
   // this->AddObserver(vtkCommand::UpdateDataEvent,
       // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
     }
@@ -200,10 +206,10 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
 //-----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetSamples(int newval)
 {
-  // if (newval == this->Samples)
-    // {
-    // return;
-    // }
+  if (newval == this->Samples)
+    {
+    return;
+    }
   this->Samples = newval;
   //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
     //(this->RenderView->GetRenderer());
