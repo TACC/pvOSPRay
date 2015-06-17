@@ -59,6 +59,27 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="EnableAO"
+        command="SetEnableAO"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on AO.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="EnableProgressiveRefinement"
+        command="SetEnableProgressiveRefinement"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on Progressive Refinement.
+        </Documentation>
+      </IntVectorProperty>
       <IntVectorProperty name="Samples"
         command="SetSamples"
         immediate_update="1"

@@ -116,7 +116,7 @@ Accumulate(false)
   //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
   //OSPRayLightSet( 0 ), OSPRayCamera( 0 ), SyncDisplay( 0 )
    {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
     hasVolumeHack= false;
   //cerr << "MR(" << this << ") CREATE" << endl;
 
@@ -515,7 +515,7 @@ int vtkOSPRayRenderer::UpdateLights()
 //----------------------------------------------------------------------------
   void vtkOSPRayRenderer::DeviceRender()
   {
-  cerr << "MR(" << this << ") DeviceRender" << endl;
+  // cerr << "MR(" << this << ") DeviceRender" << endl;
 
   // In ParaView, we are wasting time in rendering the "sync layer" with
   // empty background image just to be dropped in LayerRender(). We just

@@ -22,9 +22,8 @@ project(pvOSPRay)
 
 set (BUILD_AGAINST_PARAVIEW 1)
 
-
 if(NOT ParaView_SOURCE_DIR)
-  find_package(ParaView)
+  find_package(ParaView REQUIRED)
   include("${PARAVIEW_USE_FILE}")
   include (ParaViewPlugins)
 

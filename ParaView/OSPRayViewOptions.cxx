@@ -57,6 +57,9 @@ OSPRayViewOptions::OSPRayViewOptions(QWidget *widgetParent)
   QObject::connect(this->Internal->ui.ao,
                   SIGNAL(toggled(bool)),
                   this, SIGNAL(changesAvailable()));
+    QObject::connect(this->Internal->ui.progressiveRefinement,
+                  SIGNAL(toggled(bool)),
+                  this, SIGNAL(changesAvailable()));
   QObject::connect(this->Internal->ui.samples,
                    SIGNAL(valueChanged(int)),
                    this, SIGNAL(changesAvailable()));
@@ -110,6 +113,9 @@ void OSPRayViewOptions::applyChanges()
 
   boolSetting = this->Internal->ui.ao->isChecked();
   vtkSMPropertyHelper(proxy, "EnableAO").Set(boolSetting);
+
+    boolSetting = this->Internal->ui.progressiveRefinement->isChecked();
+  vtkSMPropertyHelper(proxy, "EnableProgressiveRefinement").Set(boolSetting);
 
   intSetting = this->Internal->ui.samples->value();
   vtkSMPropertyHelper(proxy, "Samples").Set(intSetting);

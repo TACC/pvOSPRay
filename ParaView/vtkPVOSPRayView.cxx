@@ -89,11 +89,18 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   //  this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
 
-// pnav - not needed in PV 4.3?
-  // if (this->Interactor)
-  //   {
-  //   this->Interactor->SetRenderer(OSPRayRenderer);
-  //   }
+
+  if (this->Interactor)
+    {
+      this->Interactor->SetRenderer(OSPRayRenderer);
+      ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
+      this->Interactor->AddObserver(
+        vtkCommand::StartInteractionEvent,
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+      this->Interactor->AddObserver(
+        vtkCommand::EndInteractionEvent,
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
+    }
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 
@@ -101,16 +108,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
 
-    vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer);
-    progressiveRenderer->SetCallback(RenderUpdateCallback, this);
-  // this->AddObserver(vtkCommand::UpdateDataEvent,
-      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
-  this->Interactor->AddObserver(
-      vtkCommand::StartInteractionEvent,
-      progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
-this->Interactor->AddObserver(
-      vtkCommand::EndInteractionEvent,
-      progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
 
 
 }
@@ -187,6 +184,18 @@ void vtkPVOSPRayView::SetEnableAO(int newval)
   //OSPRayRenderer->SetEnableShadows(this->EnableShadows);
 }
 
+void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
+{
+  if (newval && (newval != EnableProgressiveRefinement))
+  {
+    if (this->Interactor)
+    {
+  // this->AddObserver(vtkCommand::UpdateDataEvent,
+      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
+    }
+  }
+}
+
 //-----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetSamples(int newval)
 {
@@ -218,7 +227,7 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 
 void vtkPVOSPRayView::RenderUpdate()
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->StillRender();
   // this->Update();
   // this->StreamingUpdate(true);
