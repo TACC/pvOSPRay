@@ -53,9 +53,8 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->SynchronizedRenderers->SetDisableIceT(true);
 
-  vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::New();
+  OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
-  OSPRayRenderer->Delete();
 
   vtkOSPRayCamera *OSPRayCamera = vtkOSPRayCamera::New();
   OSPRayRenderer->SetActiveCamera(OSPRayCamera);
@@ -115,6 +114,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 //----------------------------------------------------------------------------
 vtkPVOSPRayView::~vtkPVOSPRayView()
 {
+  OSPRayRenderer->Delete();
   delete ProgressiveRenderer;
 }
 
@@ -234,8 +234,6 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 
 void vtkPVOSPRayView::RenderUpdate()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
+	this->OSPRayRenderer->SetProgressiveRenderFlag();
   this->StillRender();
-  // this->Update();
-  // this->StreamingUpdate(true);
 }
