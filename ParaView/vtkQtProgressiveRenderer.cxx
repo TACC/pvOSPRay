@@ -20,7 +20,7 @@
 using namespace std;
 
 vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*cb)(void*), void* arg,QObject* parent)
-  :delayUpdate(false), renderer(r),disableAutomaticUpdates(false)
+  :delayUpdate(false), renderer(r),disableAutomaticUpdates(false), Samples(1)
 {
   Callback = cb; CallbackArg = arg;
   // std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -108,6 +108,7 @@ void vtkQtProgressiveRenderer::onViewUpdated()
 {
   // std::cout << __PRETTY_FUNCTION__ << std::endl;
   delayUpdate=true;
+  Samples = renderer->GetSamples();
   renderer->SetSamples(1);
   }
     void vtkQtProgressiveRenderer::onEndInteractionEvent()
@@ -115,6 +116,7 @@ void vtkQtProgressiveRenderer::onViewUpdated()
   // std::cout << __PRETTY_FUNCTION__ << std::endl;
     delayUpdate=false;
   _pqTimer.start(0);
+  renderer->SetSamples(Samples);
   // renderer->SetSamples(64);
   }
   

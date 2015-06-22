@@ -173,6 +173,14 @@ int vtkOSPRayIsosurfaceFilter::RequestData(vtkInformation* info,
   // First, copy the input to the output as a starting point
   output->CopyStructure( input );
 
+    ptIds = vtkDoubleArray::New();
+    ptIds->SetNumberOfValues(1);
+    ptIds->SetValue(0, IsoValue);
+    ptIds->SetName("ospIsoValues");
+    int idx = outPD->AddArray(ptIds);
+    ptIds->Delete();
+
+#if 0
   numPts = input->GetNumberOfPoints();
   numCells = input->GetNumberOfCells();
 
@@ -232,6 +240,7 @@ int vtkOSPRayIsosurfaceFilter::RequestData(vtkInformation* info,
     //   }
     cellIds->Delete();
     }
+    #endif
 
   outPD->PassData(inPD);
   outCD->PassData(inCD);

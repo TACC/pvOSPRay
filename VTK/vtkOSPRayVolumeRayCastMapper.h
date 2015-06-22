@@ -20,6 +20,12 @@
 // .SECTION see also
 // vtkVolumeMapper
 
+ //
+ // Carson: 6/18/2015: note that for Paraview 4.3 I had to modify 
+ //   ParaViewCore/VTKExtensions/Rendering/vtkPVLODVolume.h to not check
+ //  for valid scalars before rendering volumetric data.
+ //
+
 #ifndef __vtkOSPRayVolumeRayCastMapper_h
 #define __vtkOSPRayVolumeRayCastMapper_h
 
@@ -28,6 +34,8 @@
 #include "vtkVolumeRayCastFunction.h" // For vtkVolumeRayCastStaticInfo
                                       // and vtkVolumeRayCastDynamicInfo
 #include "vtkOSPRayModule.h"
+
+
 
 namespace osp
 {

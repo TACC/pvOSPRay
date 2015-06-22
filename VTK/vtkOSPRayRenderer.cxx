@@ -329,7 +329,8 @@ int vtkOSPRayRenderer::UpdateLights()
 {
 
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
-      // std::vector<OSPLight> pointLights;
+  OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
+       // std::vector<OSPLight> pointLights;
       // std::vector<OSPLight> directionalLights;
   std::vector<OSPLight> lights;
 
@@ -457,6 +458,7 @@ int vtkOSPRayRenderer::UpdateLights()
     OSPData lightsArray = ospNewData(lights.size(), OSP_OBJECT, &lights[0], 0);
     // ospSetData(renderer, "directionalLights", directionalLightsArray);
     ospSetData(renderer, "lights",lightsArray);
+    ospSetData(vRenderer, "lights",lightsArray);
     ospCommit(renderer);
 
 
@@ -703,7 +705,7 @@ void vtkOSPRayRenderer::LayerRender()
    ospCommit(vdModel);
    ospCommit(vRenderer);
 
-   ospRenderFrame(this->osp_framebuffer,vRenderer);
+   ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
   }
   else
   {
@@ -856,6 +858,14 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
   ospSet1i(renderer,"spp",Samples);
   ospCommit(renderer);
+
+    OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
+
+  PRINT(vRenderer);
+  Assert(vRenderer);
+
+  ospSet1i(vRenderer,"spp",Samples);
+  ospCommit(vRenderer);
 
   #endif
 }

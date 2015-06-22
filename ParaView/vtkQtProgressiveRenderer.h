@@ -38,6 +38,7 @@ private:
   vtkOSPRayRenderer* renderer;
   void (*Callback)(void*);
   void* CallbackArg;
+  int Samples;
 };
 
 #endif

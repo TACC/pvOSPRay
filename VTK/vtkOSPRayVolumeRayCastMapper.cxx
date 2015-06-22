@@ -342,15 +342,15 @@
       }
 
       printf("inputinformation: \n");
-      this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
+      // this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
       printf("end inputinformation\n");
 
       printf("input port information: \n");
-      this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
+      // this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
       printf("end inputinformation\n");
 
             printf("inputinformation2: \n");
-      this->GetInput()->PrintSelf(std::cout,vtkIndent());
+      // this->GetInput()->PrintSelf(std::cout,vtkIndent());
       printf("end inputinformation2\n");
 
 
@@ -423,10 +423,31 @@
        
   // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
 
+
        std::vector<float> alphas;
-       alphas.resize(512, 1.0);
+       alphas.resize(256, 1.0);
        for (int i =0; i < 256;i++)
-        alphas[i] = float(0)/255.0f;
+        alphas[i] = float(i)/255.0f;
+
+
+std::vector<float> isoValues;
+// isoValues.push_back(150.0f);
+if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
+{
+    float isoValue = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
+    isoValues.push_back(isoValue);
+  std::cout << "isoValue: " << isoValue << std::endl;
+}
+// isoValues.push_back(150);
+
+      if (isoValues.size())
+      {
+      OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
+      ospSetData(volume, "isovalues", isovaluesData);
+
+        for (int i =0; i < 256;i++)
+          alphas[i] = float(0)/255.0f;
+      }
 
   //for (int i =64; i < 256;i++)
   //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
@@ -507,33 +528,20 @@
   // set to 1 to enable gradient shading
       ospSet1i(volume, "gradientShadingEnabled", 0);
       this->BuildTime.Modified();
-
-std::vector<float> isoValues;
-if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
-{
-    float isoValue = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
-    isoValues.push_back(isoValue);
-  std::cout << "isoValue: " << isoValue << std::endl;
-}
-// isoValues.push_back(150);
-
-      if (isoValues.size())
-      {
-      OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
-      ospSetData(volume, "isovalues", isovaluesData);
-      }
-    }
+    }      
+    // ospSet1f(volume, "samplingRate", 0.01f);
+      // ospSet1i(volume, "gradientShadingEnabled", 1);
 
 
 //}
       //! Create an OSPRay light source.
-    OSPLight light = ospNewLight(NULL, "DirectionalLight");  
-    ospSet3f(light, "direction", 1.0f, -2.0f, -1.0f);  
-    ospSet3f(light, "color", 1.0f, 1.0f, 1.0f);
+    // OSPLight light = ospNewLight(NULL, "DirectionalLight");  
+    // ospSet3f(light, "direction", 1.0f, -2.0f, -1.0f);  
+    // ospSet3f(light, "color", 1.0f, 1.0f, 1.0f);
 
   //! Set the light source on the renderer.
-    ospCommit(light);  
-    ospSetData(renderer, "lights", ospNewData(1, OSP_OBJECT, &light));
+    // ospCommit(light);  
+    // ospSetData(renderer, "lights", ospNewData(1, OSP_OBJECT, &light));
 
     ospSetObject(renderer, "dynamic_model", dynamicModel);
     ospCommit(volume);

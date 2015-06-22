@@ -41,6 +41,7 @@ class vtkAbstractVolumeMapper;
 class vtkSmartVolumeMapper;
 class vtkVolumeProperty;
 
+
 class VTKPVCLIENTSERVERCORERENDERING_EXPORT vtkPVOSPRayImageVolumeRepresentation : public 
 vtkPVDataRepresentation
 {
@@ -64,8 +65,8 @@ public:
   vtkSetMacro(ColorAttributeType, int);
   vtkGetMacro(ColorAttributeType, int);
 
-  // Description:
-  // Pick the array to color with.
+  // // Description:
+  // // Pick the array to color with.
   vtkSetStringMacro(ColorArrayName);
   vtkGetStringMacro(ColorArrayName);
 
@@ -165,12 +166,14 @@ protected:
   // vtkSmartVolumeMapper* VolumeMapper;
   vtkVolumeProperty* Property;
   vtkPVLODVolume* Actor;
+  // vtkActor* Actor;
 
   vtkOutlineSource* OutlineSource;
   vtkPolyDataMapper* OutlineMapper;;
 
   int ColorAttributeType;
   char* ColorArrayName;
+  unsigned long DataSize;
   double DataBounds[6];
 
 private:
