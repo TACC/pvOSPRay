@@ -459,16 +459,22 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
   std::cout << "clipAxis: " << clipAxis << std::endl;
 osp::vec3f upper(dim[0],dim[1],dim[2]);
 if (clipAxis == 0)
-  dim[0] = clipValue;
+  upper.x = clipValue;
 else if (clipAxis == 1)
-  dim[1] = clipValue;
+  upper.y = clipValue;
 else if (clipAxis == 2)
-  dim[2] = clipValue;
+  upper.z = clipValue;
     osp::box3f value(osp::vec3f(0,0,0), upper);
   ospSet3fv(volume, "volumeClippingBoxLower", &value.lower.x);
   ospSet3fv(volume, "volumeClippingBoxUpper", &value.upper.x);
 }
 
+//Carson: TODO: HACK: don't reallocate data when only changed isovalues or clip values... for now
+// hardcode to only load data once but of course this is bad!!!!
+static bool once = false;
+if (!once)
+{
+  once = true;
   //for (int i =64; i < 256;i++)
   //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
   // alphas[0] = 0;
@@ -547,6 +553,7 @@ else if (clipAxis == 2)
 
   // set to 1 to enable gradient shading
       ospSet1i(volume, "gradientShadingEnabled", 0);
+    }
       this->BuildTime.Modified();
     }      
     ospSet1f(volume, "samplingRate", 1.0f);
