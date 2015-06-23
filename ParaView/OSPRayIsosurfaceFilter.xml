@@ -40,6 +40,38 @@
                            min="0"
                            name="range" />
       </DoubleVectorProperty>
+      <IntVectorProperty name="EnableIso"
+        command="SetEnableIso"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on isosurface.
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="EnableClip"
+        command="SetEnableClip"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on clip.
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty command="SetClipValue"
+                            default_values="150"
+                            name="ClipValue"
+                            label="Clip Value"
+                            number_of_elements="1">
+      </DoubleVectorProperty>
+      <IntVectorProperty command="SetClipAxis"
+                            default_values="0"
+                            name="ClipAxis"
+                            label="Clip Axis"
+                            number_of_elements="1">
+      </IntVectorProperty>
    <!-- End MyElevationFilter -->
    </SourceProxy>
  </ProxyGroup>

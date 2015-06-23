@@ -173,12 +173,25 @@ int vtkOSPRayIsosurfaceFilter::RequestData(vtkInformation* info,
   // First, copy the input to the output as a starting point
   output->CopyStructure( input );
 
+if (EnableIso)
+{
     ptIds = vtkDoubleArray::New();
     ptIds->SetNumberOfValues(1);
     ptIds->SetValue(0, IsoValue);
     ptIds->SetName("ospIsoValues");
     int idx = outPD->AddArray(ptIds);
     ptIds->Delete();
+  }
+  if (EnableClip)
+  {
+    ptIds = vtkDoubleArray::New();
+    ptIds->SetNumberOfValues(2);
+    ptIds->SetValue(0, ClipValue);
+    ptIds->SetValue(1, ClipAxis);
+    ptIds->SetName("ospClipValues");
+    int idx = outPD->AddArray(ptIds);
+    ptIds->Delete();
+  }
 
 #if 0
   numPts = input->GetNumberOfPoints();
@@ -245,17 +258,17 @@ int vtkOSPRayIsosurfaceFilter::RequestData(vtkInformation* info,
   outPD->PassData(inPD);
   outCD->PassData(inCD);
 
-  printf("vtkOSPRayIsosurfaceFilter info3:\n");
-  outputVector->PrintSelf(std::cout,vtkIndent());
-  printf("end vtkOSPRayIsosurfaceFilter info3\n");
+  // printf("vtkOSPRayIsosurfaceFilter info3:\n");
+  // outputVector->PrintSelf(std::cout,vtkIndent());
+  // printf("end vtkOSPRayIsosurfaceFilter info3\n");
 
-  printf("vtkOSPRayIsosurfaceFilter info4:\n");
-  outCD->PrintSelf(std::cout,vtkIndent());
-  printf("end vtkOSPRayIsosurfaceFilter info4\n");
+  // printf("vtkOSPRayIsosurfaceFilter info4:\n");
+  // outCD->PrintSelf(std::cout,vtkIndent());
+  // printf("end vtkOSPRayIsosurfaceFilter info4\n");
 
-  printf("vtkOSPRayIsosurfaceFilter info5:\n");
-  outPD->PrintSelf(std::cout,vtkIndent());
-  printf("end vtkOSPRayIsosurfaceFilter info5\n");
+  // printf("vtkOSPRayIsosurfaceFilter info5:\n");
+  // outPD->PrintSelf(std::cout,vtkIndent());
+  // printf("end vtkOSPRayIsosurfaceFilter info5\n");
   // Add the new scalars array to the output.
   // newScalars->SetName("Elevation");
   // output->GetPointData()->AddArray(newScalars);

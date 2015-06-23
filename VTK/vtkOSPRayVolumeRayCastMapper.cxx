@@ -449,6 +449,26 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
           alphas[i] = float(0)/255.0f;
       }
 
+      // std::vector<float> clipValues;
+      if (this->GetInput()->GetPointData()->GetScalars("ospClipValues"))
+{
+    float clipValue = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,0);
+    int clipAxis = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,1);
+    // clipValues.push_back(clipValue);
+  std::cout << "clipValue: " << clipValue << std::endl;
+  std::cout << "clipAxis: " << clipAxis << std::endl;
+osp::vec3f upper(dim[0],dim[1],dim[2]);
+if (clipAxis == 0)
+  dim[0] = clipValue;
+else if (clipAxis == 1)
+  dim[1] = clipValue;
+else if (clipAxis == 2)
+  dim[2] = clipValue;
+    osp::box3f value(osp::vec3f(0,0,0), upper);
+  ospSet3fv(volume, "volumeClippingBoxLower", &value.lower.x);
+  ospSet3fv(volume, "volumeClippingBoxUpper", &value.upper.x);
+}
+
   //for (int i =64; i < 256;i++)
   //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
   // alphas[0] = 0;
@@ -529,7 +549,7 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
       ospSet1i(volume, "gradientShadingEnabled", 0);
       this->BuildTime.Modified();
     }      
-    // ospSet1f(volume, "samplingRate", 0.01f);
+    ospSet1f(volume, "samplingRate", 1.0f);
       // ospSet1i(volume, "gradientShadingEnabled", 1);
 
 

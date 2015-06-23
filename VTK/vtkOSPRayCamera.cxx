@@ -108,7 +108,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
     if (vsize == 0)
       return;
     ospSetf(ospCamera,"aspect",float(usize)/float(vsize));
-  ospSetf(ospCamera,"fovy",vfov*2); // GDA This needs to come out with next OSPRay release
+  ospSetf(ospCamera,"fovy",vfov); // GDA This needs to come out with next OSPRay release
   // printf("fovy %f fovh %f\n", p.camera_vfov, p.camera_hfov);
   Assert(ospCamera != NULL && "could not create camera");
   ospSet3f(ospCamera,"pos",eye[0], eye[1], eye[2]);

@@ -37,6 +37,18 @@ public:
   vtkGetMacro(IsoValue, double);
   vtkSetMacro(IsoValue, double);
 
+    vtkGetMacro(EnableIso, bool);
+  vtkSetMacro(EnableIso, bool);
+
+    vtkGetMacro(ClipValue, double);
+  vtkSetMacro(ClipValue, double);
+
+    vtkGetMacro(EnableClip, bool);
+  vtkSetMacro(EnableClip, bool);
+
+      vtkGetMacro(ClipAxis, int);
+  vtkSetMacro(ClipAxis, int);
+
   // vtkSetVector3Macro(LowPoint,double);
   // vtkGetVectorMacro(LowPoint,double,3);
 
@@ -51,6 +63,10 @@ protected:
                   vtkInformationVector*);
 
     double IsoValue;  
+    bool EnableIso;
+    double ClipValue;
+    bool EnableClip;
+    int ClipAxis;
     // double LowPoint[3];
 
 private:
