@@ -36,8 +36,12 @@
 //
 //  vbos
 //
-#include <GL/glu.h>   
-
+//#include <GL/glu.h>   
+#ifndef __APPLE__
+#include <GL/glu.h>
+#else
+#include <OpenGL/glu.h>
+#endif
 
 vtkStandardNewMacro(vtkOSPRayCamera);
 
