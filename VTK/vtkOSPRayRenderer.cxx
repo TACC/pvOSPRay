@@ -74,12 +74,7 @@
 //
 #if USE_VBOS
 #include "vtkOSPRayActor.h"
-//#include <GL/glu.h>
-#ifndef __APPLE__
 #include <GL/glu.h>
-#else
-#include <OpenGL/glu.h>
-#endif
 #include <assert.h>
 #endif
 
@@ -174,7 +169,7 @@ Accumulate(false)
   ospSetParam(oRenderer,"model",oModel);
   ospSetParam(oRenderer,"camera",oCamera);
   ospSet1i(oRenderer,"spp",Samples);
-  ospSet3f(oRenderer,"bgColor",0.83,0.35,0.43);
+  ospSet3f(oRenderer,"bgColor",1,1,1);
   ospSet1f(oRenderer,"epsilon", 10e-2);
   ospCommit(oModel);
   ospCommit(oCamera);
@@ -406,7 +401,8 @@ int vtkOSPRayRenderer::UpdateLights()
         direction[2] = position[2] - focal[2];
         OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
         ospSetString(ospLight, "name", "directional" );
-        ospSet3f(ospLight, "color", color[0]*0.4,color[1]*0.4,color[2]*0.4);
+        float scale = 0.8;
+        ospSet3f(ospLight, "color", color[0]*scale,color[1]*scale,color[2]*scale);
         osp::vec3f dir(-direction[0],-direction[1],-direction[2]);
         dir = normalize(dir); 
         ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
@@ -438,29 +434,38 @@ int vtkOSPRayRenderer::UpdateLights()
         }
       }
       else
-      {
+      {            
+        //OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
+        //ospSetString(ospLight, "name", "sun" );
+        //ospSet3f(ospLight, "color", 1,1,1);
+        //ospSet3f(ospLight, "direction", 1,0,0);
+        //ospCommit(ospLight);
+        // lights.push_back(ospLight);
       }
     }
 {
-            OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
-        ospSetString(ospLight, "name", "sun" );
-        ospSet3f(ospLight, "color", 0.5,0.5,.5);
-        ospSet3f(ospLight, "direction", 1,1,1);
-        ospCommit(ospLight);
-        // lights.push_back(ospLight);
+
       }
       {
-          double* color = this->Ambient;
-        OSPLight ospLight = ospNewLight(renderer, "AmbientLight");
-    ospSetString(ospLight, "name", "ambient" );
-    ospSet3f(ospLight, "color", .5,.5,.5);
-    ospSet1f(ospLight, "intensity", 1.0f);
-    // ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
-    ospCommit(ospLight);
-    lights.push_back(ospLight);
+    //       double* color = this->Ambient;
+    //     OSPLight ospLight = ospNewLight(renderer, "AmbientLight");
+    // ospSetString(ospLight, "name", "ambient" );
+    // ospSet3f(ospLight, "color", .5,.5,.5);
+    // ospSet1f(ospLight, "intensity", 1.0f);
+    // // ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
+    // ospCommit(ospLight);
+    // lights.push_back(ospLight);
   }
 
-
+    //     OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
+    //     ospSetString(ospLight, "name", "directional" );
+    //     ospSet3f(ospLight, "color",1,1,1);
+    //     osp::vec3f dir(1,0,0);
+    //     dir = normalize(dir); 
+    //     ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
+    //     ospCommit(ospLight);
+    // lights.resize(0);
+    // lights.push_back(ospLight);
     OSPData lightsArray = ospNewData(lights.size(), OSP_OBJECT, &lights[0], 0);
     // ospSetData(renderer, "directionalLights", directionalLightsArray);
     ospSetData(renderer, "lights",lightsArray);
@@ -699,9 +704,11 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
-    ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
-  }
+      this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH);
+    // this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+    // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
+  }  
+  // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   if (hasVolumeHack)
   {
    OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
@@ -719,7 +726,8 @@ void vtkOSPRayRenderer::LayerRender()
    ospCommit(vdModel);
    ospCommit(vRenderer);
 
-   ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+   // ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+   ospRenderFrame(this->osp_framebuffer,vRenderer);
   }
   else
   {
@@ -729,7 +737,8 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(renderer);
     ospCommit(ospModel);
 
-    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+    // ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+    ospRenderFrame(this->osp_framebuffer,renderer);
   }
 
   double *clipValues = this->GetActiveCamera()->GetClippingRange();

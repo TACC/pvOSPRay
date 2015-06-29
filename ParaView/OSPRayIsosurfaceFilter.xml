@@ -31,7 +31,7 @@
              <DataType value="vtkDataSet"/>
            </DataTypeDomain>
       </InputProperty>
-      <DoubleVectorProperty command="SetIsoValue"
+      <!-- <DoubleVectorProperty command="SetIsoValue"
                             default_values="150"
                             name="IsoValue"
                             label="Isosurface Value"
@@ -39,8 +39,8 @@
         <DoubleRangeDomain max="300"
                            min="0"
                            name="range" />
-      </DoubleVectorProperty>
-      <IntVectorProperty name="EnableIso"
+      </DoubleVectorProperty> -->
+      <!-- <IntVectorProperty name="EnableIso"
         command="SetEnableIso"
         immediate_update="1"
         number_of_elements="1"
@@ -49,7 +49,7 @@
         <Documentation>
           Turns on isosurface.
         </Documentation>
-      </IntVectorProperty>
+      </IntVectorProperty> -->
       <IntVectorProperty name="EnableClip"
         command="SetEnableClip"
         immediate_update="1"
@@ -72,6 +72,33 @@
                             label="Clip Axis"
                             number_of_elements="1">
       </IntVectorProperty>
+      <IntVectorProperty command="SetNumberOfContours"
+                            default_values="0"
+                            name="NumberOfContours"
+                            label="Number Of Contours"
+                            number_of_elements="1">
+      </IntVectorProperty>
+      <DoubleVectorProperty animateable="1"
+                            command="SetValue"
+                            label="Isosurfaces"
+                            name="ContourValues"
+                            number_of_elements="0"
+                            number_of_elements_per_command="1"
+                            repeat_command="1"
+                            set_number_command="SetNumberOfContours"
+                            use_index="1">
+        <ArrayRangeDomain name="scalar_range">
+          <RequiredProperties>
+            <Property function="Input"
+                      name="Input" />
+            <!-- <Property function="ArraySelection"
+                      name="SelectInputScalars" /> -->
+          </RequiredProperties>
+        </ArrayRangeDomain>
+        <Documentation>This property specifies the values at which to compute
+        isosurfaces/isolines and also the number of such
+        values.</Documentation>
+      </DoubleVectorProperty>
    <!-- End MyElevationFilter -->
    </SourceProxy>
  </ProxyGroup>

@@ -12,6 +12,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
+#include <algorithm>
 #include "vtkOSPRayIsosurfaceFilter.h"
 
 #include "vtkCellData.h"
@@ -56,6 +57,14 @@ void vtkOSPRayIsosurfaceFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }
+
+ void vtkOSPRayIsosurfaceFilter::SetValue(int i, double val)
+  {
+    std::cout << __PRETTY_FUNCTION__ << " " << i << " " << val << std::endl;
+    NumberOfContours=std::max(NumberOfContours,i+1);
+    ContourValues[i]=val;
+    Modified();
+  }
 
 
 int vtkOSPRayIsosurfaceFilter::RequestData(vtkInformation* info,
@@ -173,11 +182,16 @@ int vtkOSPRayIsosurfaceFilter::RequestData(vtkInformation* info,
   // First, copy the input to the output as a starting point
   output->CopyStructure( input );
 
-if (EnableIso)
+if (NumberOfContours)
 {
     ptIds = vtkDoubleArray::New();
-    ptIds->SetNumberOfValues(1);
-    ptIds->SetValue(0, IsoValue);
+    ptIds->SetNumberOfValues(NumberOfContours+1);
+    ptIds->SetValue(0, NumberOfContours);
+    for (int i =0; i < NumberOfContours; i++)
+    {
+      std::cout << "contour val: " << ContourValues[i] << std::endl;
+      ptIds->SetValue(i+1, ContourValues[i]);
+    }
     ptIds->SetName("ospIsoValues");
     int idx = outPD->AddArray(ptIds);
     ptIds->Delete();

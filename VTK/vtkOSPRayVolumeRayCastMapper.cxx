@@ -130,7 +130,8 @@
       this->IntermixIntersectingGeometry = 1;
 
 
-      volume = ospNewVolume("block_bricked_volume");
+      // volume = ospNewVolume("block_bricked_volume");
+      volume = ospNewVolume("shared_structured_volume");
       transferFunction = ospNewTransferFunction("piecewise_linear"); 
       model = ospNewModel();
     }
@@ -423,10 +424,10 @@
        
   // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
 
-
-       std::vector<float> alphas;
-       alphas.resize(256, 1.0);
-       for (int i =0; i < 256;i++)
+       int numColors = 32;
+             std::vector<float> alphas;
+       alphas.resize(numColors, 1.0);
+       for (int i =0; i < alphas.size();i++)
         alphas[i] = float(i)/255.0f;
 
 
@@ -434,9 +435,13 @@ std::vector<float> isoValues;
 // isoValues.push_back(150.0f);
 if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
 {
-    float isoValue = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
-    isoValues.push_back(isoValue);
-  std::cout << "isoValue: " << isoValue << std::endl;
+    int num = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
+    for( int i=0; i < num; i++)
+    {
+      float isoValue = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,i+1);
+      isoValues.push_back(isoValue);
+      std::cout << "isoValue: " << isoValue << std::endl;
+    }
 }
 // isoValues.push_back(150);
 
@@ -445,8 +450,8 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
       OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
       ospSetData(volume, "isovalues", isovaluesData);
 
-        for (int i =0; i < 256;i++)
-          alphas[i] = float(0)/255.0f;
+       for (int i =0; i < alphas.size();i++)
+         alphas[i] = float(0)/255.0f;
       }
 
       // std::vector<float> clipValues;
@@ -481,7 +486,7 @@ if (!once)
   // alphas[1] = .5;
 
       std::vector<osp::vec3f> colors;
-      colors.resize(512, osp::vec3f(0,0,1));
+      colors.resize(numColors, osp::vec3f(0,0,1));
       std::vector<osp::vec3f> colorsl;
       colorsl.resize(3, osp::vec3f(0,0,1));
       colorsl[0] = osp::vec3f(.23,.299,.754);
@@ -494,7 +499,7 @@ if (!once)
       }
       for (int i =0; i < colors.size()/2;i++)
       {
-        float v = float(i)/128.0f;
+        float v = float(i)/float(colors.size()/2.0f);
         colors[i+colors.size()/2] = colorsl[1]*(1.0-v) + colorsl[2]*v;
       }
 
@@ -526,6 +531,7 @@ if (!once)
       ospSetData(transferFunction, "opacities", tfAlphaData);
 
       ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
+      std::cout << "valueRange: " << data->GetScalarRange()[0] << " " << data->GetScalarRange()[1] << std::endl;
 
   //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
       ospCommit(transferFunction);
@@ -542,12 +548,17 @@ if (!once)
       char* buffer = NULL;
       size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
 
-      buffer = (char*)embree::alignedMalloc(sizeBytes);
-      memcpy(buffer, ScalarDataPointer, sizeBytes);
+      buffer = (char*)ScalarDataPointer;
+      // buffer = (char*)embree::alignedMalloc(sizeBytes);
+      // memcpy(buffer, ScalarDataPointer, sizeBytes);
 
       ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
       ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
-      ospSetRegion(volume, buffer, osp::vec3i(0,0,0), osp::vec3i(dim[0], dim[1], dim[2]));
+      printf("setting volume data\n");
+      // ospSetRegion(volume, buffer, osp::vec3i(0,0,0), osp::vec3i(dim[0], dim[1], dim[2]));
+      OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
+      ospSetData(volume, "voxelData", voxelData);
+      printf("done setting volume data\n");
 
       ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
 
@@ -558,7 +569,6 @@ if (!once)
     }      
     ospSet1f(volume, "samplingRate", 1.0f);
       // ospSet1i(volume, "gradientShadingEnabled", 1);
-
 
 //}
       //! Create an OSPRay light source.

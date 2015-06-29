@@ -27,6 +27,8 @@
 #include "vtkDataSetAlgorithm.h"
 #include "vtkElevationFilter.h"
 
+
+
 class VTK_EXPORT vtkOSPRayIsosurfaceFilter : public vtkElevationFilter
 {
 public:
@@ -34,11 +36,11 @@ public:
   vtkTypeMacro(vtkOSPRayIsosurfaceFilter, vtkElevationFilter);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkGetMacro(IsoValue, double);
-  vtkSetMacro(IsoValue, double);
+  // vtkGetMacro(IsoValue, double);
+  // vtkSetMacro(IsoValue, double);
 
-    vtkGetMacro(EnableIso, bool);
-  vtkSetMacro(EnableIso, bool);
+    // vtkGetMacro(EnableIso, bool);
+  // vtkSetMacro(EnableIso, bool);
 
     vtkGetMacro(ClipValue, double);
   vtkSetMacro(ClipValue, double);
@@ -48,6 +50,25 @@ public:
 
       vtkGetMacro(ClipAxis, int);
   vtkSetMacro(ClipAxis, int);
+
+  void SetValue(int i, double val);
+  double GetVale(int i)
+  {
+    return ContourValues[i];
+  }
+
+  // void SetIsoValues(double* vals)
+  // {
+  //   for(int i=0;i<NumberOfIsoValues;i++)
+  //     IsoValues[i] = vals[i];
+  // }
+  // { return IsoValues;}
+  void SetNumberOfContours(int number)
+  {
+    NumberOfContours=number;
+  }
+  int GetNumberOfContours()
+  { return NumberOfContours; }
 
   // vtkSetVector3Macro(LowPoint,double);
   // vtkGetVectorMacro(LowPoint,double,3);
@@ -62,8 +83,10 @@ protected:
                   vtkInformationVector**,
                   vtkInformationVector*);
 
-    double IsoValue;  
-    bool EnableIso;
+    // double IsoValue; 
+    int NumberOfContours;
+    double ContourValues[256];  //Carson: TODO: Make vector...
+    // bool EnableIso;
     double ClipValue;
     bool EnableClip;
     int ClipAxis;
