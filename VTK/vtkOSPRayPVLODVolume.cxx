@@ -79,7 +79,7 @@ int vtkOSPRayPVLODVolume::SelectLOD()
 bool vtkOSPRayPVLODVolume::CanRender()
 {
   int lodid =this->LODProp->GetSelectedLODID();
-  printf("selected lodid: %d\n", lodid);
+  // printf("selected lodid: %d\n", lodid);
   if (lodid >= 0)
     {
     vtkAbstractMapper3D* mapper = this->LODProp->GetLODMapper(lodid);
