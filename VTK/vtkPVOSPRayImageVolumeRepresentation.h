@@ -40,6 +40,7 @@ class vtkPVLODVolume;
 class vtkAbstractVolumeMapper;
 class vtkSmartVolumeMapper;
 class vtkVolumeProperty;
+class vtkOSPRayPVLODVolume;
 
 
 class VTKPVCLIENTSERVERCORERENDERING_EXPORT vtkPVOSPRayImageVolumeRepresentation : public 
@@ -119,7 +120,7 @@ public:
 
   // Description:
   // Provides access to the actor used by this representation.
-  vtkPVLODVolume* GetActor() { return this->Actor; }
+  vtkOSPRayPVLODVolume* GetActor() { return this->Actor; }
 
   // Description:
   // Helper method to pass input image extent information to the view to use in
@@ -165,7 +166,7 @@ protected:
   vtkAbstractVolumeMapper* VolumeMapper;
   // vtkSmartVolumeMapper* VolumeMapper;
   vtkVolumeProperty* Property;
-  vtkPVLODVolume* Actor;
+  vtkOSPRayPVLODVolume* Actor;
   // vtkActor* Actor;
 
   vtkOutlineSource* OutlineSource;

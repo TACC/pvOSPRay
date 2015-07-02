@@ -44,6 +44,7 @@
 #include "vtkObjectFactory.h"
 #include "vtkVolumeProperty.h"
      #include "vtkPiecewiseFunction.h"
+     #include "vtkOSPRayPVLODVolume.h"
 
 #include <map>
 #include <string>
@@ -463,7 +464,8 @@ vtkPVOSPRayImageVolumeRepresentation::vtkPVOSPRayImageVolumeRepresentation()
   this->Property = vtkVolumeProperty::New();
 
   // this->Actor = vtkPVLODVolume::New();
-  this->Actor = vtkPVLODVolume::New();
+  this->Actor = vtkOSPRayPVLODVolume::New();
+  // Actor->SetSelectedLODID(-1);
   this->Actor->SetProperty(this->Property);
 
   this->CacheKeeper = vtkPVCacheKeeper::New();

@@ -70,6 +70,7 @@ SET ( OSPRAY_CLASSES
   vtkOSPRayTexture.cxx
   vtkOSPRayVolumeRayCastMapper.h
   vtkOSPRayVolumeRayCastMapper.cxx
+  vtkOSPRayPVLODVolume.cxx
   )
 
 IF (BUILD_AGAINST_PARAVIEW)
