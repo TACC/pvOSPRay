@@ -297,7 +297,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
                                            /*,
                                           OSPRay::Group *points,
                                           OSPRay::Group *lines*/) {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // OSPRay::Material *material = this->MyHelper->material;
   // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
@@ -305,7 +305,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
   vtkCellArray *cells = polys->GetPolys();
   vtkIdType npts = 0, *index = 0, cellNum = 0;
 
-  cerr << this->Representation << endl;
+  // cerr << this->Representation << endl;
   switch (this->Representation) {
     case VTK_POINTS: {
       std::cout << "VTK_POINTS\n";
@@ -333,7 +333,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     }  // VTK_POINTS;
     break;
     case VTK_WIREFRAME: {
-      std::cout << "VTK_WIREFRAME\n";
+      // std::cout << "VTK_WIREFRAME\n";
       double coord0[3];
       // OSPRay::Vector noTC(0.0,0.0,0.0);
       // OSPRay::TextureCoordinateCylinder *segment;
@@ -343,7 +343,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
             ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
         for (vtkIdType i = 1; i < npts; i++) {
 
-          std::cout << "points in cell: " << npts << "\n";
+          // std::cout << "points in cell: " << npts << "\n";
           mesh->wireframe_index.push_back(mesh->wireframe_vertex.size() - 1);
           ptarray->GetPoint(index[i], coord0);
           mesh->wireframe_vertex.push_back(
@@ -387,7 +387,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
     }  // VTK_WIREFRAME:
     break;
     case VTK_SURFACE: {
-      std::cout << "VTK_SURFACE\n";
+      // std::cout << "VTK_SURFACE\n";
       // write polygons with on the fly triangulation, assuming polygons are
       // simple and
       // can be triangulated into "fans"
@@ -520,7 +520,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     // OSPRay::Group *points,
     // OSPRay::Group *lines)
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // OSPRay::Material *material = this->MyHelper->material;
   // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
@@ -531,10 +531,10 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
   vtkIdType npts = 0, *index = 0, cellNum = 0;
   ;
 
-  cerr << this->Representation << endl;
+  // cerr << this->Representation << endl;
   switch (this->Representation) {
     case VTK_POINTS: {
-      std::cout << "VTK_POINTS\n";
+      // std::cout << "VTK_POINTS\n";
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         double coord[3];
         // OSPRay::Vector noTC(0.0,0.0,0.0);
@@ -557,7 +557,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     }  // VTK_POINTS;
     break;
     case VTK_WIREFRAME: {
-      std::cout << "VTK_WIREFRAME\n";
+      // std::cout << "VTK_WIREFRAME\n";
       double coord0[3];
       double coord1[3];
       double coord2[3];
@@ -616,7 +616,7 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
     }  // VTK_WIREFRAME:
     break;
     case VTK_SURFACE: {
-      std::cout << "VTK_SURFACE\n";
+      // std::cout << "VTK_SURFACE\n";
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         // count of the i-th triangle in a strip
         int numtriangles2 = 0;
@@ -787,7 +787,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     // cerr << "MA time: " << time << std::endl;
     timestep = time;
     if (OSPRayActor->cache[time] != NULL) {
-      std::cerr << "using cache at time " << time << "\n";
+      // std::cerr << "using cache at time " << time << "\n";
       // this->OSPRayModel = cache[time];
 
       OSPRayActor->OSPRayModel = OSPRayActor->cache[time];
@@ -799,7 +799,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     // return;
 
   } else if (!inputInfo) {
-    cerr << "MA time: didn't have info\n";
+    // cerr << "MA time: didn't have info\n";
   } else {
     // cerr << "MA time: didn't have time\n";
     if (OSPRayActor->cache[timestep] != NULL) {
@@ -851,7 +851,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     ospMaterial = ((OSPMaterial)osmat);
 
   if (!this->ScalarVisibility || (!this->Colors && !this->ColorCoordinates)) {
-    cerr << "poly colors: Solid color from actor's property" << endl;
+    // cerr << "poly colors: Solid color from actor's property" << endl;
 
     /*
        material = OSPRayProperty->GetOSPRayMaterial();
@@ -867,8 +867,8 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     }
     */
   } else if (this->Colors) {
-    cerr << "poly colors: Color scalar values directly (interpolation in color "
-            "space)" << endl;
+    // cerr << "poly colors: Color scalar values directly (interpolation in color "
+            // "space)" << endl;
     // OSPRay::Texture<OSPRay::Color> *texture = new OSPRay::TexCoordTexture();
     if (OSPRayProperty->GetInterpolation() == VTK_FLAT) {
       // cerr << "Flat" << endl;
@@ -913,8 +913,8 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     // printf("texture coords: using rgba every point\n");
 
   } else if (this->ColorCoordinates) {
-    printf(
-        "poly colors: texture coords: using color coordinates for a texture\n");
+    // printf(
+        // "poly colors: texture coords: using color coordinates for a texture\n");
     // cerr << "interpolate in data space, then color map each pixel" << endl;
     // OSPRay::Texture<OSPRay::Color> *texture =
     //   this->InternalColorTexture->GetOSPRayTexture();
@@ -942,7 +942,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
     // printf("NEED TO IMPLEMENT COLORCOORDINATES\n");
   } else if (input->GetPointData()->GetTCoords() && actor->GetTexture()) {
-    printf("poly colors: texture coords: using texture\n");
+    // printf("poly colors: texture coords: using texture\n");
 #if 1
     // cerr << "color using actor's texture" << endl;
     vtkOSPRayTexture *osprayTexture =
@@ -1255,10 +1255,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       size_t numPositions = mesh->vertices.size();
       size_t numTriangles = mesh->vertex_indices.size() / 3;
 
-      std::cout << "normals: " << numNormals
-                << " normal indices: " << mesh->normal_indices.size()
-                << " numPositions: " << numPositions
-                << " numTriangles: " << numTriangles << std::endl;
+      // std::cout << "normals: " << numNormals
+      //           << " normal indices: " << mesh->normal_indices.size()
+      //           << " numPositions: " << numPositions
+      //           << " numTriangles: " << numTriangles << std::endl;
 
       ospray::vec3fa *vertices = (ospray::vec3fa *)embree::alignedMalloc(
           sizeof(ospray::vec3fa) * numPositions);
@@ -1344,7 +1344,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
       // OSPRayActor->ospMesh = ospMesh;
       // OSPRayActor->OSPRayModel = ((osp::Model*)ospModel);
-      printf("added osp mesh num triangles: %lu\n", numTriangles);
+      // printf("added osp mesh num triangles: %lu\n", numTriangles);
     }
 
     if (mesh->wireframe_vertex.size()) {
@@ -1385,17 +1385,17 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       ospCommit(slGeometry);
       ospAddGeometry(OSPRayActor->OSPRayModel, slGeometry);
 
-      std::cerr << " Commited geometry correctly " << std::endl;
+      // std::cerr << " Commited geometry correctly " << std::endl;
     }
 
-    std::cerr << "Trying to commit model" << timestep << "\n";
+    // std::cerr << "Trying to commit model" << timestep << "\n";
     ospCommit(OSPRayActor->OSPRayModel);
     if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
       double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
       OSPRayActor->cache[time] = OSPRayActor->OSPRayModel;
     } else {
       OSPRayActor->cache[timestep] = OSPRayActor->OSPRayModel;
-      std::cerr << "added nontime actor at timestep" << timestep << "\n";
+      // std::cerr << "added nontime actor at timestep" << timestep << "\n";
     }
 
 #endif

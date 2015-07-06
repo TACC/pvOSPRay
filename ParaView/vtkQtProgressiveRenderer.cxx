@@ -25,14 +25,14 @@ vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*c
   Callback = cb; CallbackArg = arg;
   // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // QTimer *timer = new QTimer();
-  printf("connecting timer\n");
+  // printf("connecting timer\n");
   QObject::connect(&_pqTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
   _pqTimer.setSingleShot(true);
-  printf("done connecting timer\n");
+  // printf("done connecting timer\n");
   // timer->start(10);
-  printf("starting timer\n");
+  // printf("starting timer\n");
   // _pqTimer.start(0);
-  printf("done starting timer\n");
+  // printf("done starting timer\n");
 
     // pqServerManagerModel* smmodel =
     // pqApplicationCore::instance()->getServerManagerModel();
@@ -73,12 +73,12 @@ void vtkQtProgressiveRenderer::onTimeout(){
 
   void vtkQtProgressiveRenderer::stopAutoUpdates()
   {
-    printf("stop timer\n");
+    // printf("stop timer\n");
     disableAutomaticUpdates=true;
   }
   void vtkQtProgressiveRenderer::resumeAutoUpdates()
   {
-    printf("resuming timer\n");
+    // printf("resuming timer\n");
     disableAutomaticUpdates=false;
     _pqTimer.start(100);
   }
@@ -103,7 +103,7 @@ void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
 void vtkQtProgressiveRenderer::onViewUpdated()
 {
   // std::cout << __PRETTY_FUNCTION__ << std::endl;
-  }
+}
 
   void vtkQtProgressiveRenderer::onStartInteractionEvent()
 {

@@ -42,7 +42,7 @@ vtkStandardNewMacro(vtkPVOSPRayOutlineRepresentation);
 vtkPVOSPRayOutlineRepresentation::vtkPVOSPRayOutlineRepresentation()
 : vtkPVOSPRayRepresentation()
 {
-  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // this->Mapper->Delete();
   // this->Mapper = vtkOSPRayCompositeMapper::New();
   // this->LODMapper->Delete();

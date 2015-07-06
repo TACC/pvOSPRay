@@ -135,7 +135,7 @@ vtkStandardNewMacro(vtkOSPRayActor);
 vtkOSPRayActor::vtkOSPRayActor()
 // : Group(0), OSPRayAS(0)
 {
-  std::cout << __PRETTY_FUNCTION__ << " " << this << std::endl;
+  // std::cout << __PRETTY_FUNCTION__ << " " << this << std::endl;
   //cerr << "MA(" << this << ") CREATE" << endl;
   this->OSPRayManager = NULL;
   this->SortType = DYNBVH;
@@ -209,7 +209,7 @@ void vtkOSPRayActor::ReleaseGraphicsResources( vtkWindow * win )
 //----------------------------------------------------------------------------
 void vtkOSPRayActor::Render( vtkRenderer * ren, vtkMapper * mapper )
 {
-  cerr << __PRETTY_FUNCTION__ << " " << this << endl;
+  // cerr << __PRETTY_FUNCTION__ << " " << this << endl;
   if ( vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast( ren ) )
   {
     if (!this->OSPRayManager)

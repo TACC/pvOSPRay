@@ -100,7 +100,7 @@
         {
         ++this->TimerCount;
         }
-        std::cout << "timer " << this->TimerCount << std::endl;
+        // std::cout << "timer " << this->TimerCount << std::endl;
     }
  
   private:
@@ -157,26 +157,26 @@ Accumulate(false)
   OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
   ospSetObject(vRenderer, "dynamic_model", vModel);
 
-  ospSetParam(vRenderer,"world",vModel);
-  ospSetParam(vRenderer,"model",vModel);
-  ospSetParam(vRenderer,"camera",oCamera);
+  ospSetObject(vRenderer,"world",vModel);
+  ospSetObject(vRenderer,"model",vModel);
+  ospSetObject(vRenderer,"camera",oCamera);
 
   // renderer = ospNewRenderer("ao16");
   // renderer = ospNewRenderer("obj");
   Assert(oRenderer != NULL && "could not create renderer");
 
-  ospSetParam(oRenderer,"world",oModel);
-  ospSetParam(oRenderer,"model",oModel);
-  ospSetParam(oRenderer,"camera",oCamera);
+  ospSetObject(oRenderer,"world",oModel);
+  ospSetObject(oRenderer,"model",oModel);
+  ospSetObject(oRenderer,"camera",oCamera);
   ospSet1i(oRenderer,"spp",Samples);
   ospSet3f(oRenderer,"bgColor",1,1,1);
   ospSet1f(oRenderer,"epsilon", 10e-2);
   ospCommit(oModel);
   ospCommit(oCamera);
   ospCommit(oRenderer);
-  PRINT(oRenderer);
-  PRINT(oModel);
-  PRINT(oCamera);
+  // PRINT(oRenderer);
+  // PRINT(oModel);
+  // PRINT(oCamera);
   #if 1
 
   // this->OSPRayEngine = this->OSPRayManager->GetOSPRayEngine();
@@ -567,9 +567,9 @@ int vtkOSPRayRenderer::UpdateLights()
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   // this->OSPRayManager->OSPRayCamera = ospNewCamera("perspective");
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
-  ospSetParam(oRenderer,"world",oModel);
-  ospSetParam(oRenderer,"model",oModel);
-  ospSetParam(oRenderer,"camera",oCamera);
+  ospSetObject(oRenderer,"world",oModel);
+  ospSetObject(oRenderer,"model",oModel);
+  ospSetObject(oRenderer,"camera",oCamera);
 
 
   // this->OSPRayManager->OSPRayModel = ospNewModel();
@@ -704,9 +704,8 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-      this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH);
-    // this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
-    // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
+      this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   }  
   // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   if (hasVolumeHack)
@@ -717,17 +716,17 @@ void vtkOSPRayRenderer::LayerRender()
    OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
    OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
 
-   ospSetParam(vRenderer,"world",vModel);
-   ospSetParam(vRenderer,"dynamic_model",vdModel);
-   ospSetParam(vRenderer,"model",vModel);
-   ospSetParam(vRenderer,"camera",oCamera);
+   ospSetObject(vRenderer,"world",vModel);
+   ospSetObject(vRenderer,"dynamic_model",vdModel);
+   ospSetObject(vRenderer,"model",vModel);
+   ospSetObject(vRenderer,"camera",oCamera);
 
    ospCommit(vModel);
    ospCommit(vdModel);
    ospCommit(vRenderer);
 
-   // ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
-   ospRenderFrame(this->osp_framebuffer,vRenderer);
+   ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+   // ospRenderFrame(this->osp_framebuffer,vRenderer);
   }
   else
   {
@@ -737,8 +736,8 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(renderer);
     ospCommit(ospModel);
 
-    // ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
-    ospRenderFrame(this->osp_framebuffer,renderer);
+    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+    // ospRenderFrame(this->osp_framebuffer,renderer);
   }
 
   double *clipValues = this->GetActiveCamera()->GetClippingRange();
@@ -864,7 +863,7 @@ void vtkOSPRayRenderer::SetEnableShadows( int newval )
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetSamples( int newval )
 {
-  std::cerr << "vtkOSPRayRenderer::SetSamples " << newval << "\n";
+  // std::cerr << "vtkOSPRayRenderer::SetSamples " << newval << "\n";
   #if 1
   if (this->Samples == newval || newval < 1)
   {
@@ -876,7 +875,7 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
 
-  PRINT(renderer);
+  // PRINT(renderer);
   Assert(renderer);
 
   ospSet1i(renderer,"spp",Samples);
@@ -884,7 +883,7 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
     OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
 
-  PRINT(vRenderer);
+  // PRINT(vRenderer);
   Assert(vRenderer);
 
   ospSet1i(vRenderer,"spp",Samples);
@@ -896,7 +895,7 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetEnableAO( int newval )
 {
-  std::cerr << "vtkOSPRayRenderer::SetEnableAO " << newval << "\n";
+  // std::cerr << "vtkOSPRayRenderer::SetEnableAO " << newval << "\n";
   #if 1
   if (this->EnableAO == newval)
   {
@@ -910,12 +909,12 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   if (newval != 0)
   {
-    std::cout << "using ao4" << std::endl;
+    // std::cout << "using ao4" << std::endl;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
   }
   else
   {
-    std::cout << "using obj" << std::endl;
+    // std::cout << "using obj" << std::endl;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   // this->OSPRayManager->OSPRayRenderer =  (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
   }
@@ -924,10 +923,10 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
   Assert(oRenderer != NULL && "could not create renderer");
 
   // ospCommit(oRenderer);
-  ospSetParam(oRenderer,"dynamic_model",ospNewModel());
-  ospSetParam(oRenderer,"world",oModel);
-  ospSetParam(oRenderer,"model",oModel);
-  ospSetParam(oRenderer,"camera",oCamera);
+  ospSetObject(oRenderer,"dynamic_model",ospNewModel());
+  ospSetObject(oRenderer,"world",oModel);
+  ospSetObject(oRenderer,"model",oModel);
+  ospSetObject(oRenderer,"camera",oCamera);
   ospCommit(oRenderer);
 
   ospSet1i(oRenderer,"spp",Samples);
@@ -936,7 +935,7 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   // SetBackground(backgroundRGB[0], backgroundRGB[1], backgroundRGB[2]);
 
-  cout << "new renderer: " << static_cast<void*>(oRenderer) << ", samples: " << this->Samples << endl;
+  // cout << "new renderer: " << static_cast<void*>(oRenderer) << ", samples: " << this->Samples << endl;
 
   // loop through actors and set mtime to force update
   // this will force the actors to create new materials that will be

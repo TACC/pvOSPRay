@@ -79,7 +79,7 @@
 // Construct a new vtkOSPRayVolumeRayCastMapper with default values
      vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
      {
-      std::cout << __PRETTY_FUNCTION__ << std::endl;
+      // std::cout << __PRETTY_FUNCTION__ << std::endl;
       this->SampleDistance             =  1.0;
       this->ImageSampleDistance        =  1.0;
       this->MinimumImageSampleDistance =  1.0;
@@ -327,7 +327,7 @@
 
     void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     {
-      std::cout << __PRETTY_FUNCTION__ << std::endl;
+      // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // make sure that we have scalar input and update the scalar input
       if ( this->GetInput() == NULL )
       {
@@ -342,17 +342,17 @@
         this->GetInputAlgorithm()->Update();
       }
 
-      printf("inputinformation: \n");
-      // this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
-      printf("end inputinformation\n");
+      // printf("inputinformation: \n");
+      // // this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
+      // printf("end inputinformation\n");
 
-      printf("input port information: \n");
-      // this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
-      printf("end inputinformation\n");
+      // printf("input port information: \n");
+      // // this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
+      // printf("end inputinformation\n");
 
-            printf("inputinformation2: \n");
-      // this->GetInput()->PrintSelf(std::cout,vtkIndent());
-      printf("end inputinformation2\n");
+      //       printf("inputinformation2: \n");
+      // // this->GetInput()->PrintSelf(std::cout,vtkIndent());
+      // printf("end inputinformation2\n");
 
 
     //

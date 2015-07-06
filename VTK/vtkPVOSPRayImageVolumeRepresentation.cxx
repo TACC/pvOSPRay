@@ -456,7 +456,7 @@ vtkStandardNewMacro(vtkPVOSPRayImageVolumeRepresentation);
 //----------------------------------------------------------------------------
 vtkPVOSPRayImageVolumeRepresentation::vtkPVOSPRayImageVolumeRepresentation()
 {
-    std::cout << __PRETTY_FUNCTION__ << std::endl;
+    // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // this->VolumeMapper = vtkSmartVolumeMapper::New();
   this->VolumeMapper = vtkOSPRayVolumeRayCastMapper::New();
   // this->Property = vtkVolumeProperty::New();

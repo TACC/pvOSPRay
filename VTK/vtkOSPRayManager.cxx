@@ -55,7 +55,7 @@ vtkStandardNewMacro(vtkOSPRayManager);
 vtkOSPRayManager::vtkOSPRayManager()
 {
   #if 1
-  cerr << "OManager(" << this << ") CREATE" << endl;
+  // cerr << "OManager(" << this << ") CREATE" << endl;
   // this->OSPRayEngine = OSPRay::createOSPRay();
   // //TODO: this requires OSPRay >= r2439 but I can't check that programatically
   // this->OSPRayEngine->setDisplayBeforeRender(false);
