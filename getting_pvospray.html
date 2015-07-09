@@ -84,7 +84,7 @@ pvOSPRay currently supports both Linux and Mac OSX (a Windows version will soon 
 In addition, before you can build pvOSPRay you need the following prerequisites:
 <ul>
 <!--   <li>You can clone the latest vtkOSPRay sources via: <code>git clone https://github.com/TACC/vtkOSPRay.git</code></li> -->
-  <li>Install OSPRay, following <a href="ospray.github.io/getting_ospray.html">these instructions</a>.</li>
+  <li>Install OSPRay, following <a href="http://ospray.github.io/getting_ospray.html">these instructions</a>.</li>
   <li>OSPRay (and thus pvOSPRay) also heavily
   uses <a href="http://embree.github.io">Embree</a>; however, OSPRay
   directly includes its own copy of Embree, so a special installation
@@ -99,34 +99,34 @@ Note: the instructions below build pvOSPRay as part of a ParaView source build. 
 Note: vtkOSPRay is currently contained within pvOSPRay and will be built along with pvOSPRay as part of the ParaView build.
 </p>
 <ol>
-  <li>Download ParaView 4.1 source from <a href="http://www.paraview.org/download/">www.paraview.org</a> (<a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.1&type=source&os=all&downloadFile=ParaView-v4.1.0-source.tar.gz">click here to download</a>). Untar the source tree into a local directory. 
-  We recommend putting the source tree in the same directory as OSPRay (i.e., ~/Projects/OSPRay and ~/Projects/ParaView-v4.1.0).</li>
+  <li>Download ParaView 4.3 source from <a href="http://www.paraview.org/download/">www.paraview.org</a> (<a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.3&type=source&os=all&downloadFile=ParaView-v4.3.1-source.tar.gz">click here to download</a>). Untar the source tree into a local directory. 
+  We recommend putting the source tree in the same directory as OSPRay (i.e., ~/Projects/OSPRay and ~/Projects/ParaView).</li>
 <li>Change to the ParaView Plugins directory: <br>
     <code>
-      user@mymachine[~/Projects]: cd ParaView-v4.1.0/Plugins
+      user@mymachine[~/Projects]: cd ParaView/Plugins
     </code>
     <br>
     Clone the pvOSPRay source into the plugins directory: <br>
     <code>
-      user@mymachine[~/Projects/ParaView-v4.1.0/Plugins]: <br>git clone https://github.com/TACC/pvOSPRay.git
+      user@mymachine[~/Projects/ParaView/Plugins]: <br>git clone https://github.com/TACC/pvOSPRay.git
     </code>
   </li>
 
   <li>Change to the ParaView root directory, create a build directory for the ParaView build, change to the build directory, then run CMake:<br>
     <code>
-      user@mymachine[~/Projects/ParaView-v4.1.0/Plugins]: cd ..
+      user@mymachine[~/Projects/ParaView/Plugins]: cd ..
     </code>
     <br>
     <code>
-      user@mymachine[~/Projects/ParaView-v4.1.0]: mkdir build
+      user@mymachine[~/Projects/ParaView]: mkdir build
     </code>
     <br>
     <code>
-      user@mymachine[~/Projects/ParaView-v4.1.0]: cd build
+      user@mymachine[~/Projects/ParaView]: cd build
     </code>
     <br>
     <code>
-      user@mymachine[~/Projects/ParaView-v4.1.0/build]: ccmake ..
+      user@mymachine[~/Projects/ParaView/build]: ccmake ..
     </code>
   </li>
 
@@ -134,7 +134,7 @@ Note: vtkOSPRay is currently contained within pvOSPRay and will be built along w
   Once CMake exits, run 'make' from the command line:
     <br>
     <code>
-      user@mymachine[~/Projects/ParaView-v4.1.0/build]: make
+      user@mymachine[~/Projects/ParaView/build]: make
     </code>
   </li>
 
