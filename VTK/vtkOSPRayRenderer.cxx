@@ -707,6 +707,7 @@ void vtkOSPRayRenderer::LayerRender()
       this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   }  
+  // ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
   // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   if (hasVolumeHack)
   {
@@ -724,6 +725,7 @@ void vtkOSPRayRenderer::LayerRender()
    ospCommit(vModel);
    ospCommit(vdModel);
    ospCommit(vRenderer);
+
 
    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
    // ospRenderFrame(this->osp_framebuffer,vRenderer);

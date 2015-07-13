@@ -80,6 +80,13 @@ vtkSMRepresentationProxy* vtkSMOSPRayViewProxy::CreateDefaultRepresentation(
     return 0;
     }
 
+    const char* toTry[] = 
+    {
+      "OSPRayUniformGridRepresentation",
+      "OSPRayGeometryRepresentation",
+      NULL
+    };
+
   assert("Session should be set by now" && this->Session);
   vtkSMSessionProxyManager* pxm = this->GetSessionProxyManager();
 
@@ -90,11 +97,12 @@ vtkSMRepresentationProxy* vtkSMOSPRayViewProxy::CreateDefaultRepresentation(
     double view_time = vtkSMPropertyHelper(this, "ViewTime").GetAsDouble();
     sproxy->UpdatePipeline(view_time);
     }
-
+for(int i=0; toTry[i] != NULL; i++)
+{
   // Choose which type of representation proxy to create.
   vtkSMProxy* prototype;
   prototype = pxm->GetPrototypeProxy("representations",
-    "OSPRayGeometryRepresentation");
+    toTry[i]);
   vtkSMInputProperty *pp = vtkSMInputProperty::SafeDownCast(
     prototype->GetProperty("Input"));
   pp->RemoveAllUncheckedProxies();
@@ -115,9 +123,11 @@ vtkSMRepresentationProxy* vtkSMOSPRayViewProxy::CreateDefaultRepresentation(
 
   if (g)
     {
+      printf("using OSPRay representation: %s\n", toTry[i]);
     return vtkSMRepresentationProxy::SafeDownCast(
-      pxm->NewProxy("representations", "OSPRayGeometryRepresentation"));
+      pxm->NewProxy("representations", toTry[i]));
     }
+  }
 
   return 0;
 }

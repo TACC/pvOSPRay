@@ -660,7 +660,7 @@ int vtkPVOSPRayImageVolumeRepresentation::RequestData(vtkInformation* request,
     // without the data input i.e. either client or render-server, in which case
     // we show only the outline.
     this->VolumeMapper->RemoveAllInputs();
-    printf("lod enable\n");
+    // printf("lod enable\n");
     this->Actor->SetEnableLOD(1);
     }
 
@@ -726,7 +726,10 @@ void vtkPVOSPRayImageVolumeRepresentation::UpdateMapperParameters()
     }
 
   this->VolumeMapper->SelectScalarArray(colorArrayName);
-  // printf("color array name: \"%s\"\n", colorArrayName);
+  if (colorArrayName)
+    printf("color array name: \"%s\"\n", colorArrayName);
+  else
+    printf("color array name not found\n");
   // printf("color array name2: \"%s\"\n", ColorArrayName);
   switch (fieldAssociation)
     {
@@ -822,14 +825,9 @@ void vtkPVOSPRayImageVolumeRepresentation::SetColor(vtkColorTransferFunction* lu
 void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacity(vtkPiecewiseFunction* pwf)
 {
     std::cout << __PRETTY_FUNCTION__ << "\n";
+    // return;
   this->Property->SetScalarOpacity(pwf);
-
-  float tfOVals[256];
-  pwf->GetTable(0,300, 12, tfOVals);
-      std::cout << "tfOVals:\n";
-  for(int i=0;i<12;i++)
-    std::cout << tfOVals[i] << " " << std::endl;
-  std::cout << "\n\n";
+  pwf->PrintSelf(std::cout, vtkIndent());
 }
 
 //----------------------------------------------------------------------------

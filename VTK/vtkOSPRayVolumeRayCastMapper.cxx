@@ -341,6 +341,7 @@
           this->GetInputInformation());
         this->GetInputAlgorithm()->Update();
       }
+      vol->UpdateTransferFunctions( ren );
 
       // printf("inputinformation: \n");
       // // this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
@@ -384,7 +385,7 @@
   //            this->LastSampleDistance!=sampleDistance)
   //        || needUpdate || !this->Loaded)
   // {
-      if (this->GetInput()->GetMTime() > this->BuildTime)
+      // if (this->GetInput()->GetMTime() > this->BuildTime)
       {
         printf("volume rebuild!\n");
 
@@ -424,7 +425,7 @@
        
   // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
 
-       int numColors = 32;
+       int numColors = 128;
              std::vector<float> alphas;
        alphas.resize(numColors, 1.0);
        for (int i =0; i < alphas.size();i++)
@@ -477,7 +478,7 @@ else if (clipAxis == 2)
 //Carson: TODO: HACK: don't reallocate data when only changed isovalues or clip values... for now
 // hardcode to only load data once but of course this is bad!!!!
 static bool once = false;
-if (!once)
+// if (!once)
 {
   once = true;
   //for (int i =64; i < 256;i++)
@@ -503,18 +504,16 @@ if (!once)
         colors[i+colors.size()/2] = colorsl[1]*(1.0-v) + colorsl[2]*v;
       }
 
-
       vtkVolumeProperty* volProperty = vol->GetProperty();
       vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
-      vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(1);
-      float tfVals[256*3];
-      float tfOVals[256];
-      for(int i=0;i<256*3;i++)
-        tfVals[i]=0.0;
-      for(int i=0;i<256;i++)
-        tfOVals[i]=0.0;
-      scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], 4, tfOVals);
-      colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], 4, tfVals);
+      vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);
+      int numNodes = colorTF->GetSize();
+      double* tfData = colorTF->GetDataPointer();
+
+      float* tfVals = new float[numColors*3];
+      float* tfOVals= new float[numColors];
+      scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], numColors, tfOVals);
+      colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], numColors, tfVals);
       std::cout << "tfVals:\n";
       for(int i=0;i<12;i++)
         std::cout << tfVals[i] << " " << std::endl;
@@ -525,9 +524,9 @@ if (!once)
         std::cout << tfOVals[i] << " " << std::endl;
       std::cout << "\n\n";
 
-      OSPData colorData = ospNewData(colors.size(), OSP_FLOAT3, &colors[0]);
+      OSPData colorData = ospNewData(colors.size(), OSP_FLOAT3, tfVals);
       ospSetData(transferFunction, "colors", colorData);
-      OSPData tfAlphaData = ospNewData(alphas.size(), OSP_FLOAT, &alphas[0]);
+      OSPData tfAlphaData = ospNewData(alphas.size(), OSP_FLOAT, tfOVals);
       ospSetData(transferFunction, "opacities", tfAlphaData);
 
       ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
@@ -549,13 +548,11 @@ if (!once)
       size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
 
       buffer = (char*)ScalarDataPointer;
-      // buffer = (char*)embree::alignedMalloc(sizeBytes);
-      // memcpy(buffer, ScalarDataPointer, sizeBytes);
 
       ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
+      ospSet3f(volume, "gridOrigin", -dim[0]/2.0f, -dim[1]/2.0f, -dim[2]/2.0f);
       ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
       printf("setting volume data\n");
-      // ospSetRegion(volume, buffer, osp::vec3i(0,0,0), osp::vec3i(dim[0], dim[1], dim[2]));
       OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
       ospSetData(volume, "voxelData", voxelData);
       printf("done setting volume data\n");
@@ -568,17 +565,6 @@ if (!once)
       this->BuildTime.Modified();
     }      
     ospSet1f(volume, "samplingRate", 1.0f);
-      // ospSet1i(volume, "gradientShadingEnabled", 1);
-
-//}
-      //! Create an OSPRay light source.
-    // OSPLight light = ospNewLight(NULL, "DirectionalLight");  
-    // ospSet3f(light, "direction", 1.0f, -2.0f, -1.0f);  
-    // ospSet3f(light, "color", 1.0f, 1.0f, 1.0f);
-
-  //! Set the light source on the renderer.
-    // ospCommit(light);  
-    // ospSetData(renderer, "lights", ospNewData(1, OSP_OBJECT, &light));
 
     ospSetObject(renderer, "dynamic_model", dynamicModel);
     ospCommit(volume);
@@ -590,44 +576,6 @@ if (!once)
 
     OSPRayRenderer->hasVolumeHack = true;
 
-
-  // for(size_t i =0; i < volume->GetDimensions().y*volume->getDimensions().z; i++)
-  // {
-  //   // size_t j = i % volume->GetDimensions().y; size_t k = index/volume->getDimensions.y;
-  //   volume->setRegion(buffer, vec3i(0,0,0), vec3i())
-  // }
-
-
-  // std::vector<std::string> filenames;
-  // filenames.push_back("changeme");
-
-  // std::vector<OSPModel> models;  
-  // std::vector<OSPVolume> volumes;
-
-  //   //! Load OSPRay objects from files.
-  // for (size_t i=0 ; i < filenames.size() ; i++) 
-  // {
-  //   std::string filename = filenames[i];
-
-  // //! Create an OSPRay model.
-  // OSPModel model = ospNewModel();
-
-  // //! Load OSPRay objects from a file.
-  // OSPObjectCatalog catalog = ospImportObjects(filename.c_str());
-
-  // //! For now we set the same transfer function on all volumes.
-  // for (size_t i=0 ; catalog->entries[i] ; i++) if (catalog->entries[i]->type == OSP_VOLUME) ospSetObject(catalog->entries[i]->object, "transferFunction", transferFunction);
-
-  // //! Add the loaded volume(s) to the model.
-  // for (size_t i=0 ; catalog->entries[i] ; i++) if (catalog->entries[i]->type == OSP_VOLUME) ospAddVolume(model, (OSPVolume) catalog->entries[i]->object);
-
-  // //! Keep vector of all loaded volume(s).
-  // for (size_t i=0 ; catalog->entries[i] ; i++) if (catalog->entries[i]->type == OSP_VOLUME) volumes.push_back((OSPVolume) catalog->entries[i]->object);
-
-  // //! Commit the OSPRay object state.
-  // ospCommitCatalog(catalog);  ospCommit(model);  models.push_back(model);
-
-  // }
     return;
 
 
