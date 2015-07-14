@@ -63,34 +63,11 @@
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 
-// #include <Engine/Control/RTRT.h>
-// #include <Model/Groups/DynBVH.h>
-// #include <Model/Groups/Group.h>
-// #include <Model/Groups/Mesh.h>
-// #include <Model/Primitives/TextureCoordinateCylinder.h>
-// #include <Model/Primitives/TextureCoordinateSphere.h>
-// #include <Model/Primitives/WaldTriangle.h>
-// #include <Model/Materials/Flat.h>
-// #include <Model/Materials/Lambertian.h>
-// #include <Model/Materials/Transparent.h>
-// #include <Model/Materials/Phong.h>
-// #include <Model/Textures/TexCoordTexture.h>
-// #include <Model/Textures/Constant.h>
-
-// #include <Core/Geometry/Vector.h>
 #include <vector>
 
 #include <math.h>
 #include <algorithm>
 
-// class vtkOSPRayPolyDataMapper::Helper {
-// public:
-//   Helper() {}
-//   ~Helper() {}
-
-//   OSPRay::Material *material;
-//   std::vector<OSPRay::Vector> texCoords;
-// };
 
 vtkStandardNewMacro(vtkOSPRayPolyDataMapper);
 
@@ -157,71 +134,53 @@ int vtkOSPRayPolyDataMapper::timestep = 0;  // HACK!
 //----------------------------------------------------------------------------
 // Construct empty object.
 vtkOSPRayPolyDataMapper::vtkOSPRayPolyDataMapper() {
-#if 1
-  // cerr << "MM(" << this << ") CREATE" << endl;
   this->InternalColorTexture = NULL;
   this->OSPRayManager = NULL;
   this->PointSize = 1.0;
   this->LineWidth = 1.0;
   this->Representation = VTK_SURFACE;
-// this->MyHelper = new Helper();
-#endif
 }
 
 //----------------------------------------------------------------------------
 // Destructor (don't call ReleaseGraphicsResources() since it is virtual
 vtkOSPRayPolyDataMapper::~vtkOSPRayPolyDataMapper() {
-#if 1
-  // cerr << "MM(" << this << ") DESTROY" << endl;
   if (this->InternalColorTexture) {
     this->InternalColorTexture->Delete();
   }
 
   if (this->OSPRayManager) {
-    // cerr << "MM(" << this << ") DESTROY "
-    //     << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Delete();
   }
 
-// delete this->MyHelper;
-#endif
 }
 
 //----------------------------------------------------------------------------
 // Release the graphics resources used by this mapper.  In this case, release
 // the display list if any.
 void vtkOSPRayPolyDataMapper::ReleaseGraphicsResources(vtkWindow *win) {
-#if 1
-  // cerr << "MM(" << this << ") RELEASE GRAPHICS RESOURCES" << endl;
   this->Superclass::ReleaseGraphicsResources(win);
 
   if (this->InternalColorTexture) {
     this->InternalColorTexture->Delete();
   }
   this->InternalColorTexture = NULL;
-#endif
 }
 
 //----------------------------------------------------------------------------
 // Receives from Actor -> maps data to primitives
 // called by Mapper->Render() (which is called by Actor->Render())
 void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act) {
-#if 1
   vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
   if (!OSPRayRenderer) {
     return;
   }
   if (!this->OSPRayManager) {
     this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-    // cerr << "MM(" << this << ") REGISTER " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
   }
 
   // write geometry, first ask the pipeline to update data
   vtkPolyData *input = this->GetInput();
-  // std::cerr << "polydata input: " << input << std::endl;
   if (input == NULL) {
     vtkErrorMacro(<< "No input to vtkOSPRayPolyDataMapper!");
     return;
@@ -250,8 +209,6 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act) {
     this->CreateDefaultLookupTable();
   }
 
-  // TODO: vtkOpenGLPolyDataMapper uses OpenGL clip planes here
-
   // For vertex coloring, this sets this->Colors as side effect.
   // For texture map coloring, this sets ColorCoordinates
   // and ColorTextureMap as a side effect.
@@ -268,10 +225,8 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act) {
   // if something has changed, regenerate OSPRay primitives if required
   if (this->GetMTime() > this->BuildTime ||
       input->GetMTime() > this->BuildTime ||
-      // act->GetMTime()   > this->BuildTime ||
       act->GetProperty()->GetMTime() > this->BuildTime ||
       act->GetMatrix()->GetMTime() > this->BuildTime) {
-    // this->ReleaseGraphicsResources( ren->GetRenderWindow() );
 
     // If we are coloring by texture, then load the texture map.
     // Use Map as indicator, because texture hangs around.
@@ -283,111 +238,48 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act) {
     this->BuildTime.Modified();
   }
 
-// input->Modified();
 this->Update();
   input = NULL;
-// TODO: deal with timer ??
-#endif
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
                                            vtkPoints *ptarray,
                                            vtkosp::Mesh *mesh
-                                           /*,
-                                          OSPRay::Group *points,
-                                          OSPRay::Group *lines*/) {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
-  // OSPRay::Material *material = this->MyHelper->material;
-  // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
+                                           ) {
 
   int total_triangles = 0;
   vtkCellArray *cells = polys->GetPolys();
   vtkIdType npts = 0, *index = 0, cellNum = 0;
 
-  // cerr << this->Representation << endl;
   switch (this->Representation) {
     case VTK_POINTS: {
       std::cout << "VTK_POINTS\n";
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         double coord[3];
-        // OSPRay::Vector noTC(0.0,0.0,0.0);
         for (int i = 0; i < npts; i++) {
-          // TODO: Make option to scale pointsize by scalar
-          /*
-        ptarray->GetPoint(index[i], coord);
-        OSPRay::TextureCoordinateSphere *sphere =
-          new OSPRay::TextureCoordinateSphere
-          (material,
-           OSPRay::Vector(coord[0], coord[1], coord[2]),
-           this->PointSize,
-           (texCoords.size()?
-            texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC)
-           );
-        points->add(sphere);
-        */
         }
         total_triangles++;
       }
-      // cerr << "polygons: # of triangles = " << total_triangles << endl;
     }  // VTK_POINTS;
     break;
     case VTK_WIREFRAME: {
-      // std::cout << "VTK_WIREFRAME\n";
       double coord0[3];
-      // OSPRay::Vector noTC(0.0,0.0,0.0);
-      // OSPRay::TextureCoordinateCylinder *segment;
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         ptarray->GetPoint(index[0], coord0);
         mesh->wireframe_vertex.push_back(
             ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
         for (vtkIdType i = 1; i < npts; i++) {
 
-          // std::cout << "points in cell: " << npts << "\n";
           mesh->wireframe_index.push_back(mesh->wireframe_vertex.size() - 1);
           ptarray->GetPoint(index[i], coord0);
           mesh->wireframe_vertex.push_back(
               ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
-          // TODO: Make option to scale linewidth by scalar
-          /*
-        ptarray->GetPoint(index[i], coord1);
-        segment =
-          new OSPRay::TextureCoordinateCylinder
-          (material,
-           OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
-           OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
-           this->LineWidth,
-           (texCoords.size()?
-            texCoords[(this->CellScalarColor?cellNum:index[i-1])] : noTC),
-           (texCoords.size()?
-            texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC)
-           );
-        lines->add(segment);
-        coord0[0] = coord1[0];
-        coord0[1] = coord1[1];
-        coord0[2] = coord1[2];
-        */
         }
-        // ptarray->GetPoint(index[0], coord1);
-        /*
-        segment =
-          new OSPRay::TextureCoordinateCylinder
-          (material,
-           OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
-           OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
-           this->LineWidth,
-           (texCoords.size()?
-            texCoords[(this->CellScalarColor?cellNum:index[npts-1])] : noTC),
-           (texCoords.size()?
-            texCoords[(this->CellScalarColor?cellNum:index[0])] : noTC)
-           );
-        lines->add(segment);
-        */
       }
     }  // VTK_WIREFRAME:
     break;
     case VTK_SURFACE: {
-      // std::cout << "VTK_SURFACE\n";
       // write polygons with on the fly triangulation, assuming polygons are
       // simple and
       // can be triangulated into "fans"
@@ -401,7 +293,6 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
         mesh->vertex_indices.push_back(triangle[0]);
         mesh->vertex_indices.push_back(triangle[1]);
         mesh->vertex_indices.push_back(triangle[2]);
-        // mesh->face_material.push_back(0);
 
         if (!mesh->vertexNormals.empty()) {
           mesh->normal_indices.push_back(triangle[0]);
@@ -430,7 +321,6 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
           mesh->vertex_indices.push_back(triangle[0]);
           mesh->vertex_indices.push_back(triangle[1]);
           mesh->vertex_indices.push_back(triangle[2]);
-          // mesh->face_material.push_back(0);
 
           if (!mesh->vertexNormals.empty()) {
             mesh->normal_indices.push_back(triangle[0]);
@@ -452,10 +342,8 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
           total_triangles++;
         }
       }
-      // cerr << "polygons: # of triangles = " << total_triangles << endl;
 
       for (int i = 0; i < total_triangles; i++) {
-        // mesh->addTriangle( new OSPRay::WaldTriangle );
       }
 
       for (cells->InitTraversal();
@@ -472,37 +360,6 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
         }
       }
 
-#if 0
-       ospray::vec3fa* vertices = (ospray::vec3fa*)embree::alignedMalloc(sizeof(ospray::vec3fa)*mesh->vertices.size());
-  ospray::vec3i* triangles = (ospray::vec3i*)embree::alignedMalloc(sizeof(ospray::vec3i)*mesh->vertex_indices.size()/3);
-  for(size_t i =0;i< mesh->vertex_indices.size();i++)
-    vertices[i]== ospray::vec3fa(mesh->vertices[i].x(), mesh->vertices[i].y(),  mesh->vertices[i].z());
-  for(size_t i = 0; i < mesh->vertex_indices.size()/3; i++)
-    triangles[i] = embree::Vec3i(mesh->vertex_indices[i*3], mesh->vertex_indices[i*3+1], mesh->vertex_indices[i*3+2]);
-
-     OSPMesh ospMesh = ospNewTriangleMesh();
-  OSPData position = ospNewData(numPositions,OSP_vec3fa,
-    &vertices[0]);
-  ospSetData(ospMesh,"position",position);
-
-  // OSPData normal = ospNewData(normals.size(),OSP_vec3fa,
-    // &normals[0]);
-  // ospSetData(ospMesh,"vertex.normal",normal);
-
-
-  OSPData index = ospNewData(numTriangles,OSP_vec3i,
-   &triangles[0]);
-  ospSetData(ospMesh,"index",index);
-  // ospCommit(o_current_material);
-  // updateMaterial();
-  // ospSetMaterial(oren->_data->ospMesh,o_current_material);
-  // ospRelease(o_current_material);
-  ospCommit(ospMesh);
-#endif
-
-      // oren->_data->ospModel = ospNewModel();
-      // ospAddGeometry(oren->_data->ospModel,oren->_data->ospMesh);
-      // ospCommit(oren->_data->ospModel);
 
     }  // VTK_SURFACE
     break;
@@ -516,13 +373,7 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
 void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
                                           vtkPoints *ptarray,
                                           vtkosp::Mesh *mesh)
-    // OSPRay::Mesh *mesh,
-    // OSPRay::Group *points,
-    // OSPRay::Group *lines)
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
-  // OSPRay::Material *material = this->MyHelper->material;
-  // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
   // total number of triangles
   int total_triangles = 0;
@@ -531,54 +382,22 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
   vtkIdType npts = 0, *index = 0, cellNum = 0;
   ;
 
-  // cerr << this->Representation << endl;
   switch (this->Representation) {
     case VTK_POINTS: {
-      // std::cout << "VTK_POINTS\n";
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         double coord[3];
-        // OSPRay::Vector noTC(0.0,0.0,0.0);
         for (int i = 0; i < npts; i++) {
-          // TODO: Make option to scale pointsize by scalar
           ptarray->GetPoint(index[i], coord);
-          // OSPRay::TextureCoordinateSphere *sphere =
-          //   new OSPRay::TextureCoordinateSphere
-          //   (material,
-          //    OSPRay::Vector(coord[0], coord[1], coord[2]),
-          //    this->PointSize,
-          //    (texCoords.size()?
-          //     texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC)
-          //    );
-          // points->add(sphere);
         }
         total_triangles++;
       }
-      // cerr << "polygons: # of triangles = " << total_triangles << endl;
     }  // VTK_POINTS;
     break;
     case VTK_WIREFRAME: {
-      // std::cout << "VTK_WIREFRAME\n";
       double coord0[3];
       double coord1[3];
       double coord2[3];
-      // OSPRay::Vector noTC(0.0,0.0,0.0);
-      // OSPRay::TextureCoordinateCylinder *segment;
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
-        // TODO: Make option to scale linewidth by scalar
-        // ptarray->GetPoint(index[0], coord0);
-        // ptarray->GetPoint(index[1], coord1);
-        // segment =
-        //   new OSPRay::TextureCoordinateCylinder
-        //   (material,
-        //    OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
-        //    OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
-        //    this->LineWidth,
-        //    (texCoords.size()?
-        //     texCoords[(this->CellScalarColor?cellNum:index[0])] : noTC),
-        //    (texCoords.size()?
-        //     texCoords[(this->CellScalarColor?cellNum:index[1])] : noTC)
-        //    );
-        // lines->add(segment);
         ptarray->GetPoint(index[0], coord0);
         mesh->wireframe_vertex.push_back(
             ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
@@ -587,36 +406,11 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
           ptarray->GetPoint(index[0], coord0);
           mesh->wireframe_vertex.push_back(
               ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
-          // segment =
-          //   new OSPRay::TextureCoordinateCylinder
-          //   (material,
-          //    OSPRay::Vector(coord1[0], coord1[1], coord1[2]),
-          //    OSPRay::Vector(coord2[0], coord2[1], coord2[2]),
-          //    this->LineWidth,
-          //    (texCoords.size()?
-          //     texCoords[(this->CellScalarColor?cellNum:index[i-1])] : noTC),
-          //    (texCoords.size()?
-          //     texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC)
-          //    );
-          // lines->add(segment);
-          // segment =
-          //   new OSPRay::TextureCoordinateCylinder
-          //   (material,
-          //    OSPRay::Vector(coord2[0], coord2[1], coord2[2]),
-          //    OSPRay::Vector(coord0[0], coord0[1], coord0[2]),
-          //    this->LineWidth,
-          //    (texCoords.size()?
-          //     texCoords[(this->CellScalarColor?cellNum:index[i])] : noTC),
-          //    (texCoords.size()?
-          //     texCoords[(this->CellScalarColor?cellNum:index[i-2])] : noTC)
-          //    );
-          // lines->add(segment);
         }
       }
     }  // VTK_WIREFRAME:
     break;
     case VTK_SURFACE: {
-      // std::cout << "VTK_SURFACE\n";
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         // count of the i-th triangle in a strip
         int numtriangles2 = 0;
@@ -629,7 +423,6 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
         mesh->vertex_indices.push_back(triangle[0]);
         mesh->vertex_indices.push_back(triangle[1]);
         mesh->vertex_indices.push_back(triangle[2]);
-        // mesh->face_material.push_back(0);
 
         if (!mesh->vertexNormals.empty()) {
           mesh->normal_indices.push_back(triangle[0]);
@@ -678,7 +471,6 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
           mesh->vertex_indices.push_back(triangle[0]);
           mesh->vertex_indices.push_back(triangle[1]);
           mesh->vertex_indices.push_back(triangle[2]);
-          // mesh->face_material.push_back(0);
 
           if (!mesh->vertexNormals.empty()) {
             mesh->normal_indices.push_back(triangle[0]);
@@ -703,12 +495,6 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
         }
       }
 
-      // cerr << "strips: # of triangles = " << total_triangles << endl;
-
-      // for ( int i = 0; i < total_triangles; i++ )
-      // {
-      // mesh->addTriangle( new OSPRay::WaldTriangle );
-      // }
 
     } break;
 
@@ -740,9 +526,6 @@ void FindAllData(vtkPolyData *polydata) {
   std::cout << VTK_DOUBLE << " double" << std::endl;
 
   for (vtkIdType i = 0; i < numberOfPointArrays; i++) {
-    // The following two lines are equivalent
-    // arrayNames.push_back(polydata->GetPointData()->GetArray(i)->GetName());
-    // arrayNames.push_back(polydata->GetPointData()->GetArrayName(i));
     int dataTypeID = polydata->GetPointData()->GetArray(i)->GetDataType();
     int arrayTypeID = polydata->GetPointData()->IsArrayAnAttribute(i);
     std::cout << "Array " << i << ": "
@@ -751,9 +534,6 @@ void FindAllData(vtkPolyData *polydata) {
   }
 
   for (vtkIdType i = 0; i < numberOfCellArrays; i++) {
-    // The following two lines are equivalent
-    // polydata->GetPointData()->GetArray(i)->GetName();
-    // polydata->GetPointData()->GetArrayName(i);
     int dataTypeID = polydata->GetCellData()->GetArray(i)->GetDataType();
     std::cout << "Array " << i << ": "
               << polydata->GetCellData()->GetArrayName(i)
@@ -765,8 +545,6 @@ void FindAllData(vtkPolyData *polydata) {
 //----------------------------------------------------------------------------
 // Draw method for OSPRay.
 void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
-#if 1
-  // printf("ospPolyDataMapper::Draw\n");
   vtkOSPRayActor *OSPRayActor = vtkOSPRayActor::SafeDownCast(actor);
   if (!OSPRayActor) {
     return;
@@ -779,44 +557,21 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
   vtkPolyData *input = this->GetInput();
 
   vtkInformation *inputInfo = this->GetInput()->GetInformation();
-  // // vtkInformation* outputInfo = outputVector->GetInformationObject(0);
 
-  // std::cerr << "ospPDM Actor: " << actor << std::endl;
   if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
     double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-    // cerr << "MA time: " << time << std::endl;
     timestep = time;
     if (OSPRayActor->cache[time] != NULL) {
-      // std::cerr << "using cache at time " << time << "\n";
-      // this->OSPRayModel = cache[time];
 
       OSPRayActor->OSPRayModel = OSPRayActor->cache[time];
       return;
 
-      // this->MeshMTime.Modified();
-      // UpdateObjects(ren);
     }
-    // return;
 
   } else if (!inputInfo) {
-    // cerr << "MA time: didn't have info\n";
   } else {
-    // cerr << "MA time: didn't have time\n";
     if (OSPRayActor->cache[timestep] != NULL) {
-      // std::cerr << "using nontime actor at timestep: " << timestep <<
-      // std::endl;
-      // OSPRayActor->OSPRayModel = OSPRayActor->cache[timestep];
-      // return;
     }
-    // if (OSPRayActor->OSPRayModel)
-    // {
-    //   //     if (!(
-    //   // this->GetInput()->GetMTime() > OSPRayActor->MeshMTime ||
-    //   // OSPRayActor->GetMTime() > OSPRayActor->MeshMTime ||
-    //   // OSPRayActor->GetProperty()->GetMTime() > OSPRayActor->MeshMTime ||
-    //   // OSPRayActor->GetMTime() > OSPRayActor->MeshMTime))
-    //     return;
-    // }
   }
   OSPRayActor->MeshMTime.Modified();
 
@@ -833,16 +588,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     this->CellScalarColor = true;
   }
 
-  // this->MyHelper->material = NULL;
-  // this->MyHelper->texCoords.clear();
-  // OSPRay::Material *&material = this->MyHelper->material;
   OSPMaterial ospMaterial = NULL;
   vtkosp::Mesh *mesh = new vtkosp::Mesh();
-  // std::vector<OSPRay::Vector> &texCoords = this->MyHelper->texCoords;
 
   // force create a new material every time this is called in case the renderer
   // has changed
-  // osp::Material* osmat = OSPRayProperty->GetOSPRayMaterial();
   osp::Material *osmat = 0;
   if (!osmat) {
     OSPRayProperty->CreateOSPRayProperty();
@@ -851,127 +601,54 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     ospMaterial = ((OSPMaterial)osmat);
 
   if (!this->ScalarVisibility || (!this->Colors && !this->ColorCoordinates)) {
-    // cerr << "poly colors: Solid color from actor's property" << endl;
 
-    /*
-       material = OSPRayProperty->GetOSPRayMaterial();
-       if(!material)
-       {
-       OSPRayProperty->CreateOSPRayProperty();
-       material = OSPRayProperty->GetOSPRayMaterial();
-
-    //TODO: the leaks
-    OSPRayProperty->SetOSPRayMaterial(NULL);
-    OSPRayProperty->SetSpecularTexture(NULL);
-    OSPRayProperty->SetDiffuseTexture(NULL);
-    }
-    */
   } else if (this->Colors) {
-    // cerr << "poly colors: Color scalar values directly (interpolation in color "
-            // "space)" << endl;
-    // OSPRay::Texture<OSPRay::Color> *texture = new OSPRay::TexCoordTexture();
     if (OSPRayProperty->GetInterpolation() == VTK_FLAT) {
-      // cerr << "Flat" << endl;
-      // material = new OSPRay::Flat(texture);
     } else {
       if (OSPRayProperty->GetOpacity() < 1.0) {
-        // cerr << "Translucent" << endl;
-        // material = new OSPRay::Transparent(texture,
-        // OSPRayProperty->GetOpacity());
       } else {
         if (OSPRayProperty->GetSpecular() == 0) {
-          // cerr << "non specular" << endl;
-          // material = new OSPRay::Lambertian(texture);
         } else {
-          // cerr << "phong" << endl;
-          // double *specular = OSPRayProperty->GetSpecularColor();
-          // OSPRay::Texture<OSPRay::Color> *specularTexture =
-          //   new OSPRay::Constant<OSPRay::Color>
-          //   (OSPRay::Color(OSPRay::RGBColor(specular[0],
-          //                                 specular[1],
-          //                                 specular[2])));
-          // material =
-          //   new OSPRay::Phong
-          //   (texture,
-          //    specularTexture,
-          //    static_cast<int> (OSPRayProperty->GetSpecularPower()),
-          //    NULL);
         }
       }
     }
 
-    // this table has one RGBA for every point (or cell) in object
     for (int i = 0; i < this->Colors->GetNumberOfTuples(); i++) {
       unsigned char *color = this->Colors->GetPointer(4 * i);
-      // texCoords.push_back
-      // (OSPRay::Vector(color[0]/255.0, color[1]/255.0, color[2]/255.0) );
-      // mesh->texCoords.push_back(vtkosp::Vec3(color[0]/255.0, color[1]/255.0,
-      // color[2]/255.0));
       mesh->colors.push_back(vtkosp::Vec4(color[0] / 255.0, color[1] / 255.0,
                                           color[2] / 255.0, 1));
     }
-    // printf("texture coords: using rgba every point\n");
 
   } else if (this->ColorCoordinates) {
-    // printf(
-        // "poly colors: texture coords: using color coordinates for a texture\n");
-    // cerr << "interpolate in data space, then color map each pixel" << endl;
-    // OSPRay::Texture<OSPRay::Color> *texture =
-    //   this->InternalColorTexture->GetOSPRayTexture();
     osp::Texture2D *texture = this->InternalColorTexture->GetOSPRayTexture();
-    // PRINT((OSPTexture2D)texture);
     Assert(texture);
     ospSetParam(ospMaterial, "map_Kd", ((OSPTexture2D)(texture)));
     ospCommit(ospMaterial);
 
-    // material = new OSPRay::Lambertian(texture);
-
-    // //this table is a color transfer function with colors that cover the
-    // scalar range
-    // //I think
     for (int i = 0; i < this->ColorCoordinates->GetNumberOfTuples(); i++) {
       double *tcoord = this->ColorCoordinates->GetTuple(i);
-      //   texCoords.push_back( OSPRay::Vector(tcoord[0], 0, 0) );
-      // mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], 0));
 			if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
       mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], tcoord[1]));
-      // texCoords.push_back(vtkosp::Vec2(tcoord[0],0));
-      // mesh->colors.push_back(vtkosp::Vec4(color[0]/255.0,color[1]/255.0,color[2]/255.0,1));
-      // printf("texCoord: %f %f\n", tcoord[0], 0);
     }
 
-    // printf("NEED TO IMPLEMENT COLORCOORDINATES\n");
   } else if (input->GetPointData()->GetTCoords() && actor->GetTexture()) {
-    // printf("poly colors: texture coords: using texture\n");
-#if 1
-    // cerr << "color using actor's texture" << endl;
     vtkOSPRayTexture *osprayTexture =
         vtkOSPRayTexture::SafeDownCast(actor->GetTexture());
     if (osprayTexture) {
-      //   OSPRay::Texture<OSPRay::Color> *texture =
-      //     OSPRayTexture->GetOSPRayTexture();
-      //   material = new OSPRay::Lambertian(texture);
       ospSetParam(ospMaterial, "map_Kd",
                   ((OSPTexture2D)(osprayTexture->GetOSPRayTexture())));
       ospCommit(ospMaterial);
     }
 
-    // // convert texture coordinates to OSPRay format
     vtkDataArray *tcoords = input->GetPointData()->GetTCoords();
     for (int i = 0; i < tcoords->GetNumberOfTuples(); i++) {
       double *tcoord = tcoords->GetTuple(i);
 			if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
       mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], tcoord[1]));
-      //     ( OSPRay::Vector(tcoord[0], tcoord[1], tcoord[2]) );
     }
-#endif
-    // printf("NEED TO IMPLEMENT TEXTURES\n");
   }
 
   // transform point coordinates according to actor's transformation matrix
-  // TODO: Use OSPRay instancing to transform instead of doing it brute force
-  // here
-  // to reduce number of copies
   vtkTransform *transform = vtkTransform::New();
   transform->SetMatrix(actor->GetMatrix());
   vtkPoints *points = vtkPoints::New();
@@ -990,11 +667,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
   this->PointSize = sqrt(this->PointSize) * 0.010;
   this->LineWidth = sqrt(this->LineWidth) * 0.005;
 
-  // containers for the OSPRay primitives we are going to produce
-  // OSPRay::Group *sphereGroup = new OSPRay::Group();
-  // OSPRay::Group *tubeGroup = new OSPRay::Group();
-  // OSPRay::Mesh *mesh = new OSPRay::Mesh();
-
   // convert VTK_VERTEX cells to OSPRay spheres
   if (input->GetNumberOfVerts() > 0) {
     vtkCellArray *ca = input->GetVerts();
@@ -1004,20 +676,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     vtkPoints *ptarray = points;
     double coord[3];
     vtkIdType cell;
-    // OSPRay::Vector noTC(0.0,0.0,0.0);
     while ((cell = ca->GetNextCell(npts, pts))) {
-      // TODO: Make option to scale pointsize by scalar
-
-      // ptarray->GetPoint(pts[0], coord);
-      // OSPRay::TextureCoordinateSphere *sphere =
-      //   new OSPRay::TextureCoordinateSphere
-      //   (material,
-      //    OSPRay::Vector(coord[0], coord[1], coord[2]),
-      //    this->PointSize,
-      //    (texCoords.size()?
-      //     texCoords[(this->CellScalarColor?cell:pts[0])] : noTC)
-      //    );
-      // sphereGroup->add(sphere);
     }
   }
 
@@ -1037,9 +696,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     int scalarSize = ptarray->GetNumberOfPoints();
     double coord0[3];
     vtkIdType cell;
-    // output = new unsigned char[scalarSize * 4];
-
-    // this->ColorTextureMap->GetLoop
 
     vtkScalarsToColors *vstc = GetLookupTable();
     vtkDataArray *scalar = input->GetPointData()->GetScalars(NULL);
@@ -1064,7 +720,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         std::cout << "Tex coords " << this->ColorCoordinates->GetSize() << std::endl;
         double* minmax = vstc->GetRange();
         std::cout << "m: " << minmax[0] << " M:" << minmax[1] << std::endl;
-        //vstc->SetRange(0,1);
         
         double scale = minmax[1] - minmax[0];
 
@@ -1103,69 +758,9 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       }
     }
 
-    /*
-        FindAllData(input);
-        // int TupleID = GetFieldDataTupleId();
-
-        std::vector<double> tmpVector;
-
-        vtkDataArray *scalar = input->GetPointData()->GetScalars(NULL);
-
-        int scalarSize = ptarray->GetNumberOfPoints();
-        unsigned char *output = NULL;  // new unsigned char[scalarSize * 4];
-
-        if (!scalar) {
-
-          std::cout << "No color" << std::endl;
-          vtkTexture* tex = actor->GetTexture();
-
-          if(tex)
-            std::cout << "Found texture" << std::endl;
-
-
-
-        }
-          output = new unsigned char[scalarSize * 4];
-
-          int vectorSize = (scalar) ? scalar->GetNumberOfComponents() : 0;
-          if (scalar && vectorSize > 1) {
-            vtkScalarsToColors *vstc = GetLookupTable();
-            vstc->SetVectorModeToMagnitude();
-            vstc->MapVectorsThroughTable(scalar->GetVoidPointer(0), output,
-                                         scalar->GetDataType(), scalarSize,
-                                         vectorSize, VTK_RGBA);
-            for (int ii = 0; ii < scalarSize; ii++) {
-              double color[3];
-              for (int jj = 0; jj < 3; jj++) {
-                color[jj] = float(output[ii * 4 + jj]) / 255.0;
-              }
-              tmpColors.push_back(ospray::vec3fa(color[0], color[1], color[2]));
-            }
-          } else {
-            double solidColor[3];
-            OSPRayProperty->GetDiffuseColor(solidColor);
-            std::cout << "Using solid color" << solidColor[0] << ", "
-                      << solidColor[1] << ", " << solidColor[2] << std::endl;
-            for (int ii = 0; ii < scalarSize; ii++) {
-              tmpColors.push_back(
-                  ospray::vec3fa(solidColor[0], solidColor[1], solidColor[2]));
-            }
-          }
-
-        for (int ii = 0; ii < scalarSize; ii++) {
-          double color[3];
-          for (int jj = 0; jj < 3; jj++) {
-            color[jj] = float(output[ii * 4 + jj]) / 255.0;
-          }
-          tmpColors.push_back(ospray::vec3fa(color[0], color[1], color[2]));
-        }
-
-
-      */
   }
 
   // convert coordinates to OSPRay format
-  // TODO: eliminate the copy
   for (int i = 0; i < points->GetNumberOfPoints(); i++) {
     double *pos = points->GetPoint(i);
     bool wasNan = false;
@@ -1198,9 +793,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     }
   }
 
-  // mesh->materials.push_back(material);
-  // mesh->texCoords = texCoords;
-  // texCoords.clear();
 
   // convert polygons to OSPRay format
   if (input->GetNumberOfPolys() > 0) {
@@ -1216,30 +808,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
   transform->Delete();
   points->Delete();
 
-  // put everything together into one group
-  // OSPRay::Group *group = new OSPRay::Group();
-  // if(sphereGroup->size())
-  //   {
-  //   //cerr << "MM(" << this << ")   points " << sphereGroup->size() << endl;
-  //   // group->add(sphereGroup);
-  //   }
-  // else
-  //   {
-  //   // delete sphereGroup;
-  //   }
-  // // if(tubeGroup->size())
-  //   {
-  //   //cerr << "MM(" << this << ")   lines " << tubeGroup->size() << endl;
-  //   // group->add(tubeGroup);
-  //   }
-  // else
-  //   {
-  //   // delete tubeGroup;
-  //   }
   if (mesh->size() || mesh->wireframe_vertex.size() || slVertex.size()) {
-// cerr << "MM(" << this << ")   polygons " << mesh->size() << endl;
-// group->add(mesh);
-
 //
 // ospray
 //
@@ -1255,10 +824,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       size_t numPositions = mesh->vertices.size();
       size_t numTriangles = mesh->vertex_indices.size() / 3;
 
-      // std::cout << "normals: " << numNormals
-      //           << " normal indices: " << mesh->normal_indices.size()
-      //           << " numPositions: " << numPositions
-      //           << " numTriangles: " << numTriangles << std::endl;
 
       ospray::vec3fa *vertices = (ospray::vec3fa *)embree::alignedMalloc(
           sizeof(ospray::vec3fa) * numPositions);
@@ -1271,34 +836,17 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         vertices[i] =
             ospray::vec3fa(mesh->vertices[i].x(), mesh->vertices[i].y(),
                            mesh->vertices[i].z());
-        // vertices[i] = ospray::vec3fa(float(i)*.01,float(i)*.01,float(i)*.01);
-        // printf("vert: %f %f %f\n",mesh->vertices[i].x(),
-        // mesh->vertices[i].y(), mesh->vertices[i].z());
       }
-      // normals.resize(numNormals);
-      // for(size_t i = 0; i < numNormals; i++)
-      // normals[i] = ospray::vec3fa(mesh->vertexNormals[i].x(),
-      // mesh->vertexNormals[i].y(), mesh->vertexNormals[i].z());
-
-      // embree::Vec3i* vertex_indices =
-      // (embree::Vec3i*)alignedMalloc(sizeof(embree::Vec3i)*numTriangles);
-      // triangles.resize(numTriangles);
       for (size_t i = 0, mi = 0; i < numTriangles; i++, mi += 3) {
         triangles[i] = embree::Vec3i(mesh->vertex_indices[mi + 0],
                                      mesh->vertex_indices[mi + 1],
                                      mesh->vertex_indices[mi + 2]);
-        // triangles[i] = embree::Vec3i(0,1,2);
-        // printf("indices: %d %d %d\n",mesh->vertex_indices[mi+0],
-        // mesh->vertex_indices[mi+1], mesh->vertex_indices[mi+2]);
       }
 
       for (size_t i = 0; i < numNormals; i++) {
         normals[i] = ospray::vec3fa(mesh->vertexNormals[i].x(),
                                     mesh->vertexNormals[i].y(),
                                     mesh->vertexNormals[i].z());
-        // vertices[i] = ospray::vec3fa(float(i)*.01,float(i)*.01,float(i)*.01);
-        // printf("vert: %f %f %f\n",mesh->vertices[i].x(),
-        // mesh->vertices[i].y(), mesh->vertices[i].z());
       }
 
       OSPGeometry ospMesh = ospNewTriangleMesh();
@@ -1329,22 +877,15 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       }
 
       if (!ospMaterial) {
-        // printf("no material specification used, using default\n");
         OSPRayProperty->CreateOSPRayProperty();
         ospMaterial = ((OSPMaterial)OSPRayProperty->GetOSPRayMaterial());
       }
-      // PRINT(ospMaterial);
 
       ospSetMaterial(ospMesh, ospMaterial);
       ospCommit(ospMesh);
 
-      // static OSPModel ospModel;
-      // OSPModel ospModel = ospNewModel();
       ospAddGeometry(OSPRayActor->OSPRayModel, ospMesh);
 
-      // OSPRayActor->ospMesh = ospMesh;
-      // OSPRayActor->OSPRayModel = ((osp::Model*)ospModel);
-      // printf("added osp mesh num triangles: %lu\n", numTriangles);
     }
 
     if (mesh->wireframe_vertex.size()) {
@@ -1385,17 +926,14 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       ospCommit(slGeometry);
       ospAddGeometry(OSPRayActor->OSPRayModel, slGeometry);
 
-      // std::cerr << " Commited geometry correctly " << std::endl;
     }
 
-    // std::cerr << "Trying to commit model" << timestep << "\n";
     ospCommit(OSPRayActor->OSPRayModel);
     if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
       double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
       OSPRayActor->cache[time] = OSPRayActor->OSPRayModel;
     } else {
       OSPRayActor->cache[timestep] = OSPRayActor->OSPRayModel;
-      // std::cerr << "added nontime actor at timestep" << timestep << "\n";
     }
 
 #endif
@@ -1404,5 +942,4 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     delete mesh;
   }
 
-#endif
 }

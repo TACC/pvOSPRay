@@ -38,7 +38,6 @@
 #include "vtkOSPRayCamera.h"
 #include "vtkOSPRayLight.h"
 #include "vtkOSPRayPolyDataMapper.h"
-// #include "vtkOSPRayVolumeMapper.h"
 #include "vtkOSPRayProperty.h"
 #include "vtkOSPRayTexture.h"
 
@@ -59,7 +58,6 @@ VTK_CREATE_CREATE_FUNCTION(vtkOSPRayActor);
 VTK_CREATE_CREATE_FUNCTION(vtkOSPRayCamera);
 VTK_CREATE_CREATE_FUNCTION(vtkOSPRayLight);
 VTK_CREATE_CREATE_FUNCTION(vtkOSPRayPolyDataMapper);
-// VTK_CREATE_CREATE_FUNCTION(vtkOSPRayVolumeMapper);
 VTK_CREATE_CREATE_FUNCTION(vtkOSPRayProperty);
 VTK_CREATE_CREATE_FUNCTION(vtkOSPRayRenderer);
 VTK_CREATE_CREATE_FUNCTION(vtkOSPRayTexture);
@@ -87,21 +85,11 @@ vtkOSPRayObjectFactory::vtkOSPRayObjectFactory()
                          "OSPRay",
                          1,
                          vtkObjectFactoryCreatevtkOSPRayCamera);
-  /*this->RegisterOverride("vtkLight",
-                         "vtkOSPRayLight",
-                         "OSPRay",
-                         1,
-                         vtkObjectFactoryCreatevtkOSPRayLight);*/
   this->RegisterOverride("vtkPolyDataMapper",
                          "vtkOSPRayPolyDataMapper",
                          "OSPRay",
                          1,
                          vtkObjectFactoryCreatevtkOSPRayPolyDataMapper);
-  // this->RegisterOverride("vtkVolumeMapper",
-  //                        "vtkOSPRayVolumeMapper",
-  //                        "OSPRay",
-  //                        1,
-  //                        vtkObjectFactoryCreatevtkOSPRayVolumeMapper);
   this->RegisterOverride("vtkProperty",
                          "vtkOSPRayProperty",
                          "OSPRay",

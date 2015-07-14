@@ -69,7 +69,6 @@ class VTKOSPRAY_EXPORT vtkOSPRayPolyDataMapper : public vtkPolyDataMapper
 public:
   static vtkOSPRayPolyDataMapper *New();
   vtkTypeMacro(vtkOSPRayPolyDataMapper,vtkPolyDataMapper);
-  //virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
   // Implement superclass render method.
@@ -91,9 +90,9 @@ protected:
 
   //BTX
   void DrawPolygons(vtkPolyData *, vtkPoints *,
-                    vtkosp::Mesh * /*, OSPRay::Group *, OSPRay::Group * */);
+                    vtkosp::Mesh * );
   void DrawTStrips(vtkPolyData *, vtkPoints *,
-                    vtkosp::Mesh* /*, OSPRay::Mesh *, OSPRay::Group *, OSPRay::Group * */);
+                    vtkosp::Mesh* );
   //ETX
 
 private:

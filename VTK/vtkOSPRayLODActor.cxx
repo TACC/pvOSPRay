@@ -55,8 +55,4 @@ void vtkOSPRayLODActor::SetVisibility(int newval)
   this->Superclass::SetVisibility(newval);
 }
 
-// void vtkOSPRayLODActor::Render (vtkRenderer *, vtkMapper *)
-// {
-//   std::cout << __PRETTY_FUNCTION__ << std::endl;
-// }
 

@@ -58,10 +58,6 @@ private:
   void OrientOSPRayCamera(vtkRenderer *);
 
   vtkTimeStamp LastRenderTime;
-  //BTX
-  // a singleton, created and deleted by vtkOSPRayRenderer
-  // OSPRay::Camera *OSPRayCamera;
-  //ETX
 
   vtkOSPRayManager *OSPRayManager;
 };

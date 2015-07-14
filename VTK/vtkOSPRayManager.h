@@ -32,7 +32,7 @@
 
 #include "vtkObject.h"
 #include "vtkOSPRayModule.h"
-     #include <vector>
+#include <vector>
 
 
 //BTX
@@ -70,40 +70,6 @@ public:
                    bool IsStereo,
                    int *ViewPortsize);
 
-//BTX
-  // OSPRay::OSPRayInterface* GetOSPRayEngine()
-  // {
-  // return this->OSPRayEngine;
-  // }
-  // OSPRay::Factory* GetOSPRayFactory()
-  // {
-  //   return this->OSPRayFactory;
-  // }
-  // OSPRay::Scene* GetOSPRayScene()
-  // {
-  //   return this->OSPRayScene;
-  // }
-  // OSPRay::Group* GetOSPRayWorldGroup()
-  // {
-  //   return this->OSPRayWorldGroup;
-  // }
-  // OSPRay::LightSet* GetOSPRayLightSet()
-  // {
-  //   return this->OSPRayLightSet;
-  // }
-  // OSPRay::Camera* GetOSPRayCamera()
-  // {
-  //   return this->OSPRayCamera;
-  // }
-  // OSPRay::SyncDisplay* GetSyncDisplay()
-  // {
-  //   return this->SyncDisplay;
-  // }
-  // int GetChannelId()
-  // {
-  //   return this->ChannelId;
-  // }
-//ETX
 
  protected:
   vtkOSPRayManager();
@@ -113,21 +79,12 @@ public:
   vtkOSPRayManager(const vtkOSPRayManager&);  // Not implemented.
   void operator=(const vtkOSPRayManager&);  // Not implemented.
 
-//BTX
-  // OSPRay::OSPRayInterface * OSPRayEngine;
-  // OSPRay::Factory * OSPRayFactory;
-  // OSPRay::Scene * OSPRayScene;
-  // OSPRay::Group * OSPRayWorldGroup;
-  // OSPRay::LightSet * OSPRayLightSet;
-  // OSPRay::Camera * OSPRayCamera;
-  // OSPRay::SyncDisplay * SyncDisplay;
-//ETX
   int ChannelId;
   bool Started;
   static bool initialized;
 
 public:
-  //
+//
 //  OSPRay vars
 //
 

@@ -61,9 +61,6 @@ private:
 
   void CreateLight(vtkRenderer *);
   void UpdateLight(vtkRenderer *ren);
-  //BTX
-  // OSPRay::Light *OSPRayLight;
-  //ETX
 
   vtkOSPRayManager *OSPRayManager;
 

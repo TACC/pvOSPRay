@@ -38,7 +38,6 @@ public:
 
   vtkActor * GetDevice() { return  this->Device; }
   virtual void SetVisibility(int);
-  // virtual void Render (vtkRenderer *, vtkMapper *);
 
 protected:
   vtkOSPRayLODActor();
