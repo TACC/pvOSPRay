@@ -79,7 +79,6 @@
 // Construct a new vtkOSPRayVolumeRayCastMapper with default values
      vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
      {
-      // std::cout << __PRETTY_FUNCTION__ << std::endl;
       this->SampleDistance             =  1.0;
       this->ImageSampleDistance        =  1.0;
       this->MinimumImageSampleDistance =  1.0;
@@ -130,7 +129,6 @@
       this->IntermixIntersectingGeometry = 1;
 
 
-      // volume = ospNewVolume("block_bricked_volume");
       volume = ospNewVolume("shared_structured_volume");
       transferFunction = ospNewTransferFunction("piecewise_linear"); 
       model = ospNewModel();
@@ -327,7 +325,6 @@
 
     void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     {
-      // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // make sure that we have scalar input and update the scalar input
       if ( this->GetInput() == NULL )
       {
@@ -343,19 +340,6 @@
       }
       vol->UpdateTransferFunctions( ren );
 
-      // printf("inputinformation: \n");
-      // // this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
-      // printf("end inputinformation\n");
-
-      // printf("input port information: \n");
-      // // this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
-      // printf("end inputinformation\n");
-
-      //       printf("inputinformation2: \n");
-      // // this->GetInput()->PrintSelf(std::cout,vtkIndent());
-      // printf("end inputinformation2\n");
-
-
     //
     // OSPRay
     //
@@ -369,8 +353,6 @@
       if (!this->OSPRayManager)
       {
         this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-    //cerr << "MM(" << this << ") REGISTER " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
         this->OSPRayManager->Register(this);
       }
 
@@ -379,13 +361,6 @@
       
       OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
 
-  // if(scalarOpacity->GetMTime() > this->BuildTime ||
-  //        (this->LastBlendMode!=blendMode)
-  //        || (blendMode==vtkVolumeMapper::COMPOSITE_BLEND &&
-  //            this->LastSampleDistance!=sampleDistance)
-  //        || needUpdate || !this->Loaded)
-  // {
-      // if (this->GetInput()->GetMTime() > this->BuildTime)
       {
         printf("volume rebuild!\n");
 
@@ -415,15 +390,6 @@
 
        printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
 
-     // OSPModel dynamicModel = ospNewModel();
-     // ospCommit(dynamicModel);
-
-     // OSPRenderer renderer = ospNewRenderer("raycast_volume_renderer");
-     // exitOnCondition(renderer == NULL, "could not create OSPRay renderer object");
-
-  //! Create an OSPRay transfer function.
-       
-  // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
 
        int numColors = 128;
              std::vector<float> alphas;
@@ -433,7 +399,6 @@
 
 
 std::vector<float> isoValues;
-// isoValues.push_back(150.0f);
 if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
 {
     int num = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
@@ -444,7 +409,6 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
       std::cout << "isoValue: " << isoValue << std::endl;
     }
 }
-// isoValues.push_back(150);
 
       if (isoValues.size())
       {
@@ -455,12 +419,10 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
          alphas[i] = float(0)/255.0f;
       }
 
-      // std::vector<float> clipValues;
       if (this->GetInput()->GetPointData()->GetScalars("ospClipValues"))
 {
     float clipValue = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,0);
     int clipAxis = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,1);
-    // clipValues.push_back(clipValue);
   std::cout << "clipValue: " << clipValue << std::endl;
   std::cout << "clipAxis: " << clipAxis << std::endl;
 osp::vec3f upper(dim[0],dim[1],dim[2]);
@@ -475,16 +437,9 @@ else if (clipAxis == 2)
   ospSet3fv(volume, "volumeClippingBoxUpper", &value.upper.x);
 }
 
-//Carson: TODO: HACK: don't reallocate data when only changed isovalues or clip values... for now
-// hardcode to only load data once but of course this is bad!!!!
 static bool once = false;
-// if (!once)
 {
   once = true;
-  //for (int i =64; i < 256;i++)
-  //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
-  // alphas[0] = 0;
-  // alphas[1] = .5;
 
       std::vector<osp::vec3f> colors;
       colors.resize(numColors, osp::vec3f(0,0,1));

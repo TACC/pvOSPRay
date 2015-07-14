@@ -28,7 +28,6 @@
 
 #include "vtkOSPRayModule.h"
 #include "vtkTexture.h"
-// #include "Interface/Texture.h"
 
 //BTX
 #include "vtkWeakPointer.h" // needed for vtkWeakPointer.
@@ -36,12 +35,10 @@
 
 //BTX
 namespace OSPRay {
-//class ImageTexture<Color>;
 }
 //ETX
 namespace osp
 {
-  // class OSPTexture2D;
   class Texture2D;
 }
 
@@ -66,8 +63,6 @@ public:
   // render windows is NOT currently supported.
   void ReleaseGraphicsResources(vtkWindow *);
   //BTX
-  // vtkSetMacro(OSPRayTexture, OSPRay::Texture<OSPRay::Color>*);
-  // vtkGetMacro(OSPRayTexture, OSPRay::Texture<OSPRay::Color>*);
   vtkSetMacro(OSPRayTexture, osp::Texture2D*);
   vtkGetMacro(OSPRayTexture, osp::Texture2D*);
   //ETX
@@ -85,7 +80,6 @@ private:
 
   void DeleteOSPRayTexture();
 
-  // OSPRay::Texture<OSPRay::Color> *OSPRayTexture;
   osp::Texture2D* OSPRayTexture;
   //ETX
 

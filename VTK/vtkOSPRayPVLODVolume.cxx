@@ -79,7 +79,6 @@ int vtkOSPRayPVLODVolume::SelectLOD()
 bool vtkOSPRayPVLODVolume::CanRender()
 {
   int lodid =this->LODProp->GetSelectedLODID();
-  // printf("selected lodid: %d\n", lodid);
   if (lodid >= 0)
     {
     vtkAbstractMapper3D* mapper = this->LODProp->GetLODMapper(lodid);
@@ -116,9 +115,7 @@ bool vtkOSPRayPVLODVolume::CanRender()
 //-----------------------------------------------------------------------------
 int vtkOSPRayPVLODVolume::RenderOpaqueGeometry(vtkViewport *vp)
 {
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
   if (!this->CanRender()) { return 1; }
-  //std::cout << __PRETTY_FUNCTION__ << " 1" << std::endl;
   int retval = this->LODProp->RenderOpaqueGeometry(vp);
 
   this->EstimatedRenderTime = this->LODProp->GetEstimatedRenderTime();
@@ -129,7 +126,6 @@ int vtkOSPRayPVLODVolume::RenderOpaqueGeometry(vtkViewport *vp)
 //-----------------------------------------------------------------------------
 int vtkOSPRayPVLODVolume::RenderTranslucentPolygonalGeometry(vtkViewport *vp)
 {
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
   if (!this->CanRender()) { return 1; }
   std::cout << __PRETTY_FUNCTION__ << " 1" << std::endl;
   int retval = this->LODProp->RenderTranslucentPolygonalGeometry(vp);
@@ -143,10 +139,6 @@ int vtkOSPRayPVLODVolume::RenderTranslucentPolygonalGeometry(vtkViewport *vp)
 //-----------------------------------------------------------------------------
 int vtkOSPRayPVLODVolume::RenderVolumetricGeometry(vtkViewport *vp)
 {
-  //Carson: Hack: this was put in to get volume rendering working
-  //std::cout << __PRETTY_FUNCTION__ << std::endl;
-  // if (!this->CanRender()) { return 1; }
-  //std::cout << __PRETTY_FUNCTION__ << " 1" << std::endl;
   int retval = this->LODProp->RenderVolumetricGeometry(vp);
 
   this->EstimatedRenderTime = this->LODProp->GetEstimatedRenderTime();
@@ -158,8 +150,6 @@ int vtkOSPRayPVLODVolume::RenderVolumetricGeometry(vtkViewport *vp)
 void vtkOSPRayPVLODVolume::ReleaseGraphicsResources(vtkWindow *renWin)
 {
   this->Superclass::ReleaseGraphicsResources(renWin);
-
-  // broadcast the message down to the individual LOD mappers
   this->LODProp->ReleaseGraphicsResources(renWin);
 }
 
@@ -390,11 +380,6 @@ void vtkOSPRayPVLODVolume::UpdateLODProperty()
     this->LODProp->GetLODMapper(this->LowLODId, &mapper);
     if (mapper)
       {
-      // Why change the LODMapper's LUT?
-      // It has already been intialized correctly.
-      // This is a surface mapper.  Map the colors of the transfer function
-      // to the surface.
-      // mapper->SetLookupTable(this->Property->GetRGBTransferFunction());
       }
     else
       {
