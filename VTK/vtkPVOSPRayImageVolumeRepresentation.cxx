@@ -726,11 +726,6 @@ void vtkPVOSPRayImageVolumeRepresentation::UpdateMapperParameters()
     }
 
   this->VolumeMapper->SelectScalarArray(colorArrayName);
-  if (colorArrayName)
-    printf("color array name: \"%s\"\n", colorArrayName);
-  else
-    printf("color array name not found\n");
-  // printf("color array name2: \"%s\"\n", ColorArrayName);
   switch (fieldAssociation)
     {
   case vtkDataObject::FIELD_ASSOCIATION_CELLS:
@@ -817,17 +812,13 @@ void vtkPVOSPRayImageVolumeRepresentation::SetInterpolationType(int val)
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetColor(vtkColorTransferFunction* lut)
 {
-  std::cout << __PRETTY_FUNCTION__ << "\n";
   this->Property->SetColor(lut);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacity(vtkPiecewiseFunction* pwf)
 {
-    std::cout << __PRETTY_FUNCTION__ << "\n";
-    // return;
   this->Property->SetScalarOpacity(pwf);
-  pwf->PrintSelf(std::cout, vtkIndent());
 }
 
 //----------------------------------------------------------------------------

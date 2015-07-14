@@ -95,6 +95,6 @@ add_paraview_plugin(
     # OSPRayViewOptions.cxx
 )
 
-if (BUILD_TESTING)
-  add_subdirectory(Testing)
-endif()
+# if (BUILD_TESTING)
+  # add_subdirectory(Testing)
+# endif()

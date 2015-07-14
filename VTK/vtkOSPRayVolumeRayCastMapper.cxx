@@ -79,6 +79,7 @@
 // Construct a new vtkOSPRayVolumeRayCastMapper with default values
      vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
      {
+      this->NumColors = 128;
       // std::cout << __PRETTY_FUNCTION__ << std::endl;
       this->SampleDistance             =  1.0;
       this->ImageSampleDistance        =  1.0;
@@ -327,7 +328,6 @@
 
     void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     {
-      // std::cout << __PRETTY_FUNCTION__ << std::endl;
   // make sure that we have scalar input and update the scalar input
       if ( this->GetInput() == NULL )
       {
@@ -341,20 +341,6 @@
           this->GetInputInformation());
         this->GetInputAlgorithm()->Update();
       }
-      vol->UpdateTransferFunctions( ren );
-
-      // printf("inputinformation: \n");
-      // // this->GetInputInformation()->PrintSelf(std::cout,vtkIndent());
-      // printf("end inputinformation\n");
-
-      // printf("input port information: \n");
-      // // this->GetInputPortInformation(0)->PrintSelf(std::cout,vtkIndent());
-      // printf("end inputinformation\n");
-
-      //       printf("inputinformation2: \n");
-      // // this->GetInput()->PrintSelf(std::cout,vtkIndent());
-      // printf("end inputinformation2\n");
-
 
     //
     // OSPRay
@@ -369,8 +355,6 @@
       if (!this->OSPRayManager)
       {
         this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-    //cerr << "MM(" << this << ") REGISTER " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
         this->OSPRayManager->Register(this);
       }
 
@@ -379,13 +363,32 @@
       
       OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
 
-  // if(scalarOpacity->GetMTime() > this->BuildTime ||
-  //        (this->LastBlendMode!=blendMode)
-  //        || (blendMode==vtkVolumeMapper::COMPOSITE_BLEND &&
-  //            this->LastSampleDistance!=sampleDistance)
-  //        || needUpdate || !this->Loaded)
-  // {
-      // if (this->GetInput()->GetMTime() > this->BuildTime)
+      vtkImageData *data = this->GetInput();        
+      vtkDataArray * scalars = this->GetScalars(data, this->ScalarMode,
+          this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
+      // if (vol->GetProperty()->GetMTime() > PropertyTime)
+      {
+        printf("volume property rebuild!\n");
+        vol->UpdateTransferFunctions(ren);
+        vtkVolumeProperty* volProperty = vol->GetProperty();
+        vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
+        vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);
+        int numNodes = colorTF->GetSize();
+        double* tfData = colorTF->GetDataPointer();
+
+        TFVals.resize(NumColors*3);
+        TFOVals.resize(NumColors); 
+        scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFOVals[0]);
+        colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFVals[0]);
+
+        OSPData colorData = ospNewData(NumColors, OSP_FLOAT3, &TFVals[0]);// TODO: memory leak?  does ospray manage this>
+        ospSetData(transferFunction, "colors", colorData);
+        OSPData tfAlphaData = ospNewData(NumColors, OSP_FLOAT, &TFOVals[0]);
+        ospSetData(transferFunction, "opacities", tfAlphaData);
+        ospCommit(transferFunction);
+        PropertyTime.Modified();
+      }
+      if (this->GetInput()->GetMTime() > this->BuildTime)
       {
         printf("volume rebuild!\n");
 
@@ -394,46 +397,10 @@
         int ScalarDataType =
         this->GetInput()->GetPointData()->GetScalars()->GetDataType();
 
-        vtkImageData *data = this->GetInput();
-        vtkDataArray * scalars = this->GetScalars(data, this->ScalarMode,
-          this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
-        std::cout << "cellFlag: " << CellFlag  << std::endl;
-
-        if (!scalars)
-        {
-          std::cout << "no scalars in input\n";
-        }
-        else
-        {
-         int numberOfComponents = scalars->GetNumberOfComponents();
-         std::cout << "numberOfComponents: " << numberOfComponents << std::endl;
-       }
-
        int dim[3];
-
        data->GetDimensions(dim);
-
-       printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
-
-     // OSPModel dynamicModel = ospNewModel();
-     // ospCommit(dynamicModel);
-
-     // OSPRenderer renderer = ospNewRenderer("raycast_volume_renderer");
-     // exitOnCondition(renderer == NULL, "could not create OSPRay renderer object");
-
   //! Create an OSPRay transfer function.
-       
-  // exitOnCondition(transferFunction == NULL, "could not create OSPRay transfer function object");
-
-       int numColors = 128;
-             std::vector<float> alphas;
-       alphas.resize(numColors, 1.0);
-       for (int i =0; i < alphas.size();i++)
-        alphas[i] = float(i)/255.0f;
-
-
 std::vector<float> isoValues;
-// isoValues.push_back(150.0f);
 if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
 {
     int num = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,0);
@@ -441,28 +408,18 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
     {
       float isoValue = this->GetInput()->GetPointData()->GetScalars("ospIsoValues")->GetComponent(0,i+1);
       isoValues.push_back(isoValue);
-      std::cout << "isoValue: " << isoValue << std::endl;
     }
 }
-// isoValues.push_back(150);
 
       if (isoValues.size())
       {
       OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
       ospSetData(volume, "isovalues", isovaluesData);
 
-       for (int i =0; i < alphas.size();i++)
-         alphas[i] = float(0)/255.0f;
-      }
-
-      // std::vector<float> clipValues;
       if (this->GetInput()->GetPointData()->GetScalars("ospClipValues"))
 {
     float clipValue = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,0);
     int clipAxis = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,1);
-    // clipValues.push_back(clipValue);
-  std::cout << "clipValue: " << clipValue << std::endl;
-  std::cout << "clipAxis: " << clipAxis << std::endl;
 osp::vec3f upper(dim[0],dim[1],dim[2]);
 if (clipAxis == 0)
   upper.x = clipValue;
@@ -474,70 +431,16 @@ else if (clipAxis == 2)
   ospSet3fv(volume, "volumeClippingBoxLower", &value.lower.x);
   ospSet3fv(volume, "volumeClippingBoxUpper", &value.upper.x);
 }
+}
 
-//Carson: TODO: HACK: don't reallocate data when only changed isovalues or clip values... for now
-// hardcode to only load data once but of course this is bad!!!!
-static bool once = false;
-// if (!once)
-{
-  once = true;
-  //for (int i =64; i < 256;i++)
-  //  alphas[i] = std::min(1.0f,alphas[i]+0.2f);
-  // alphas[0] = 0;
-  // alphas[1] = .5;
-
-      std::vector<osp::vec3f> colors;
-      colors.resize(numColors, osp::vec3f(0,0,1));
-      std::vector<osp::vec3f> colorsl;
-      colorsl.resize(3, osp::vec3f(0,0,1));
-      colorsl[0] = osp::vec3f(.23,.299,.754);
-      colorsl[1] = osp::vec3f(.865,.865,.865);
-      colorsl[2] = osp::vec3f(.71,.016,.15);
-      for (int i =0; i < colors.size()/2;i++)
-      {
-        float v = float(i)/(float(colors.size())/2.0f);
-        colors[i+0] = colorsl[0]*(1.0-v) + colorsl[1]*v;
-      }
-      for (int i =0; i < colors.size()/2;i++)
-      {
-        float v = float(i)/float(colors.size()/2.0f);
-        colors[i+colors.size()/2] = colorsl[1]*(1.0-v) + colorsl[2]*v;
-      }
-
-      vtkVolumeProperty* volProperty = vol->GetProperty();
-      vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
-      vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);
-      int numNodes = colorTF->GetSize();
-      double* tfData = colorTF->GetDataPointer();
-
-      float* tfVals = new float[numColors*3];
-      float* tfOVals= new float[numColors];
-      scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], numColors, tfOVals);
-      colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], numColors, tfVals);
-      std::cout << "tfVals:\n";
-      for(int i=0;i<12;i++)
-        std::cout << tfVals[i] << " " << std::endl;
-      std::cout << "\n\n";
-
-      std::cout << "tfOVals:\n";
-      for(int i=0;i<4;i++)
-        std::cout << tfOVals[i] << " " << std::endl;
-      std::cout << "\n\n";
-
-      OSPData colorData = ospNewData(colors.size(), OSP_FLOAT3, tfVals);
-      ospSetData(transferFunction, "colors", colorData);
-      OSPData tfAlphaData = ospNewData(alphas.size(), OSP_FLOAT, tfOVals);
-      ospSetData(transferFunction, "opacities", tfAlphaData);
+//Carson: TODO: don't reallocate data when only changed isovalues or clip values... 
 
       ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
-      std::cout << "valueRange: " << data->GetScalarRange()[0] << " " << data->GetScalarRange()[1] << std::endl;
 
   //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
       ospCommit(transferFunction);
 
   //! Set the dynamic model on the renderer.
-      printf("voxelType: %s\n", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar"); 
-      fflush(stdout);
       if (!volume)
       {
         std::cerr << "could not create ospray volume!\n";
@@ -552,19 +455,16 @@ static bool once = false;
       ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
       ospSet3f(volume, "gridOrigin", -dim[0]/2.0f, -dim[1]/2.0f, -dim[2]/2.0f);
       ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
-      printf("setting volume data\n");
       OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
       ospSetData(volume, "voxelData", voxelData);
-      printf("done setting volume data\n");
 
       ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
 
   // set to 1 to enable gradient shading
       ospSet1i(volume, "gradientShadingEnabled", 0);
-    }
       this->BuildTime.Modified();
-    }      
-    ospSet1f(volume, "samplingRate", 1.0f);
+    }
+    ospSet1f(volume, "samplingRate", 4.0f);
 
     ospSetObject(renderer, "dynamic_model", dynamicModel);
     ospCommit(volume);
@@ -575,886 +475,7 @@ static bool once = false;
     this->OSPRayManager->OSPRayVolumeModel = model;
 
     OSPRayRenderer->hasVolumeHack = true;
-
-    return;
-
-
-    int scalarType = this->GetInput()->GetPointData()->GetScalars()->GetDataType();
-    if (scalarType != VTK_UNSIGNED_SHORT && scalarType != VTK_UNSIGNED_CHAR)
-    {
-      vtkErrorMacro ("Cannot volume render data of type "
-       << vtkImageScalarTypeNameMacro(scalarType)
-       << ", only unsigned char or unsigned short.");
-      return;
-    }
-  // Start timing now. We didn't want to capture the update of the
-  // input data in the times
-    this->Timer->StartTimer();
-
-    this->ConvertCroppingRegionPlanesToVoxels();
-
-    this->UpdateShadingTables( ren, vol );
-
-  // This is the input of this mapper
-    vtkImageData *input = this->GetInput();
-
-  // Get the camera from the renderer
-    vtkCamera *cam = ren->GetActiveCamera();
-
-  // Get the aspect ratio from the renderer. This is needed for the
-  // computation of the perspective matrix
-    ren->ComputeAspect();
-    double *aspect = ren->GetAspect();
-
-  // Keep track of the projection matrix - we'll need it in a couple of
-  // places Get the projection matrix. The method is called perspective, but
-  // the matrix is valid for perspective and parallel viewing transforms.
-  // Don't replace this with the GetCompositePerspectiveTransformMatrix
-  // because that turns off stereo rendering!!!
-    this->PerspectiveTransform->Identity();
-    this->PerspectiveTransform->Concatenate(
-      cam->GetProjectionTransformMatrix(aspect[0]/aspect[1],0.0, 1.0 ));
-    this->PerspectiveTransform->Concatenate(cam->GetViewTransformMatrix());
-    this->PerspectiveMatrix->DeepCopy(this->PerspectiveTransform->GetMatrix());
-
-  // Compute some matrices from voxels to view and vice versa based
-  // on the whole input
-    this->ComputeMatrices( input, vol );
-
-
-  // How big is the viewport in pixels?
-    double *viewport   =  ren->GetViewport();
-    int *renWinSize   =  ren->GetRenderWindow()->GetSize();
-
-  // Save this so that we can restore it if the image is cancelled
-    double oldImageSampleDistance = this->ImageSampleDistance;
-
-  // If we are automatically adjusting the size to achieve a desired frame
-  // rate, then do that adjustment here. Base the new image sample distance
-  // on the previous one and the previous render time. Don't let
-  // the adjusted image sample distance be less than the minimum image sample
-  // distance or more than the maximum image sample distance.
-    if ( this->AutoAdjustSampleDistances )
-    {
-      float oldTime = this->RetrieveRenderTime( ren, vol );
-      float newTime = vol->GetAllocatedRenderTime();
-      this->ImageSampleDistance *= sqrt(oldTime / newTime);
-      this->ImageSampleDistance =
-      (this->ImageSampleDistance>this->MaximumImageSampleDistance)?
-      (this->MaximumImageSampleDistance):(this->ImageSampleDistance);
-      this->ImageSampleDistance =
-      (this->ImageSampleDistance<this->MinimumImageSampleDistance)?
-      (this->MinimumImageSampleDistance):(this->ImageSampleDistance);
-    }
-
-  // The full image fills the viewport. First, compute the actual viewport
-  // size, then divide by the ImageSampleDistance to find the full image
-  // size in pixels
-    int width, height;
-    ren->GetTiledSize(&width, &height);
-    this->ImageViewportSize[0] =
-    static_cast<int>(width/this->ImageSampleDistance);
-    this->ImageViewportSize[1] =
-    static_cast<int>(height/this->ImageSampleDistance);
-
-  // Compute row bounds. This will also compute the size of the image to
-  // render, allocate the space if necessary, and clear the image where
-  // required
-    if ( this->ComputeRowBounds( vol, ren ) )
-    {
-      vtkVolumeRayCastStaticInfo *staticInfo = new vtkVolumeRayCastStaticInfo;
-      staticInfo->ClippingPlane = NULL;
-      staticInfo->Volume = vol;
-      staticInfo->Renderer = ren;
-      staticInfo->ScalarDataPointer =
-      this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
-      staticInfo->ScalarDataType =
-      this->GetInput()->GetPointData()->GetScalars()->GetDataType();
-
-    // Do we need to capture the z buffer to intermix intersecting
-    // geometry? If so, do it here
-      if ( this->IntermixIntersectingGeometry &&
-       ren->GetNumberOfPropsRendered() )
-      {
-        int x1, x2, y1, y2;
-
-      // turn this->ImageOrigin into (x1,y1) in window (not viewport!)
-      // coordinates.
-        x1 = static_cast<int> (
-          viewport[0] * static_cast<double>(renWinSize[0]) +
-          static_cast<double>(this->ImageOrigin[0]) * this->ImageSampleDistance );
-        y1 = static_cast<int> (
-          viewport[1] * static_cast<double>(renWinSize[1]) +
-          static_cast<double>(this->ImageOrigin[1]) * this->ImageSampleDistance);
-
-      // compute z buffer size
-        this->ZBufferSize[0] = static_cast<int>(
-          static_cast<double>(this->ImageInUseSize[0]) * this->ImageSampleDistance);
-        this->ZBufferSize[1] = static_cast<int>(
-          static_cast<double>(this->ImageInUseSize[1]) * this->ImageSampleDistance);
-
-      // Use the size to compute (x2,y2) in window coordinates
-        x2 = x1 + this->ZBufferSize[0] - 1;
-        y2 = y1 + this->ZBufferSize[1] - 1;
-
-      // This is the z buffer origin (in viewport coordinates)
-        this->ZBufferOrigin[0] = static_cast<int>(
-          static_cast<double>(this->ImageOrigin[0]) * this->ImageSampleDistance);
-        this->ZBufferOrigin[1] = static_cast<int>(
-          static_cast<double>(this->ImageOrigin[1]) * this->ImageSampleDistance);
-
-      // Capture the z buffer
-        this->ZBuffer = ren->GetRenderWindow()->GetZbufferData(x1,y1,x2,y2);
-      }
-
-    // This must be done before FunctionInitialize since FunctionInitialize
-    // depends on the gradient opacity constant (computed in here) to
-    // determine whether to save the gradient magnitudes
-      vol->UpdateTransferFunctions( ren );
-
-    // Requires UpdateTransferFunctions to have been called first
-      this->VolumeRayCastFunction->FunctionInitialize( ren, vol,
-       staticInfo );
-
-      vol->UpdateScalarOpacityforSampleSize( ren, this->SampleDistance );
-
-      staticInfo->CameraThickness =
-      static_cast<float>(ren->GetActiveCamera()->GetThickness());
-
-    // Copy the viewToVoxels matrix to 16 floats
-      int i, j;
-      for ( j = 0; j < 4; j++ )
-      {
-        for ( i = 0; i < 4; i++ )
-        {
-          staticInfo->ViewToVoxelsMatrix[j*4+i] =
-          static_cast<float>(this->ViewToVoxelsMatrix->GetElement(j,i));
-        }
-      }
-
-    // Copy the worldToVoxels matrix to 16 floats
-      for ( j = 0; j < 4; j++ )
-      {
-        for ( i = 0; i < 4; i++ )
-        {
-          staticInfo->WorldToVoxelsMatrix[j*4+i] =
-          static_cast<float>(this->WorldToVoxelsMatrix->GetElement(j,i));
-        }
-      }
-
-    // Copy the voxelsToWorld matrix to 16 floats
-      for ( j = 0; j < 4; j++ )
-      {
-        for ( i = 0; i < 4; i++ )
-        {
-          staticInfo->VoxelsToWorldMatrix[j*4+i] =
-          static_cast<float>(this->VoxelsToWorldMatrix->GetElement(j,i));
-        }
-      }
-
-      if ( this->ClippingPlanes )
-      {
-        this->InitializeClippingPlanes( staticInfo, this->ClippingPlanes );
-      }
-      else
-      {
-        staticInfo->NumberOfClippingPlanes = 0;
-      }
-
-
-    // Copy in the image info
-      staticInfo->ImageInUseSize[0]    = this->ImageInUseSize[0];
-      staticInfo->ImageInUseSize[1]    = this->ImageInUseSize[1];
-      staticInfo->ImageMemorySize[0]   = this->ImageMemorySize[0];
-      staticInfo->ImageMemorySize[1]   = this->ImageMemorySize[1];
-      staticInfo->ImageViewportSize[0] = this->ImageViewportSize[0];
-      staticInfo->ImageViewportSize[1] = this->ImageViewportSize[1];
-
-      staticInfo->ImageOrigin[0] = this->ImageOrigin[0];
-      staticInfo->ImageOrigin[1] = this->ImageOrigin[1];
-
-      staticInfo->Image     = this->Image;
-      staticInfo->RowBounds = this->RowBounds;
-
-    // Set the number of threads to use for ray casting,
-    // then set the execution method and do it.
-      this->Threader->SetSingleMethod( OSPRayVolumeRayCastMapper_CastRays,
-       static_cast<void *>(staticInfo));
-      this->Threader->SingleMethodExecute();
-
-      if ( !ren->GetRenderWindow()->GetAbortRender() )
-      {
-        float depth;
-        if ( this->IntermixIntersectingGeometry )
-        {
-          depth = this->MinimumViewDistance;
-        }
-        else
-        {
-          depth = -1;
-        }
-
-        this->ImageDisplayHelper->
-        RenderTexture( vol, ren,
-         this->ImageMemorySize,
-         this->ImageViewportSize,
-         this->ImageInUseSize,
-         this->ImageOrigin,
-         depth,
-         this->Image );
-
-        this->Timer->StopTimer();
-        this->TimeToDraw = this->Timer->GetElapsedTime();
-        this->StoreRenderTime( ren, vol, this->TimeToDraw );
-      }
-    // Restore the image sample distance so that automatic adjustment
-    // will work correctly
-      else
-      {
-        this->ImageSampleDistance = oldImageSampleDistance;
-      }
-
-      if ( staticInfo->ClippingPlane )
-      {
-        delete [] staticInfo->ClippingPlane;
-      }
-      delete staticInfo;
-
-      if ( this->ZBuffer )
-      {
-        delete [] this->ZBuffer;
-        this->ZBuffer = NULL;
-      }
-
-    }
-  }
-  VTK_THREAD_RETURN_TYPE OSPRayVolumeRayCastMapper_CastRays( void *arg )
-  {
-  // Get the info out of the input structure
-    int threadID    = ((vtkMultiThreader::ThreadInfo *)(arg))->ThreadID;
-    int threadCount = ((vtkMultiThreader::ThreadInfo *)(arg))->NumberOfThreads;
-    vtkVolumeRayCastStaticInfo *staticInfo  =
-    (vtkVolumeRayCastStaticInfo *)((vtkMultiThreader::ThreadInfo *)arg)->UserData;
-
-    int i, j, k;
-    unsigned char *ucptr;
-
-    vtkOSPRayVolumeRayCastMapper *me =
-    vtkOSPRayVolumeRayCastMapper::SafeDownCast( staticInfo->Volume->GetMapper() );
-
-    if ( !me )
-    {
-      vtkGenericWarningMacro("The volume does not have a ray cast mapper!");
-      return VTK_THREAD_RETURN_VALUE;
-    }
-
-    vtkVolumeRayCastDynamicInfo *dynamicInfo = new vtkVolumeRayCastDynamicInfo;
-
-  // Initialize this to avoid purify problems
-    dynamicInfo->ScalarValue = 0;
-
-    float *rayStart     = dynamicInfo->TransformedStart;
-    float *rayEnd       = dynamicInfo->TransformedEnd;
-    float *rayDirection = dynamicInfo->TransformedDirection;
-    float *rayStep      = dynamicInfo->TransformedIncrement;
-
-    float norm;
-    float viewRay[3];
-    float rayCenter[3];
-    float absStep[3];
-    float voxelPoint[4];
-
-  // We need to know what the center ray is (in voxel coordinates) to
-  // compute sampling distance later on. Save it in an instance variable.
-
-  // This is tbe near end of the center ray in view coordinates
-  // Convert it to voxel coordinates
-    viewRay[0] = viewRay[1] = viewRay[2] = 0.0;
-    vtkVRCMultiplyPointMacro( viewRay, rayStart,
-      staticInfo->ViewToVoxelsMatrix );
-
-  // This is the far end of the center ray in view coordinates
-  // Convert it to voxel coordiantes
-    viewRay[2] = 1.0;
-    vtkVRCMultiplyPointMacro( viewRay, voxelPoint,
-      staticInfo->ViewToVoxelsMatrix );
-
-  // Turn these two points into a vector
-    rayCenter[0] = voxelPoint[0] - rayStart[0];
-    rayCenter[1] = voxelPoint[1] - rayStart[1];
-    rayCenter[2] = voxelPoint[2] - rayStart[2];
-
-  // normalize the vector based on world coordinate distance
-  // This way we can scale by sample distance and it will work
-  // out even though we are in voxel coordinates
-    rayCenter[0] /= staticInfo->CameraThickness;
-    rayCenter[1] /= staticInfo->CameraThickness;
-    rayCenter[2] /= staticInfo->CameraThickness;
-
-    float centerScale = sqrt( (rayCenter[0] * rayCenter[0]) +
-      (rayCenter[1] * rayCenter[1]) +
-      (rayCenter[2] * rayCenter[2]) );
-
-    rayCenter[0] /= centerScale;
-    rayCenter[1] /= centerScale;
-    rayCenter[2] /= centerScale;
-
-    float bounds[6];
-    int dim[3];
-
-    me->GetInput()->GetDimensions(dim);
-    bounds[0] = bounds[2] = bounds[4] = 0.0;
-    bounds[1] = dim[0]-1;
-    bounds[3] = dim[1]-1;
-    bounds[5] = dim[2]-1;
-
-  // If we have a simple crop box then we can tighten the bounds
-    if ( me->Cropping && me->CroppingRegionFlags == 0x2000 )
-    {
-      bounds[0] = me->VoxelCroppingRegionPlanes[0];
-      bounds[1] = me->VoxelCroppingRegionPlanes[1];
-      bounds[2] = me->VoxelCroppingRegionPlanes[2];
-      bounds[3] = me->VoxelCroppingRegionPlanes[3];
-      bounds[4] = me->VoxelCroppingRegionPlanes[4];
-      bounds[5] = me->VoxelCroppingRegionPlanes[5];
-    }
-
-    bounds[0] = (bounds[0] < 0)?(0):(bounds[0]);
-    bounds[0] = (bounds[0] > dim[0]-1)?(dim[0]-1):(bounds[0]);
-    bounds[1] = (bounds[1] < 0)?(0):(bounds[1]);
-    bounds[1] = (bounds[1] > dim[0]-1)?(dim[0]-1):(bounds[1]);
-    bounds[2] = (bounds[2] < 0)?(0):(bounds[2]);
-    bounds[2] = (bounds[2] > dim[1]-1)?(dim[1]-1):(bounds[2]);
-    bounds[3] = (bounds[3] < 0)?(0):(bounds[3]);
-    bounds[3] = (bounds[3] > dim[1]-1)?(dim[1]-1):(bounds[3]);
-    bounds[4] = (bounds[4] < 0)?(0):(bounds[4]);
-    bounds[4] = (bounds[4] > dim[2]-1)?(dim[2]-1):(bounds[4]);
-    bounds[5] = (bounds[5] < 0)?(0):(bounds[5]);
-    bounds[5] = (bounds[5] > dim[2]-1)?(dim[2]-1):(bounds[5]);
-
-    bounds[1] -= VTK_RAYCAST_FLOOR_TOL;
-    bounds[3] -= VTK_RAYCAST_FLOOR_TOL;
-    bounds[5] -= VTK_RAYCAST_FLOOR_TOL;
-
-    int *imageInUseSize     = staticInfo->ImageInUseSize;
-    int *imageMemorySize    = staticInfo->ImageMemorySize;
-    int *imageViewportSize  = staticInfo->ImageViewportSize;
-    int *imageOrigin        = staticInfo->ImageOrigin;
-    int *rowBounds          = staticInfo->RowBounds;
-
-    unsigned char *imagePtr = staticInfo->Image;
-
-    float sampleDistance    = me->GetSampleDistance();
-
-    float val;
-
-    vtkRenderWindow *renWin = staticInfo->Renderer->GetRenderWindow();
-
-  // Compute the offset valuex for viewing rays - this is the 1 / fullSize
-  // value to add to the computed location so that they falls between
-  // -1 + 1/fullSize and 1 - 1/fullSize and are each 2/fullSize apart.
-  // fullSize is the viewport size along the corresponding direction (in
-  // pixels)
-    float offsetX = 1.0 / static_cast<float>(imageViewportSize[0]);
-    float offsetY = 1.0 / static_cast<float>(imageViewportSize[1]);
-
-  // Some variables needed for non-subvolume cropping
-    float fullRayStart[3];
-    float fullRayEnd[3];
-    float fullRayDirection[3];
-    int bitLoop, bitFlag;
-    float rgbaArray[40], distanceArray[10], scalarArray[10];
-    float tmp, tmpArray[4];
-    int arrayCount;
-
-    for ( j = 0; j < imageInUseSize[1]; j++ )
-    {
-      if ( j%threadCount != threadID )
-      {
-        continue;
-      }
-
-      if ( !threadID )
-      {
-        if ( renWin->CheckAbortStatus() )
-        {
-          break;
-        }
-      }
-      else if ( renWin->GetAbortRender() )
-      {
-        break;
-      }
-
-      ucptr = imagePtr + 4*(j*imageMemorySize[0] +
-       rowBounds[j*2]);
-
-    // compute the view point y value for this row. Do this by
-    // taking our pixel position, adding the image origin then dividing
-    // by the full image size to get a number from 0 to 1-1/fullSize. Then,
-    // multiply by two and subtract one to get a number from
-    // -1 to 1 - 2/fullSize. Then ass offsetX (which is 1/fullSize) to
-    // center it.
-      viewRay[1] = ((static_cast<float>(j) + static_cast<float>(imageOrigin[1])) /
-        imageViewportSize[1]) * 2.0 - 1.0 + offsetY;
-
-      for ( i = rowBounds[j*2]; i <= rowBounds[j*2+1]; i++ )
-      {
-      // Initialize for the cases where the ray doesn't intersect anything
-        ucptr[0] = 0;
-        ucptr[1] = 0;
-        ucptr[2] = 0;
-        ucptr[3] = 0;
-
-      // Convert the view coordinates for the start and end of the
-      // ray into voxel coordinates, then compute the origin and direction.
-
-      // compute the view point x value for this pixel. Do this by
-      // taking our pixel position, adding the image origin then dividing
-      // by the full image size to get a number from 0 to 1-1/fullSize. Then,
-      // multiply by two and subtract one to get a number from
-      // -1 to 1 - 2/fullSize. Then ass offsetX (which is 1/fullSize) to
-      // center it.
-        viewRay[0] = ((static_cast<float>(i) + static_cast<float>(imageOrigin[0])) /
-          imageViewportSize[0]) * 2.0 - 1.0 + offsetX;
-
-      // Now transform this point with a z value of 0 for the ray start, and
-      // a z value of 1 for the ray end. This corresponds to the near and far
-      // plane locations. If IntermixIntersectingGeometry is on, then use
-      // the zbuffer value instead of 1.0
-        viewRay[2] = 0.0;
-        vtkVRCMultiplyPointMacro( viewRay, rayStart,
-          staticInfo->ViewToVoxelsMatrix );
-
-        viewRay[2] =
-        (me->ZBuffer)?(me->GetZBufferValue(i,j)):(1.0);
-        vtkVRCMultiplyPointMacro( viewRay, rayEnd,
-          staticInfo->ViewToVoxelsMatrix );
-
-        rayDirection[0] = rayEnd[0] - rayStart[0];
-        rayDirection[1] = rayEnd[1] - rayStart[1];
-        rayDirection[2] = rayEnd[2] - rayStart[2];
-
-      // If cropping is off, or we are just doing a subvolume, we can
-      // do the easy thing here
-        if ( !me->Cropping || me->CroppingRegionFlags == 0x2000 )
-        {
-          if ( me->ClipRayAgainstVolume( dynamicInfo, bounds ) &&
-           ( staticInfo->NumberOfClippingPlanes == 0 ||
-             me->ClipRayAgainstClippingPlanes( dynamicInfo, staticInfo ) ) )
-          {
-            rayDirection[0] = rayEnd[0] - rayStart[0];
-            rayDirection[1] = rayEnd[1] - rayStart[1];
-            rayDirection[2] = rayEnd[2] - rayStart[2];
-
-          // Find the length of the input ray. It is not normalized
-            norm = sqrt( rayDirection[0] * rayDirection[0] +
-             rayDirection[1] * rayDirection[1] +
-             rayDirection[2] * rayDirection[2] );
-
-          // Normalize this ray into rayStep
-            rayStep[0] = rayDirection[0] / norm;
-            rayStep[1] = rayDirection[1] / norm;
-            rayStep[2] = rayDirection[2] / norm;
-
-          // Correct for perspective in the sample distance. 1.0 over the
-          // dot product between this ray and the center ray is the
-          // correction factor to allow samples to be taken on parallel
-          // planes rather than concentric hemispheres. This factor will
-          // compute to be 1.0 for parallel.
-            val =  ( rayStep[0] * rayCenter[0] +
-             rayStep[1] * rayCenter[1] +
-             rayStep[2] * rayCenter[2] );
-            norm = (val != 0)?(1.0/val):(1.0);
-
-          // Now multiple the normalized step by the sample distance and this
-          // correction factor to find the actual step
-            rayStep[0] *= norm * sampleDistance * centerScale;
-            rayStep[1] *= norm * sampleDistance * centerScale;
-            rayStep[2] *= norm * sampleDistance * centerScale;
-
-            absStep[0] = ( rayStep[0] < 0.0 )?(-rayStep[0]):(rayStep[0]);
-            absStep[1] = ( rayStep[1] < 0.0 )?(-rayStep[1]):(rayStep[1]);
-            absStep[2] = ( rayStep[2] < 0.0 )?(-rayStep[2]):(rayStep[2]);
-
-            if ( absStep[0] >= absStep[1] && absStep[0] >= absStep[2] )
-            {
-              dynamicInfo->NumberOfStepsToTake = static_cast<int>
-              ((rayEnd[0]-rayStart[0]) / rayStep[0]);
-            }
-            else if ( absStep[1] >= absStep[2] && absStep[1] >= absStep[0] )
-            {
-              dynamicInfo->NumberOfStepsToTake = static_cast<int>
-              ((rayEnd[1]-rayStart[1]) / rayStep[1]);
-            }
-            else
-            {
-              dynamicInfo->NumberOfStepsToTake = static_cast<int>
-              ((rayEnd[2]-rayStart[2]) / rayStep[2]);
-            }
-
-            me->VolumeRayCastFunction->CastRay( dynamicInfo, staticInfo );
-            if ( dynamicInfo->Color[3] > 0.0 )
-            {
-              val = dynamicInfo->Color[0]*255.0;
-              val = (val > 255.0)?(255.0):(val);
-              val = (val <   0.0)?(  0.0):(val);
-              ucptr[0] = static_cast<unsigned char>(val);
-
-              val = dynamicInfo->Color[1]*255.0;
-              val = (val > 255.0)?(255.0):(val);
-              val = (val <   0.0)?(  0.0):(val);
-              ucptr[1] = static_cast<unsigned char>(val);
-
-              val = dynamicInfo->Color[2]*255.0;
-              val = (val > 255.0)?(255.0):(val);
-              val = (val <   0.0)?(  0.0):(val);
-              ucptr[2] = static_cast<unsigned char>(val);
-
-              val = dynamicInfo->Color[3]*255.0;
-              val = (val > 255.0)?(255.0):(val);
-              val = (val <   0.0)?(  0.0):(val);
-              ucptr[3] = static_cast<unsigned char>(val);
-            }
-          }
-        }
-      // Otherwise, cropping is on and we don't have a simple subvolume.
-      // We'll have to cast a ray for each of the 27 regions that is on
-      // and composite the results.
-        else
-        {
-        // We'll keep an array of regions that we intersect, the arrayCount
-        // variable will count how many of them we have
-          arrayCount = 0;
-
-        // Save the ray start, end, and direction. We will modify this
-        // during each iteration of the loop for the current cropping region.
-          fullRayStart[0] = rayStart[0];
-          fullRayStart[1] = rayStart[1];
-          fullRayStart[2] = rayStart[2];
-
-          fullRayEnd[0] = rayEnd[0];
-          fullRayEnd[1] = rayEnd[1];
-          fullRayEnd[2] = rayEnd[2];
-
-          fullRayDirection[0] = rayDirection[0];
-          fullRayDirection[1] = rayDirection[1];
-          fullRayDirection[2] = rayDirection[2];
-
-        // Loop through the twenty seven cropping regions
-          bitFlag = 1;
-          for ( bitLoop = 0; bitLoop < 27; bitLoop++ )
-          {
-          // Check if this cropping region is on
-            if ( !(me->CroppingRegionFlags & bitFlag) )
-            {
-              bitFlag = bitFlag << 1;
-              continue;
-            }
-
-          // Restore the ray information
-            rayStart[0] = fullRayStart[0];
-            rayStart[1] = fullRayStart[1];
-            rayStart[2] = fullRayStart[2];
-
-            rayEnd[0] = fullRayEnd[0];
-            rayEnd[1] = fullRayEnd[1];
-            rayEnd[2] = fullRayEnd[2];
-
-            rayDirection[0] = fullRayDirection[0];
-            rayDirection[1] = fullRayDirection[1];
-            rayDirection[2] = fullRayDirection[2];
-
-          // Figure out the bounds of the cropping region
-          // along the X axis
-            switch ( bitLoop % 3 )
-            {
-              case 0:
-              bounds[0] = 0;
-              bounds[1] = me->VoxelCroppingRegionPlanes[0];
-              break;
-              case 1:
-              bounds[0] = me->VoxelCroppingRegionPlanes[0];
-              bounds[1] = me->VoxelCroppingRegionPlanes[1];
-              break;
-              case 2:
-              bounds[0] = me->VoxelCroppingRegionPlanes[1];
-              bounds[1] = (staticInfo->DataSize[0] - 1)  - VTK_RAYCAST_FLOOR_TOL;
-              break;
-            }
-
-          // Figure out the bounds of the cropping region
-          // along the Y axis
-            switch ( (bitLoop % 9) / 3 )
-            {
-              case 0:
-              bounds[2] = 0;
-              bounds[3] = me->VoxelCroppingRegionPlanes[2];
-              break;
-              case 1:
-              bounds[2] = me->VoxelCroppingRegionPlanes[2];
-              bounds[3] = me->VoxelCroppingRegionPlanes[3];
-              break;
-              case 2:
-              bounds[2] = me->VoxelCroppingRegionPlanes[3];
-              bounds[3] = (staticInfo->DataSize[1] - 1)  - VTK_RAYCAST_FLOOR_TOL;
-              break;
-            }
-
-          // Figure out the bounds of the cropping region
-          // along the Z axis
-            switch ( bitLoop / 9 )
-            {
-              case 0:
-              bounds[4] = 0;
-              bounds[5] = me->VoxelCroppingRegionPlanes[4];
-              break;
-              case 1:
-              bounds[4] = me->VoxelCroppingRegionPlanes[4];
-              bounds[5] = me->VoxelCroppingRegionPlanes[5];
-              break;
-              case 2:
-              bounds[4] = me->VoxelCroppingRegionPlanes[5];
-              bounds[5] = (staticInfo->DataSize[2] - 1)  - VTK_RAYCAST_FLOOR_TOL;
-              break;
-            }
-
-          // Check against the bounds of the volume
-            for ( k = 0; k < 3; k++ )
-            {
-              if ( bounds[2*k] < 0 )
-              {
-                bounds[2*k] = 0;
-              }
-              if ( bounds[2*k + 1] > ((staticInfo->DataSize[k]-1) - VTK_RAYCAST_FLOOR_TOL) )
-              {
-                bounds[2*k + 1] = ((staticInfo->DataSize[k] - 1)  - VTK_RAYCAST_FLOOR_TOL);
-              }
-            }
-
-          // Clip against the volume and the clipping planes
-            if ( me->ClipRayAgainstVolume( dynamicInfo, bounds ) &&
-             ( staticInfo->NumberOfClippingPlanes == 0 ||
-               me->ClipRayAgainstClippingPlanes( dynamicInfo,
-                 staticInfo ) ) )
-            {
-            // The ray start and end may have changed - recompute
-            // the direction
-              rayDirection[0] = rayEnd[0] - rayStart[0];
-              rayDirection[1] = rayEnd[1] - rayStart[1];
-              rayDirection[2] = rayEnd[2] - rayStart[2];
-
-            // Find the length of the ray. It is not normalized yet
-              norm = sqrt( rayDirection[0] * rayDirection[0] +
-               rayDirection[1] * rayDirection[1] +
-               rayDirection[2] * rayDirection[2] );
-
-            // Normalize this ray into rayStep
-              rayStep[0] = rayDirection[0] / norm;
-              rayStep[1] = rayDirection[1] / norm;
-              rayStep[2] = rayDirection[2] / norm;
-
-            // Correct for perspective in the sample distance. 1.0 over the
-            // dot product between this ray and the center ray is the
-            // correction factor to allow samples to be taken on parallel
-            // planes rather than concentric hemispheres. This factor will
-            // compute to be 1.0 for parallel.
-              val =  ( rayStep[0] * rayCenter[0] +
-               rayStep[1] * rayCenter[1] +
-               rayStep[2] * rayCenter[2] );
-              norm = (val != 0)?(1.0/val):(1.0);
-
-            // Now multiple the normalized step by the sample distance and this
-            // correction factor to find the actual step
-              rayStep[0] *= norm * sampleDistance * centerScale;
-              rayStep[1] *= norm * sampleDistance * centerScale;
-              rayStep[2] *= norm * sampleDistance * centerScale;
-
-            // Find the major direction to determine the number of
-            // steps to take
-              absStep[0] = ( rayStep[0] < 0.0 )?(-rayStep[0]):(rayStep[0]);
-              absStep[1] = ( rayStep[1] < 0.0 )?(-rayStep[1]):(rayStep[1]);
-              absStep[2] = ( rayStep[2] < 0.0 )?(-rayStep[2]):(rayStep[2]);
-              if ( absStep[0] >= absStep[1] && absStep[0] >= absStep[2] )
-              {
-                dynamicInfo->NumberOfStepsToTake = static_cast<int>
-                ((rayEnd[0]-rayStart[0]) / rayStep[0]);
-              }
-              else if ( absStep[1] >= absStep[2] && absStep[1] >= absStep[0] )
-              {
-                dynamicInfo->NumberOfStepsToTake = static_cast<int>
-                ((rayEnd[1]-rayStart[1]) / rayStep[1]);
-              }
-              else
-              {
-                dynamicInfo->NumberOfStepsToTake = static_cast<int>
-                ((rayEnd[2]-rayStart[2]) / rayStep[2]);
-              }
-
-            // Cast the ray
-              me->VolumeRayCastFunction->CastRay( dynamicInfo, staticInfo );
-
-            // If the ray returns a non-transparent color, store this
-            // in our arrays of distances and colors
-              if ( dynamicInfo->Color[3] > 0.0 )
-              {
-              // Figure out the distance from this ray start to the full ray
-              // start and use this to sort the ray segments
-                for ( k = 0; k < 3; k++ )
-                {
-                  if ( absStep[k] >= absStep[(k+1)%3] &&
-                   absStep[k] >= absStep[(k+2)%3] )
-                  {
-                    distanceArray[arrayCount] =
-                    (rayStart[k] - fullRayStart[k]) / rayStep[k];
-                    break;
-                  }
-                }
-
-              // Store the ray color
-                rgbaArray[4*arrayCount  ] = dynamicInfo->Color[0];
-                rgbaArray[4*arrayCount+1] = dynamicInfo->Color[1];
-                rgbaArray[4*arrayCount+2] = dynamicInfo->Color[2];
-                rgbaArray[4*arrayCount+3] = dynamicInfo->Color[3];
-                scalarArray[arrayCount] = dynamicInfo->ScalarValue;
-
-                if ( !staticInfo->MIPFunction )
-                {
-                // Do a sort pass (one iteration of bubble sort each time an
-                // element is added. The array stores element from farthest
-                // to closest
-                  for ( k = arrayCount;
-                    k > 0 && distanceArray[k] > distanceArray[k-1]; k-- )
-                  {
-                    tmp = distanceArray[k];
-                    distanceArray[k] = distanceArray[k-1];
-                    distanceArray[k-1] = tmp;
-
-                    tmpArray[0] = rgbaArray[4*k  ];
-                    tmpArray[1] = rgbaArray[4*k+1];
-                    tmpArray[2] = rgbaArray[4*k+2];
-                    tmpArray[3] = rgbaArray[4*k+3];
-
-                    rgbaArray[4*k  ] = rgbaArray[4*(k-1)  ];
-                    rgbaArray[4*k+1] = rgbaArray[4*(k-1)+1];
-                    rgbaArray[4*k+2] = rgbaArray[4*(k-1)+2];
-                    rgbaArray[4*k+3] = rgbaArray[4*(k-1)+3];
-
-                    rgbaArray[4*(k-1)  ] = tmpArray[0];
-                    rgbaArray[4*(k-1)+1] = tmpArray[1];
-                    rgbaArray[4*(k-1)+2] = tmpArray[2];
-                    rgbaArray[4*(k-1)+3] = tmpArray[3];
-                  }
-                }
-
-                arrayCount++;
-              }
-            }
-
-          // Move the bit over by one
-            bitFlag = bitFlag << 1;
-          }
-
-        // We have encountered something in at least one crop region -
-        // merge all results into one RGBA value
-          if ( arrayCount )
-          {
-          // Is this MIP compositing? We need to treat this differently
-            if ( staticInfo->MIPFunction )
-            {
-              dynamicInfo->Color[0] = 0.0;
-              dynamicInfo->Color[1] = 0.0;
-              dynamicInfo->Color[2] = 0.0;
-              dynamicInfo->Color[3] = 0.0;
-              dynamicInfo->ScalarValue = 0.0;
-
-            // If we are maximizing the opacity, find the max Color[3]
-              if ( staticInfo->MaximizeOpacity )
-              {
-                for ( k = 0; k < arrayCount; k++ )
-                {
-                  if ( rgbaArray[k*4+3] > dynamicInfo->Color[3] )
-                  {
-                    dynamicInfo->Color[0] = rgbaArray[k*4  ];
-                    dynamicInfo->Color[1] = rgbaArray[k*4+1];
-                    dynamicInfo->Color[2] = rgbaArray[k*4+2];
-                    dynamicInfo->Color[3] = rgbaArray[k*4+3];
-                  }
-                }
-              }
-            // Otherwise we are maximizing scalar value
-              else
-              {
-                for ( k = 0; k < arrayCount; k++ )
-                {
-                  if ( scalarArray[k] > dynamicInfo->ScalarValue )
-                  {
-                    dynamicInfo->Color[0] = rgbaArray[k*4  ];
-                    dynamicInfo->Color[1] = rgbaArray[k*4+1];
-                    dynamicInfo->Color[2] = rgbaArray[k*4+2];
-                    dynamicInfo->Color[3] = rgbaArray[k*4+3];
-                    dynamicInfo->ScalarValue = scalarArray[k];
-                  }
-                }
-              }
-            }
-            else
-            {
-            // Now we have the sorted distances / colors, put them together
-            // in a back-to-front order. First, initialize the color to black
-            // and the remaining opacity (color[3]) to 1.0
-              dynamicInfo->Color[0] = 0.0;
-              dynamicInfo->Color[1] = 0.0;
-              dynamicInfo->Color[2] = 0.0;
-              dynamicInfo->Color[3] = 1.0;
-
-           // Now do alpha blending, keeping remaining opacity in color[3]
-              for ( k = 0; k < arrayCount; k++ )
-              {
-                dynamicInfo->Color[0] = dynamicInfo->Color[0] *
-                (1.0 - rgbaArray[k*4 + 3]) + rgbaArray[k*4 + 0];
-                dynamicInfo->Color[1] = dynamicInfo->Color[1] *
-                (1.0 - rgbaArray[k*4 + 3]) + rgbaArray[k*4 + 1];
-                dynamicInfo->Color[2] = dynamicInfo->Color[2] *
-                (1.0 - rgbaArray[k*4 + 3]) + rgbaArray[k*4 + 2];
-                dynamicInfo->Color[3] *= 1.0 - rgbaArray[k*4 + 3];
-              }
-
-            // Take 1.0 - color[3] to convert from remaining opacity to alpha.
-              dynamicInfo->Color[3] = 1.0 - dynamicInfo->Color[3];
-            }
-
-            val = dynamicInfo->Color[0]*255.0;
-            val = (val > 255.0)?(255.0):(val);
-            val = (val <   0.0)?(  0.0):(val);
-            ucptr[0] = static_cast<unsigned char>(val);
-
-            val = dynamicInfo->Color[1]*255.0;
-            val = (val > 255.0)?(255.0):(val);
-            val = (val <   0.0)?(  0.0):(val);
-            ucptr[1] = static_cast<unsigned char>(val);
-
-            val = dynamicInfo->Color[2]*255.0;
-            val = (val > 255.0)?(255.0):(val);
-            val = (val <   0.0)?(  0.0):(val);
-            ucptr[2] = static_cast<unsigned char>(val);
-
-            val = dynamicInfo->Color[3]*255.0;
-            val = (val > 255.0)?(255.0):(val);
-            val = (val <   0.0)?(  0.0):(val);
-            ucptr[3] = static_cast<unsigned char>(val);
-          }
-        }
-
-      // Increment the image pointer
-        ucptr+=4;
-      }
-    }
-
-    delete dynamicInfo;
-
-    return VTK_THREAD_RETURN_VALUE;
-  }
+}
 
   double vtkOSPRayVolumeRayCastMapper::GetZBufferValue(int x, int y)
   {

@@ -34,6 +34,7 @@
 #include "vtkVolumeRayCastFunction.h" // For vtkVolumeRayCastStaticInfo
                                       // and vtkVolumeRayCastDynamicInfo
 #include "vtkOSPRayModule.h"
+#include <vector>
 
 
 
@@ -287,8 +288,10 @@ protected:
   vtkOSPRayManager *OSPRayManager;
   osp::Volume* volume;
   osp::Model* model;
-  vtkTimeStamp  BuildTime;
+  vtkTimeStamp  BuildTime,PropertyTime;
   osp::TransferFunction* transferFunction;
+  int NumColors;
+  std::vector<float> TFVals, TFOVals;
 
 
 private:
