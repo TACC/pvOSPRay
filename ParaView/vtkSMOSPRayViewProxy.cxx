@@ -82,7 +82,7 @@ vtkSMRepresentationProxy* vtkSMOSPRayViewProxy::CreateDefaultRepresentation(
 
     const char* toTry[] = 
     {
-      "OSPRayUniformGridRepresentation",
+      /*"OSPRayUniformGridRepresentation",*/
       "OSPRayGeometryRepresentation",
       NULL
     };
