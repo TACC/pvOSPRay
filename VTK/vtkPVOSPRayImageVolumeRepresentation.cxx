@@ -824,8 +824,16 @@ void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacity(vtkPiecewiseFunction
 }
 
 //----------------------------------------------------------------------------
+void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacity2(vtkPiecewiseFunction* pwf)
+{
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  this->Property->SetScalarOpacity(pwf);
+}
+
+//----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacityUnitDistance(double val)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->Property->SetScalarOpacityUnitDistance(val);
 }
 
