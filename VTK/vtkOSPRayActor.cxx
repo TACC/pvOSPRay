@@ -116,7 +116,6 @@ void vtkOSPRayActor::Render( vtkRenderer * ren, vtkMapper * mapper )
     }
       UpdateObjects(ren);
   }
-}
 
 //----------------------------------------------------------------------------
 void vtkOSPRayActor::SetVisibility(int newval)

@@ -41,19 +41,10 @@ public:
 OSPRayViewOptions::OSPRayViewOptions(QWidget *widgetParent)
   : pqOptionsContainer(widgetParent)
 {
-  //TODO: This should have an associated ActiveViewOptions Dialog
-  //To make the controls accessible from the View's control strip.
 
   this->Internal = new pqInternal();
   this->Internal->ui.setupUi(this);
 
-  // QObject::connect(this->Internal->ui.threads,
-  //                  SIGNAL(valueChanged(int)),
-  //                  this, SIGNAL(changesAvailable()));
-
-  // QObject::connect(this->Internal->ui.shadows,
-                  // SIGNAL(toggled(bool)),
-                  // this, SIGNAL(changesAvailable()));
   QObject::connect(this->Internal->ui.ao,
                   SIGNAL(toggled(bool)),
                   this, SIGNAL(changesAvailable()));
@@ -91,25 +82,11 @@ void OSPRayViewOptions::applyChanges()
 {
   pqView* view = pqActiveView::instance().current();
   pqRenderView *rView = qobject_cast<pqRenderView*>(view);
-/*
-  if(!this->rView)
-    {
-    return;
-    }
-*/
-  //TODO:These should be saved across sessions
-  //pqSettings* settings = pqApplicationCore::instance()->settings();
-  //settings->beginGroup("OSPRayView");
 
   int intSetting;
   bool boolSetting;
 
   vtkSMRenderViewProxy *proxy = rView->getRenderViewProxy();
-  // intSetting = this->Internal->ui.threads->value();
-  // vtkSMPropertyHelper(proxy, "Threads").Set(intSetting);
-
-  // boolSetting = this->Internal->ui.shadows->isChecked();
-  // vtkSMPropertyHelper(proxy, "EnableShadows").Set(boolSetting);
 
   boolSetting = this->Internal->ui.ao->isChecked();
   vtkSMPropertyHelper(proxy, "EnableAO").Set(boolSetting);

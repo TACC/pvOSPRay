@@ -23,33 +23,9 @@ vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*c
   :delayUpdate(false), renderer(r),disableAutomaticUpdates(false), Samples(1)
 {
   Callback = cb; CallbackArg = arg;
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
-  // QTimer *timer = new QTimer();
-  // printf("connecting timer\n");
   QObject::connect(&_pqTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
   _pqTimer.setSingleShot(true);
-  // printf("done connecting timer\n");
-  // timer->start(10);
-  // printf("starting timer\n");
-  // _pqTimer.start(0);
-  // printf("done starting timer\n");
-
-    // pqServerManagerModel* smmodel =
-    // pqApplicationCore::instance()->getServerManagerModel();
-    // if (!smmodel)
-    //   printf("no smmodel\n");
-  // QObject::connect(smmodel, SIGNAL(viewAdded(pqView*)),
-  //   this, SLOT(onViewAdded(pqView*)));
-
-  //   foreach (pqView* view, smmodel->findItems<pqView*>())
-  //   {
-  //   // this->onViewAdded(view);
-  //   }
 }
-// void vtkQtProgressiveRenderer::SetCallback(void* cb)
-// {
-//   Callback=cb;
-// }
 
 vtkQtProgressiveRenderer::~vtkQtProgressiveRenderer()
 {
@@ -57,7 +33,6 @@ vtkQtProgressiveRenderer::~vtkQtProgressiveRenderer()
 }
 
 void vtkQtProgressiveRenderer::onTimeout(){
-  // printf("timer!\n");
   if (delayUpdate)
     _pqTimer.start(100);
   else
@@ -65,7 +40,6 @@ void vtkQtProgressiveRenderer::onTimeout(){
     if (!disableAutomaticUpdates)
     {
       _pqTimer.start(0);
-      // printf("calling callback\n");
      Callback(CallbackArg);
     }
   }
@@ -73,12 +47,10 @@ void vtkQtProgressiveRenderer::onTimeout(){
 
   void vtkQtProgressiveRenderer::stopAutoUpdates()
   {
-    // printf("stop timer\n");
     disableAutomaticUpdates=true;
   }
   void vtkQtProgressiveRenderer::resumeAutoUpdates()
   {
-    // printf("resuming timer\n");
     disableAutomaticUpdates=false;
     _pqTimer.start(100);
   }
@@ -102,22 +74,18 @@ void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
 
 void vtkQtProgressiveRenderer::onViewUpdated()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
 
   void vtkQtProgressiveRenderer::onStartInteractionEvent()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   delayUpdate=true;
   Samples = renderer->GetSamples();
   renderer->SetSamples(1);
   }
     void vtkQtProgressiveRenderer::onEndInteractionEvent()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
     delayUpdate=false;
   _pqTimer.start(0);
   renderer->SetSamples(Samples);
-  // renderer->SetSamples(64);
   }
   
