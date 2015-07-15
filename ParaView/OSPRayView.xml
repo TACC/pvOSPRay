@@ -885,7 +885,7 @@
 
         <ExposedProperties>
           <PropertyGroup label="Volume Rendering">
-            <!-- <Property name="LookupTable" /> -->
+            <Property name="LookupTable" /> 
             <Property name="ScalarOpacityUnitDistance"
                       panel_visibility="advanced" />
             <Property name="ScalarOpacityFunction"
