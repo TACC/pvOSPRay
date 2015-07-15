@@ -123,7 +123,7 @@ for(int i=0; toTry[i] != NULL; i++)
 
   if (g)
     {
-      // printf("using OSPRay representation: %s\n", toTry[i]);
+      printf("using OSPRay representation: %s\n", toTry[i]);
     return vtkSMRepresentationProxy::SafeDownCast(
       pxm->NewProxy("representations", toTry[i]));
     }

@@ -182,8 +182,6 @@
                          class="vtkPVOSPRayImageVolumeRepresentation"
                          processes="client|renderserver|dataserver"
                          si_class="vtkSIUniformGridVolumeRepresentationProxy">
-      <Documentation>Representation for rendering a vtkImageData as
-      volume.</Documentation>
       <InputProperty command="SetInputConnection"
                      name="Input">
         <DataTypeDomain composite_data_supported="0"
@@ -304,7 +302,7 @@
         <ProxyGroupDomain name="groups">
           <Group name="transfer_functions" />
         </ProxyGroupDomain>
-      </ProxyProperty> 
+      </ProxyProperty>
       <DoubleVectorProperty command="SetAmbient"
                             default_values="0.0"
                             name="Ambient"
@@ -815,7 +813,12 @@
         </Documentation>
       </InputProperty>
     </PVRepresentationProxy>
-
+<!--     <PVRepresentationProxy base_proxygroup="internal_representations"
+                           base_proxyname="PVRepresentationBase"
+                           class="vtkPVCompositeRepresentation"
+                           name="OSPRayUniformGridRepresentation"
+                           processes="client|renderserver|dataserver">
+                         -->
     <PVRepresentationProxy base_proxygroup="internal_representations"
                            base_proxyname="PVRepresentationBase"
                            class="vtkPVCompositeRepresentation"
@@ -826,8 +829,7 @@
       <!-- this adds to the types already defined in PVRepresentationBase -->
       <RepresentationType subproxy="VolumeRepresentation"
                           text="Volume" />
-      <!--<RepresentationType subproxy="SliceRepresentation"
-                          text="Slice" /> -->
+    
       <InputProperty command="SetInputConnection"
                      name="Input">
         <DataTypeDomain composite_data_supported="0"
@@ -842,6 +844,7 @@
                           optional="1"></InputArrayDomain>
         <Documentation>Set the input to the representation.</Documentation>
       </InputProperty>
+
       <SubProxy>
         <Proxy name="VolumeRepresentation"
                proxygroup="representations"
@@ -852,7 +855,7 @@
         </ShareProperties> -->
         <ExposedProperties>
           <PropertyGroup label="Volume Rendering">
-            <!-- <Property name="LookupTable"
+             <!-- <Property name="LookupTable"
                       panel_visibility="never" /> -->
             <Property name="ScalarOpacityUnitDistance"
                       panel_visibility="advanced" />

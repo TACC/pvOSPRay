@@ -456,7 +456,7 @@ vtkStandardNewMacro(vtkPVOSPRayImageVolumeRepresentation);
 //----------------------------------------------------------------------------
 vtkPVOSPRayImageVolumeRepresentation::vtkPVOSPRayImageVolumeRepresentation()
 {
-    // std::cout << __PRETTY_FUNCTION__ << std::endl;
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
   // this->VolumeMapper = vtkSmartVolumeMapper::New();
   this->VolumeMapper = vtkOSPRayVolumeRayCastMapper::New();
   // this->Property = vtkVolumeProperty::New();
@@ -712,7 +712,7 @@ bool vtkPVOSPRayImageVolumeRepresentation::RemoveFromView(vtkView* view)
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::UpdateMapperParameters()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   const char* colorArrayName = NULL;
   int fieldAssociation = vtkDataObject::FIELD_ASSOCIATION_POINTS;
 
@@ -812,12 +812,14 @@ void vtkPVOSPRayImageVolumeRepresentation::SetInterpolationType(int val)
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetColor(vtkColorTransferFunction* lut)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->Property->SetColor(lut);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVOSPRayImageVolumeRepresentation::SetScalarOpacity(vtkPiecewiseFunction* pwf)
 {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->Property->SetScalarOpacity(pwf);
 }
 

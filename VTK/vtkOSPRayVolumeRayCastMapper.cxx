@@ -369,7 +369,7 @@
       // if (vol->GetProperty()->GetMTime() > PropertyTime)
       {
         printf("volume property rebuild!\n");
-        vol->UpdateTransferFunctions(ren);
+        // vol->UpdateTransferFunctions(ren);
         vtkVolumeProperty* volProperty = vol->GetProperty();
         vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
         vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);
