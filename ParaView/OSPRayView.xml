@@ -116,12 +116,12 @@
 
   <ProxyGroup name="representations">
 
-    <RepresentationProxy name="OSPRayOutlineRepresentation"
+    <!-- <RepresentationProxy name="OSPRayOutlineRepresentation"
                          class="vtkPVOSPRayOutlineRepresentation"
                          processes="client|renderserver|dataserver"
                          base_proxygroup="representations"
                          base_proxyname="SurfaceRepresentation">
-    </RepresentationProxy> 
+    </RepresentationProxy> -->
 
     <RepresentationProxy name="OSPRaySurfaceRepresentation"
                          class="vtkPVOSPRayRepresentation"
@@ -1106,8 +1106,8 @@
         <BooleanDomain name="bool" />
         <Documentation>Set the visibility for the cube axes.</Documentation>
       </IntVectorProperty>
-      <RepresentationType subproxy="OutlineRepresentation"
-                          text="Outline" />
+      <!-- <RepresentationType subproxy="OutlineRepresentation"
+                          text="Outline" /> -->
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Points"
                           text="Points" />
@@ -1272,7 +1272,7 @@
           </PropertyGroup>
         </ExposedProperties>
       </SubProxy> 
-      <SubProxy>
+      <!-- <SubProxy>
         <Proxy name="OutlineRepresentation"
                proxygroup="representations"
                proxyname="OutlineRepresentation"></Proxy>
