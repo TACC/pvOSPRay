@@ -6,9 +6,7 @@
 #include "pqTimer.h"
 
 class pqView;
-// class vtkObject;
 class vtkOSPRayRenderer;
-// class vtkPVOSPRayView;
 
 class vtkQtProgressiveRenderer : public QObject
 {
@@ -19,19 +17,14 @@ public:
 
   void stopAutoUpdates();
   void resumeAutoUpdates();
-  // void triggerSingleUpdate(){}
 
 public slots:
-  // void onViewAdded()
-  // void onViewUpdated(vtkObject*,unsigned long, void*){}
   void onTimeout();
   void onViewAdded(pqView* view);
   void onStartInteractionEvent();
   void onEndInteractionEvent();
   void onViewUpdated();
 private:
-  // QTimer timer;
-  // vtkPVOSPRayView* OSPRayView;
   bool delayUpdate;
   pqTimer _pqTimer;
   bool disableAutomaticUpdates;

@@ -34,44 +34,11 @@
 #include "vtkPointData.h"
 #include "vtkTransform.h"
 
-// #include <Engine/Control/RTRT.h>
-// #include <Image/SimpleImage.h>
-// #include <Model/Textures/ImageTexture.h>
 
 
 
 #include <math.h>
 
-//==============================================================================
-//This is a helper that exists just to hold on to OSPRay side resources
-//long enough for the OSPRay thread to destroy them, whenever that
-//threads gets around to it (in a callback)
-// class vtkOSPRayTextureThreadCache
-// {
-// public:
-//   vtkOSPRayTextureThreadCache(OSPRay::Texture<OSPRay::Color> *mt)
-//     : OSPRayTexture(mt)
-//   {
-//   }
-
-//   void FreeOSPRayResources()
-//   {
-//     delete OSPRayTexture;
-//     //WARNING: this class must never be instantiated on the stack.
-//     //Therefore, it has private unimplemented copy/contructors.
-//     delete this;
-//   }
-
-// private:
-//   vtkOSPRayTextureThreadCache(const vtkOSPRayTextureThreadCache&);
-//   // Not implemented.
-//   void operator=(const vtkOSPRayTextureThreadCache&);
-//   // Not implemented.
-
-//   OSPRay::Texture<OSPRay::Color> *OSPRayTexture;
-// };
-
-//==============================================================================
 
 vtkStandardNewMacro(vtkOSPRayTexture);
 
@@ -80,22 +47,17 @@ vtkStandardNewMacro(vtkOSPRayTexture);
 vtkOSPRayTexture::vtkOSPRayTexture()
 : OSPRayTexture(NULL)
 {
-  //cerr << "MT( " << this << ") CREATE " << endl;
   this->OSPRayManager = NULL;
-  // this->OSPRayTexture = NULL;
   this->OSPRayTexture = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkOSPRayTexture::~vtkOSPRayTexture()
 {
-  //cerr << "MT( " << this << ") DESTROY " << endl;
   if (this->OSPRayManager)
   {
     this->DeleteOSPRayTexture();
 
-    //cerr << "MT(" << this << ") DESTROY " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Delete();
   }
 }
@@ -108,25 +70,14 @@ void vtkOSPRayTexture::DeleteOSPRayTexture()
     return;
   }
 
-  //save off the pointers for the OSPRay thread
-  // vtkOSPRayTextureThreadCache *R =
-  //   new vtkOSPRayTextureThreadCache(this->OSPRayTexture);
-
-  // //make no further references to them in this thread
   this->OSPRayTexture = NULL;
 
-  //ask the OSPRay thread to free them when it can
-  // this->OSPRayManager->GetOSPRayEngine()->
-    // addTransaction("cleanup texture",
-                   // OSPRay::Callback::create
-                   // (R, &vtkOSPRayTextureThreadCache::FreeOSPRayResources));
 }
 
 //-----------------------------------------------------------------------------
 // Release the graphics resources used by this texture.
 void vtkOSPRayTexture::ReleaseGraphicsResources(vtkWindow *win)
 {
-  //cerr << "MT( " << this << ") RELEASE GRAPHICS RESOURCES " << endl;
   this->Superclass::ReleaseGraphicsResources( win );
   if (!this->OSPRayManager)
   {
@@ -139,11 +90,6 @@ void vtkOSPRayTexture::ReleaseGraphicsResources(vtkWindow *win)
 //----------------------------------------------------------------------------
 void vtkOSPRayTexture::Load(vtkRenderer *ren)
 {
-  // return;
-  #if 1
-  // printf("loading osp texture\n");
-
-  //cerr << "MT(" << this << ") LOAD " << endl;
   vtkImageData *input = this->GetInput();
 
   vtkOSPRayRenderer* renderer =
@@ -155,15 +101,13 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
   if (!this->OSPRayManager)
   {
     this->OSPRayManager = renderer->GetOSPRayManager();
-    //cerr << "MT(" << this << ") REGISTER " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
   }
 
   if (this->GetMTime() > this->LoadTime.GetMTime() ||
     input->GetMTime()> this->LoadTime.GetMTime() ||
-      (this->GetLookupTable() && this->GetLookupTable()->GetMTime() > this->LoadTime.GetMTime()) //||
-      /*renWin != this->RenderWindow.GetPointer() || renWin->GetContextCreationTime() > this->LoadTime*/)
+      (this->GetLookupTable() && this->GetLookupTable()->GetMTime() > this->LoadTime.GetMTime()) 
+      )
       {
         int bytesPerPixel=4;
         int size[3];
@@ -243,13 +187,6 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
       }
       printf("\n\ncolor values: \n");
 
-    // Create OSPRay Image from input
-    // OSPRay::Image *image =
-      // new OSPRay::SimpleImage<OSPRay::RGB8Pixel> (false, xsize, ysize);
-    // OSPRay::RGB8Pixel *pixels =
-      // dynamic_cast<OSPRay::SimpleImage<OSPRay::RGB8Pixel> const*>(image)->
-      // getRawPixels(0);
-    // OSPRay::RGB8Pixel pixel;
         struct OColor { unsigned char r,g,b; };
         OColor* pixels = new OColor[xsize*ysize];
         for (int v = 0; v < ysize; v++)
@@ -262,36 +199,13 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
             pixel.g = color[1];
             pixel.b = color[2];
             pixels[v*xsize + u] = pixel;
-            // printf("[%d %d %d] ", pixel.r, pixel.g, pixel.b);
           }
-          // printf("\n");
         }
-
-    // create OSPRay texture from the image
-    // OSPRay::ImageTexture<OSPRay::Color> *imgtexture =
-      // new OSPRay::ImageTexture<OSPRay::Color>(image, false);
-    // imgtexture->setInterpolationMethod(1);
-
-    // this->DeleteOSPRayTexture();
-    // this->OSPRayTexture = imgtexture;
-
-    // OSPRay image is copied and converted to internal buffer in the texture,
-    // delete the image
-    // delete image;
 
         OSPDataType type = OSP_VOID_PTR;
 
-    // if (msgTex->depth == 1) {
-    //   if( msgTex->channels == 3 ) type = OSP_UCHAR3;
-    //   if( msgTex->channels == 4 ) type = OSP_UCHAR4;
-    // } else if (msgTex->depth == 4) {
-    //   if( msgTex->channels == 3 ) type = OSP_FLOAT3;
-    //   if( msgTex->channels == 4 ) type = OSP_FLOAT3A;
-    // }
         if (bytesPerPixel == 4)
         {
-          // printf("bytesperpixel 4\n");
-          // type = OSP_FLOAT3;
           type = OSP_UCHAR3;
         }
         else
@@ -301,7 +215,6 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
           type = OSP_UCHAR3;
         }
 
-        // printf("creating osp texture %d %d\n", xsize, ysize);
         this->OSPRayTexture = (osp::Texture2D*)ospNewTexture2D(xsize,
          ysize,
          type,
@@ -309,11 +222,9 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
          0);
 
         ospCommit((OSPTexture2D)this->OSPRayTexture);
-        // PRINT((OSPTexture2D)this->OSPRayTexture);
 
         this->LoadTime.Modified();
       }
-    #endif
     }
 
 //----------------------------------------------------------------------------

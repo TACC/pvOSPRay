@@ -29,13 +29,6 @@
 
 #include "vtkObjectFactory.h"
 
-// #include <Interface/Light.h>
-// #include <Interface/LightSet.h>
-// #include <Interface/Context.h>
-// #include <Engine/Control/RTRT.h>
-// #include <Model/Lights/PointLight.h>
-// #include <Model/Lights/DirectionalLight.h>
-
 #include <math.h>
 
 vtkStandardNewMacro(vtkOSPRayLight);
@@ -43,20 +36,14 @@ vtkStandardNewMacro(vtkOSPRayLight);
 //----------------------------------------------------------------------------
 vtkOSPRayLight::vtkOSPRayLight()
 {
-  //cerr << "ML(" << this << ") CREATE" << endl;
-  // this->OSPRayLight = NULL;
   this->OSPRayManager = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkOSPRayLight::~vtkOSPRayLight()
 {
-  //cerr << "ML(" << this << ") DESTROY" << endl;
-  // delete this->OSPRayLight;
   if (this->OSPRayManager)
     {
-    //cerr << "ML(" << this << ") DESTROY " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Delete();
     }
 }
@@ -70,7 +57,6 @@ void vtkOSPRayLight::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkOSPRayLight::Render(vtkRenderer *ren, int /* not used */)
 {
-  #if 1
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(ren);
   if (!renderer)
     {
@@ -85,7 +71,6 @@ void vtkOSPRayLight::Render(vtkRenderer *ren, int /* not used */)
     {
     // UpdateLight(ren);
     }
-    #endif
 }
 
 //----------------------------------------------------------------------------
@@ -101,18 +86,14 @@ void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
     if (!this->OSPRayManager)
     {
     this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-    //cerr << "ML(" << this << ") REGISTER " << this->OSPRayManager << " "
-    //     << this->OSPRayManager->GetReferenceCount() << endl;
     this->OSPRayManager->Register(this);
     }
   
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
       std::vector<OSPLight> pointLights;
       std::vector<OSPLight> directionalLights;
-    // cout << "msgView: Adding a hard coded directional light as the sun." << endl;
 
 
-  #if 1
   double *color, *position, *focal, direction[3];
 
   // OSPRay Lights only have one "color"
@@ -122,7 +103,7 @@ void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
 
   if (this->GetPositional())
     {
-              OSPLight ospLight = ospNewLight(renderer, "OBJPointLight");
+    OSPLight ospLight = ospNewLight(renderer, "OBJPointLight");
     ospSetString(ospLight, "name", "point" );
     ospSet3f(ospLight, "color", color[0],color[1],color[2]);
     ospSet3f(ospLight, "position", position[0],position[1],position[2]);
@@ -130,99 +111,26 @@ void vtkOSPRayLight::CreateLight(vtkRenderer *ren)
     pointLights.push_back(ospLight);
     OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
     ospSetData(renderer, "pointLights", pointLightArray); 
-    // this->OSPRayLight = new OSPRay::PointLight(
-    //   OSPRay::Vector(position[0], position[1], position[2]),
-    //   OSPRay::Color(OSPRay::RGBColor(color[0],color[1],color[2])));
     }
   else
     {
-    // "direction" in OSPRay means the direction toward light source rather than the
-    // direction of rays originate from light source
     direction[0] = position[0] - focal[0];
     direction[1] = position[1] - focal[1];
     direction[2] = position[2] - focal[2];
-        OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
+    OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
     ospSetString(ospLight, "name", "sun" );
     ospSet3f(ospLight, "color", color[0],color[1],color[2]);
     ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
     ospCommit(ospLight);
     directionalLights.push_back(ospLight);
-        OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
+    OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
     ospSetData(renderer, "directionalLights", pointLightArray);
 
-    // this->OSPRayLight = new OSPRay::DirectionalLight(
-    //   OSPRay::Vector(direction[0], direction[1], direction[2]),
-    //   OSPRay::Color(OSPRay::RGBColor(color[0],color[1],color[2])));
     }
-  // OSPRayRenderer->GetOSPRayLightSet()->add(this->OSPRayLight);
-  // if (!this->OSPRayManager)
-  //   {
-  //   this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-  //   //cerr << "ML(" << this << ") REGISTER " << this->OSPRayManager << " "
-  //   //     << this->OSPRayManager->GetReferenceCount() << endl;
-  //   this->OSPRayManager->Register(this);
-  //   }
-    #endif
 }
 
 //------------------------------------------------------------------------------
-// called in Transaction context, it is safe to modify the engine state here
 void vtkOSPRayLight::UpdateLight(vtkRenderer *ren)
 {
   CreateLight(ren);
-  #if 0
-  if (!this->OSPRayLight)
-    {
-    return;
-    }
-  double *color, *position, *focal, direction[3];
-  double intens = this->GetIntensity();
-  double on = (this->GetSwitch()?1.0:0.0);
-
-  // OSPRay Lights only have one "color"
-  color    = this->GetDiffuseColor();
-  position = this->GetTransformedPosition();
-  focal    = this->GetTransformedFocalPoint();
-
-  double lcolor[3]; //factor in intensity and on/off state for OSPRay API
-  lcolor[0] = color[0] * intens * on;
-  lcolor[1] = color[1] * intens * on;
-  lcolor[2] = color[2] * intens * on;
-
-  if (this->GetPositional())
-    {
-    OSPRay::PointLight * pointLight =
-      dynamic_cast<OSPRay::PointLight *>(this->OSPRayLight);
-    if ( pointLight )
-        {
-        pointLight->setPosition(OSPRay::Vector(position[0], position[1], position[2]));
-        pointLight->setColor(OSPRay::Color(OSPRay::RGBColor(lcolor[0],lcolor[1],lcolor[2])));
-        }
-    else
-      {
-      vtkWarningMacro(
-        << "Changing from Directional to Positional light is not supported by vtkOSPRay" );
-      }
-    }
-  else
-    {
-    OSPRay::DirectionalLight * dirLight =
-      dynamic_cast<OSPRay::DirectionalLight *>(this->OSPRayLight);
-    if ( dirLight )
-        {
-        // "direction" in OSPRay means the direction toward light source rather than the
-        // direction of rays originate from light source
-        direction[0] = position[0] - focal[0];
-        direction[1] = position[1] - focal[1];
-        direction[2] = position[2] - focal[2];
-        dirLight->setDirection(OSPRay::Vector(direction[0], direction[1], direction[2]));
-        dirLight->setColor(OSPRay::Color(OSPRay::RGBColor(lcolor[0],lcolor[1],lcolor[2])));
-        }
-    else
-      {
-      vtkWarningMacro
-        (<< "Changing from Positional to Directional light is not supported by vtkOSPRay" );
-      }
-    }
-    #endif
 }

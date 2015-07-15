@@ -36,12 +36,6 @@ public:
   vtkTypeMacro(vtkOSPRayIsosurfaceFilter, vtkElevationFilter);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // vtkGetMacro(IsoValue, double);
-  // vtkSetMacro(IsoValue, double);
-
-    // vtkGetMacro(EnableIso, bool);
-  // vtkSetMacro(EnableIso, bool);
-
     vtkGetMacro(ClipValue, double);
   vtkSetMacro(ClipValue, double);
 
@@ -57,12 +51,6 @@ public:
     return ContourValues[i];
   }
 
-  // void SetIsoValues(double* vals)
-  // {
-  //   for(int i=0;i<NumberOfIsoValues;i++)
-  //     IsoValues[i] = vals[i];
-  // }
-  // { return IsoValues;}
   void SetNumberOfContours(int number)
   {
     NumberOfContours=number;
@@ -70,8 +58,6 @@ public:
   int GetNumberOfContours()
   { return NumberOfContours; }
 
-  // vtkSetVector3Macro(LowPoint,double);
-  // vtkGetVectorMacro(LowPoint,double,3);
 
 
 
@@ -83,14 +69,11 @@ protected:
                   vtkInformationVector**,
                   vtkInformationVector*);
 
-    // double IsoValue; 
     int NumberOfContours;
-    double ContourValues[256];  //Carson: TODO: Make vector...
-    // bool EnableIso;
+    double ContourValues[256];  
     double ClipValue;
     bool EnableClip;
     int ClipAxis;
-    // double LowPoint[3];
 
 private:
   vtkOSPRayIsosurfaceFilter(const vtkOSPRayIsosurfaceFilter&);  // Not implemented.

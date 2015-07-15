@@ -28,18 +28,10 @@
 #define __vtkOSPRayActor_h
 
 #include "vtkOSPRayModule.h"
-// #include "vtkPVLODActor.h"
-// #include "vtkLODProp3D.h"
 #include "vtkActor.h"
 #include <map>
 #include <vector>
 
-//
-//ospray
-//
-// #include "ospray/ospray.h"
-// #include "ospray/common/ospcommon.h"
-// #include <common/math/affinespace.h>
 
 //BTX
 namespace OSPRay {
@@ -93,20 +85,6 @@ public:
   // Transaction callback that hides the object
   void RemoveObjects();
 
-  //BTX
-  //TODO: This leaks whatever was there, but must schedule its
-  //deletion because of threading
-  // void SetGroup( OSPRay::Group * group );
-  // OSPRay::Group * GetGroup()
-  // {
-  //   return this->Group;
-  // }
-  // OSPRay::AccelerationStructure * GetOSPRayAS()
-  // {
-  //   return this->OSPRayAS;
-  // }
-  //ETX
-
   //Description:
   //Lets you choose the OSPRay space sorting (acceleration) structure
   //type used internally. Default is 0=DYNBVH
@@ -130,8 +108,6 @@ public:
 
   //BTX
   enum {DYNBVH, RECURSIVEGRID3};
-  // OSPRay::Group * Group; //geometry
-  // OSPRay::AccelerationStructure * OSPRayAS; //acceleration structure for that geometry
   //ETX
 
   vtkOSPRayManager *OSPRayManager;
@@ -140,7 +116,6 @@ public:
   vtkTimeStamp MeshMTime;
   osp::Model* OSPRayModel;
   std::map<int, osp::Model*> cache;
-  // OSPGeometry ospMesh;
 };
 
 #endif // __vtkOSPRayActor_h

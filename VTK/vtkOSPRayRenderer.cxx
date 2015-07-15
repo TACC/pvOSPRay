@@ -37,26 +37,6 @@
 #include "vtkRenderWindow.h"
 #include "vtkTimerLog.h"
 
-
-// #include <Core/Color/Color.h>
-// #include <Core/Color/ColorDB.h>
-// #include <Core/Color/RGBColor.h>
-// #include <Engine/Control/RTRT.h>
-// #include <Engine/Display/NullDisplay.h>
-// #include <Engine/Display/SyncDisplay.h>
-// #include <Engine/Factory/Create.h>
-// #include <Engine/Factory/Factory.h>
-// #include <Image/SimpleImage.h>
-// #include <Interface/Context.h>
-// #include <Interface/Light.h>
-// #include <Interface/LightSet.h>
-// #include <Interface/Scene.h>
-// #include <Interface/Object.h>
-// #include <Model/AmbientLights/ConstantAmbient.h>
-// #include <Model/Backgrounds/ConstantBackground.h>
-// #include <Model/Groups/Group.h>
-// #include <Model/Lights/HeadLight.h>
-
 #include "vtkImageData.h"
 #include "vtkPNGWriter.h"
 #include "vtkPolyDataMapper.h"
@@ -113,16 +93,10 @@
 :
 prog_flag(false),
 Accumulate(false)
-  //EngineInited( false ), EngineStarted( false ),
-  //IsStereo( false ), OSPRayScene( 0 ), OSPRayWorldGroup( 0 ),
-  //OSPRayLightSet( 0 ), OSPRayCamera( 0 ), SyncDisplay( 0 )
    {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
     hasVolumeHack= false;
-  //cerr << "MR(" << this << ") CREATE" << endl;
 
     this->EngineInited=false;
-  // Default options
     this->NumberOfWorkers = 1;
     this->EnableShadows = 0;
     this->Samples = 1;
@@ -135,12 +109,11 @@ Accumulate(false)
   this->backgroundRGB[1] = 0.0;
   this->backgroundRGB[2] = 0.0;
 
-  // the default global ambient light created by vtkRenderer is too bright.
     this->SetAmbient( 0.1, 0.1, 0.1 );
 
     this->OSPRayManager = vtkOSPRayManager::New();
 
-  this->OSPRayManager->OSPRayModel = ospNewModel();  //Carson: note: static needed, it seems they are freed in scope
+  this->OSPRayManager->OSPRayModel = ospNewModel();  
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   this->OSPRayManager->OSPRayCamera = ospNewCamera("perspective");
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
@@ -161,8 +134,6 @@ Accumulate(false)
   ospSetObject(vRenderer,"model",vModel);
   ospSetObject(vRenderer,"camera",oCamera);
 
-  // renderer = ospNewRenderer("ao16");
-  // renderer = ospNewRenderer("obj");
   Assert(oRenderer != NULL && "could not create renderer");
 
   ospSetObject(oRenderer,"world",oModel);
@@ -174,54 +145,11 @@ Accumulate(false)
   ospCommit(oModel);
   ospCommit(oCamera);
   ospCommit(oRenderer);
-  // PRINT(oRenderer);
-  // PRINT(oModel);
-  // PRINT(oCamera);
-  #if 1
-
-  // this->OSPRayEngine = this->OSPRayManager->GetOSPRayEngine();
-  // this->OSPRayEngine->changeNumWorkers( this->NumberOfWorkers );
-
-  // this->OSPRayFactory = this->OSPRayManager->GetOSPRayFactory();
 
   this->ColorBuffer = NULL;
   this->DepthBuffer = NULL;
-  // this->ImageSize = -1;
   this->osp_framebuffer = NULL;
 
-  // this->OSPRayFactory->selectImageType( "rgba8zfloat" );
-
-  // this->OSPRayFactory->selectImageTraverser( "tiled(-square)" );
-  // //this->OSPRayFactory->selectImageTraverser( "deadline()" );
-
-  // this->OSPRayFactory->selectLoadBalancer( "workqueue" );
-
-  // if (this->EnableShadows)
-  //   {
-  //   this->OSPRayFactory->selectShadowAlgorithm( "hard(-attenuateShadows)" );
-  //   }
-  // else
-  //   {
-  //   this->OSPRayFactory->selectShadowAlgorithm( "noshadows" );
-  //   }
-
-  // if (this->Samples <= 1)
-  //   {
-  //   this->OSPRayFactory->selectPixelSampler( "singlesample" );
-  //   }
-  // else
-  //   {
-  //   char buff[80];
-  //   sprintf(buff, "regularsample(-numberOfSamples %d)", this->Samples);
-  //   this->OSPRayFactory->selectPixelSampler(buff);
-  //   //this->OSPRayFactory->selectPixelSampler(
-  //   //"jittersample(-numberOfSamples 16)");
-  //   }
-
-  // this->OSPRayFactory->selectRenderer( "raytracer" );
-
-  // this->DefaultLight = NULL;
-  #endif
 
 
 }
@@ -246,49 +174,11 @@ vtkOSPRayRenderer::~vtkOSPRayRenderer()
     delete[] this->DepthBuffer;
     this->DepthBuffer = NULL;
   }
-  //cerr << "MR(" << this << ") DESTROY " << this->OSPRayManager << " "
-  //     << this->OSPRayManager->GetReferenceCount() << endl;
-
-  // if (this->DefaultLight && this->OSPRayLightSet)
-  //   {
-  //   // OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::remove,
-  //                            // this->DefaultLight );
-  //   this->DefaultLight = NULL;
-  //   }
-
-  // this->OSPRayManager->Delete();
-
-  // if (this->ColorBuffer)
-  //   {
-  //   delete[] this->ColorBuffer;
-  //   }
-  // if (this->DepthBuffer)
-  //   {
-  //   delete[] this->DepthBuffer;
-  //   }
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::InitEngine()
 {
-      // vtkRenderWindowInteractor* iren = vtkRenderWindowInteractor::New(); 
-   // iren->SetRenderWindow(this->GetRenderWindow());
-  //  vtkRenderWindowInteractor* iren = this->GetRenderWindow()->GetInteractor();
-  //  // iren->Initialize();
-
-  //  // iren->AddObserver TimerEvent {if {$val == 0} exit}
-
-  //  // Sign up to receive TimerEvent
-  // vtkSmartPointer<vtkTimerCallback> cb = 
-  //   vtkSmartPointer<vtkTimerCallback>::New();
-  // iren->AddObserver(vtkCommand::TimerEvent, cb);
-
-
-  //  iren->CreateRepeatingTimer(1000);
-
-  //  printf("starting timer!\n");
-  //  iren->Start();
-  //  printf("started timer!\n");
    this->EngineInited = true;
 }
 
@@ -313,8 +203,6 @@ void vtkOSPRayRenderer::ClearLights(void)
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::Clear()
 {
-  // if (osp_framebuffer)
-    // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
 }
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::ClearAccumulation()
@@ -331,32 +219,13 @@ int vtkOSPRayRenderer::UpdateLights()
 
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
   OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
-       // std::vector<OSPLight> pointLights;
-      // std::vector<OSPLight> directionalLights;
   std::vector<OSPLight> lights;
 
-      // std::vector<OSPLight> pointLights;
-    // cout << "msgView: Adding a hard coded directional light as the sun." << endl;
-      /*
-    OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
-    ospSetString(ospLight, "name", "sun" );
-    ospSet3f(ospLight, "color", .6, .6, .55);
-    ospSet3f(ospLight, "direction", -1, -1, 0);
-    ospCommit(ospLight);
-    directionalLights.push_back(ospLight);
-    OSPLight ospLight2 = ospNewLight(renderer, "DirectionalLight");
-    ospSetString(ospLight2, "name", "shadow" );
-    ospSet3f(ospLight2, "color", .3, .35, .4);
-    ospSet3f(ospLight2, "direction", 1, .5, 0);
-    ospCommit(ospLight2);
-    directionalLights.push_back(ospLight);
-    */
 
   // convert VTK lights into OSPRay lights
     vtkCollectionSimpleIterator sit;
     this->Lights->InitTraversal( sit );
 
-  // TODO: schedule ClearLight here?
     vtkLight *vLight = NULL;
     bool noneOn = true;
     for ( this->Lights->InitTraversal( sit );
@@ -366,8 +235,6 @@ int vtkOSPRayRenderer::UpdateLights()
       {
         noneOn = false;
       }
-    //OSPRay lights set intensity to 0.0 if switched off, so render regardless
-    // vLight->Render( this, 0 /* not used */ );
       vtkLight* light = vLight;
 
       double *color, *position, *focal, direction[3];
@@ -385,17 +252,9 @@ int vtkOSPRayRenderer::UpdateLights()
         ospSet3f(ospLight, "position", position[0],position[1],position[2]);
         ospCommit(ospLight);
         lights.push_back(ospLight);
-    // std::cout << " adding point light" << color[0] << " " << color[1] << " " << color[2] << " \n";
-    // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
-    // ospSetData(renderer, "pointLights", pointLightArray); 
-    // this->OSPRayLight = new OSPRay::PointLight(
-    //   OSPRay::Vector(position[0], position[1], position[2]),
-    //   OSPRay::Color(OSPRay::RGBColor(color[0],color[1],color[2])));
       }
       else
       {
-    // "direction" in OSPRay means the direction toward light source rather than the
-    // direction of rays originate from light source
         direction[0] = position[0] - focal[0];
         direction[1] = position[1] - focal[1];
         direction[2] = position[2] - focal[2];
@@ -408,73 +267,31 @@ int vtkOSPRayRenderer::UpdateLights()
         ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
         ospCommit(ospLight);
         lights.push_back(ospLight);
-    // std::cout << " adding directional light" << color[0] << " " << color[1] << " " << color[2] << 
-    // direction[0] << " " << direction[1] << " " << direction[2] << " \n";
-        // OSPData pointLightArray = ospNewData(directionalLights.size(), OSP_OBJECT, &directionalLights[0], 0);
-    // ospSetData(renderer, "directionalLights", pointLightArray);
-
-    // this->OSPRayLight = new OSPRay::DirectionalLight(
-    //   OSPRay::Vector(direction[0], direction[1], direction[2]),
-    //   OSP
       }
 
       if (noneOn)
       {
-    // if (this->OSPRayLightSet->numLights()==0 )
         {
-      // there is no VTK light nor OSPRayLight defined, create a OSPRay headlight
           cerr
           << "No light defined, creating a headlight at camera position" << endl;
-      // this->DefaultLight =
-      //   new OSPRay::HeadLight( 0, OSPRay::Color( OSPRay::RGBColor( 1, 1, 1 ) ) );
-      // this->OSPRayEngine->addTransaction
-      //   ("add headlight",
-      //    OSPRay::Callback::create( this->OSPRayLightSet, &OSPRay::LightSet::add,
-      //                             this->DefaultLight ) );
         }
       }
       else
       {            
-        //OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
-        //ospSetString(ospLight, "name", "sun" );
-        //ospSet3f(ospLight, "color", 1,1,1);
-        //ospSet3f(ospLight, "direction", 1,0,0);
-        //ospCommit(ospLight);
-        // lights.push_back(ospLight);
       }
     }
 {
 
       }
       {
-    //       double* color = this->Ambient;
-    //     OSPLight ospLight = ospNewLight(renderer, "AmbientLight");
-    // ospSetString(ospLight, "name", "ambient" );
-    // ospSet3f(ospLight, "color", .5,.5,.5);
-    // ospSet1f(ospLight, "intensity", 1.0f);
-    // // ospSet3f(ospLight, "direction", direction[0],direction[1],direction[2]);
-    // ospCommit(ospLight);
-    // lights.push_back(ospLight);
   }
 
-    //     OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
-    //     ospSetString(ospLight, "name", "directional" );
-    //     ospSet3f(ospLight, "color",1,1,1);
-    //     osp::vec3f dir(1,0,0);
-    //     dir = normalize(dir); 
-    //     ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
-    //     ospCommit(ospLight);
-    // lights.resize(0);
-    // lights.push_back(ospLight);
     OSPData lightsArray = ospNewData(lights.size(), OSP_OBJECT, &lights[0], 0);
-    // ospSetData(renderer, "directionalLights", directionalLightsArray);
     ospSetData(renderer, "lights",lightsArray);
     ospSetData(vRenderer, "lights",lightsArray);
     ospCommit(renderer);
 
 
-    // OSPData pointLightArray = ospNewData(pointLights.size(), OSP_OBJECT, &pointLights[0], 0);
-    // ospSetData(renderer, "pointLights", pointLightArray); 
 
     return 0;
   }
@@ -488,47 +305,11 @@ int vtkOSPRayRenderer::UpdateLights()
 //----------------------------------------------------------------------------
   void vtkOSPRayRenderer::UpdateSize()
   {
-  #if 0
-  if (this->EngineStarted)
-    {
-    int     OSPRaySize[2];
-    int*    renderSize  = NULL;
-    bool    stereoDummyArg;
-
-    renderSize = this->GetSize();
-    this->GetSyncDisplay()->getCurrentImage()->
-      getResolution( stereoDummyArg, OSPRaySize[0], OSPRaySize[1] );
-
-    if (OSPRaySize[0] != renderSize[0] ||
-        OSPRaySize[1] != renderSize[1])
-      {
-      /*
-      cerr << "MR(" << this << ") "
-           << "Layer: " << this->GetLayer() << ", "
-           << "Props: " << this->NumberOfPropsRendered << endl
-           << "  OSPRaySize: " << OSPRaySize[0] << ", " << OSPRaySize[1] << ", "
-           << "  renderSize: " << renderSize[0] << ", " << renderSize[1] << endl;
-      */
-      this->GetOSPRayEngine()->addTransaction
-        ("resize",
-         OSPRay::Callback::create
-         (this->GetOSPRayEngine(),
-          &OSPRay::OSPRayInterface::changeResolution,
-          0, renderSize[0], renderSize[1],
-          true));
-      this->GetSyncDisplay()->doneRendering();
-      this->GetSyncDisplay()->waitOnFrameReady();
-      }
-          // ospray::vec2i newSize(renderSize[0],renderSize[1]);
-    // ospFramebuffer = ospNewFrameBuffer(newSize,OSP_RGBA_I8);
-    }
-    #endif
   }
 
 //----------------------------------------------------------------------------
   void vtkOSPRayRenderer::DeviceRender()
   {
-  // cerr << "MR(" << this << ") DeviceRender" << endl;
  
 		if (! prog_flag)
 		{
@@ -538,10 +319,6 @@ int vtkOSPRayRenderer::UpdateLights()
 		else
 			prog_flag = false;
 
-  // In ParaView, we are wasting time in rendering the "sync layer" with
-  // empty background image just to be dropped in LayerRender(). We just
-  // don't start the engine with sync layer.
-  // TODO: this may not be the right way to check if it is a sync layer
     if (this->GetLayer() != 0 && this->GetActors()->GetNumberOfItems() == 0)
     {
       return;
@@ -563,90 +340,41 @@ int vtkOSPRayRenderer::UpdateLights()
 
     hasVolumeHack = false;
     OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
-  this->OSPRayManager->OSPRayModel = ospNewModel();  //Carson: note: static needed, it seems they are freed in scope
+  this->OSPRayManager->OSPRayModel = ospNewModel();  
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
-  // this->OSPRayManager->OSPRayCamera = ospNewCamera("perspective");
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
   ospSetObject(oRenderer,"world",oModel);
   ospSetObject(oRenderer,"model",oModel);
   ospSetObject(oRenderer,"camera",oCamera);
 
 
-  // this->OSPRayManager->OSPRayModel = ospNewModel();
-  // ospSetParam(this->OSPRayManager->OSPRayRenderer,"world", this->OSPRayManager->OSPRayModel);
-  // ospSetParam(this->OSPRayManager->OSPRayRenderer,"model", this->OSPRayManager->OSPRayModel);
   ospCommit(this->OSPRayManager->OSPRayModel);
   ospCommit(this->OSPRayManager->OSPRayRenderer);
 
-  // call camera::Render()
   this->UpdateCamera();
 
-  // TODO: call ClearLights here?
 
-  // call Light::Render()
   this->UpdateLightGeometry();
   this->UpdateLights();
 
-  // if (!this->EngineStarted)
-  //   {
-  //   this->OSPRayEngine->beginRendering( false );
-  //   this->EngineStarted = true;
-  //   this->GetSyncDisplay()->waitOnFrameReady();
-  //   }
 
   this->UpdateGeometry();
 
   vtkTimerLog::MarkEndEvent("Geometry");
 
   vtkTimerLog::MarkStartEvent("Total LayerRender");
-    // this->GetSyncDisplay()->doneRendering();
-  // this->GetSyncDisplay()->waitOnFrameReady();
-  // ospCommit(this->OSPRayManager->OSPRayModel);
   this->LayerRender();
 
   vtkTimerLog::MarkEndEvent("Total LayerRender");
 
   vtkTimerLog::MarkEndEvent("OSPRay Dev Render");
 
-//
-//try to hack in updates for progressive rendering!
-//
-  // this->GetRenderWindow()->Modified();
-//       vtkActorCollection* actors = this->GetActors();
-//   printf("num actors: %d\n", this->GetActors()->GetNumberOfItems());
-//   actors->InitTraversal();
-//   for(vtkIdType i = 0; i < actors->GetNumberOfItems(); i++)
-//   {
-//   vtkActor* act = actors->GetNextActor();
-//   if (act)
-//   {
-//     printf("found actor %d\n", i);
-//   act->Modified();
-//   vtkPolyDataMapper* mapper = dynamic_cast<vtkPolyDataMapper*>(act->GetMapper());
-//   if (mapper)
-//   {
-//     printf("found mapper\n");
-//   vtkPolyData* dat = mapper->GetInput();
-//   if (dat)
-//   {
-//   printf("updating actor\n");
-//   dat->Modified();
-// }
-
-// }
-// }
-//   // act->Update();
-//   }
 }
 
 //----------------------------------------------------------------------------
 // let the renderer display itself appropriately based on its layer index
 void vtkOSPRayRenderer::LayerRender()
 {
-  //TODO:
-  //this needs to be simplified. Now that UpdateSize happens before this
-  //vtk's size and OSPRay's size should always be the same so the ugly
-  //conversion and minsize safety check should go away
   int     i, j;
   int     rowLength,  OSPRaySize[2];
   int     minWidth,   minHeight;
@@ -657,7 +385,6 @@ void vtkOSPRayRenderer::LayerRender()
   bool    stereoDumy;
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
-  // const   OSPRay::SimpleImageBase* OSPRayBase = NULL;
 
   // collect some useful info
   renderSize = this->GetSize();
@@ -665,31 +392,10 @@ void vtkOSPRayRenderer::LayerRender()
   renViewport= this->GetViewport();
   renderPos[0] = int( renViewport[0] * renWinSize[0] + 0.5f );
   renderPos[1] = int( renViewport[1] * renWinSize[1] + 0.5f );
-  //
-  // this->GetSyncDisplay()->getCurrentImage()->
-    // getResolution( stereoDumy, OSPRaySize[0], OSPRaySize[1] );
-  // OSPRayBase = dynamic_cast< const OSPRay::SimpleImageBase * >
-    // ( this->GetSyncDisplay()->getCurrentImage() );
-  // rowLength = OSPRayBase->getRowLength();
-
-  // for window re-sizing
-  // minWidth    = ( OSPRaySize[0] < renderSize[0] )
-    // ? OSPRaySize[0] : renderSize[0];
-  // minHeight   = ( OSPRaySize[1] < renderSize[1] )
   minWidth = renderSize[0];
   minHeight =renderSize[1];
   hOSPRayDiff = 0;
   hRenderDiff = 0;
-    // ? OSPRaySize[1] : renderSize[1];
-  // hOSPRayDiff  = OSPRaySize[1] - minHeight;
-  // hRenderDiff = renderSize[1] - minHeight;
-
-  // vtkTimerLog::MarkStartEvent("ThreadSync");
-  // let the render threads draw what we've asked them to
-  // this->GetSyncDisplay()->doneRendering();
-  // this->GetSyncDisplay()->waitOnFrameReady();
-  // vtkTimerLog::MarkEndEvent("ThreadSync");
-
   // memory allocation and acess to the OSPRay image
   int size = renderSize[0]*renderSize[1];
   if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1])
@@ -707,8 +413,6 @@ void vtkOSPRayRenderer::LayerRender()
       this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   }  
-  // ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | OSP_FB_DEPTH | OSP_FB_ACCUM);
-  // ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   if (hasVolumeHack)
   {
    OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
@@ -728,7 +432,6 @@ void vtkOSPRayRenderer::LayerRender()
 
 
    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
-   // ospRenderFrame(this->osp_framebuffer,vRenderer);
   }
   else
   {
@@ -739,13 +442,11 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(ospModel);
 
     ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
-    // ospRenderFrame(this->osp_framebuffer,renderer);
   }
 
   double *clipValues = this->GetActiveCamera()->GetClippingRange();
   double viewAngle = this->GetActiveCamera()->GetViewAngle();
 
-  //
   // Closest point is center of near clipping plane - farthest is
   // corner of far clipping plane
   double clipMin = clipValues[0];
@@ -865,8 +566,6 @@ void vtkOSPRayRenderer::SetEnableShadows( int newval )
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetSamples( int newval )
 {
-  // std::cerr << "vtkOSPRayRenderer::SetSamples " << newval << "\n";
-  #if 1
   if (this->Samples == newval || newval < 1)
   {
     return;
@@ -877,7 +576,6 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
 
-  // PRINT(renderer);
   Assert(renderer);
 
   ospSet1i(renderer,"spp",Samples);
@@ -885,20 +583,16 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
     OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
 
-  // PRINT(vRenderer);
   Assert(vRenderer);
 
   ospSet1i(vRenderer,"spp",Samples);
   ospCommit(vRenderer);
 
-  #endif
 }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetEnableAO( int newval )
 {
-  // std::cerr << "vtkOSPRayRenderer::SetEnableAO " << newval << "\n";
-  #if 1
   if (this->EnableAO == newval)
   {
     return;
@@ -911,20 +605,16 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   if (newval != 0)
   {
-    // std::cout << "using ao4" << std::endl;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
   }
   else
   {
-    // std::cout << "using obj" << std::endl;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
-  // this->OSPRayManager->OSPRayRenderer =  (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
   Assert(oRenderer != NULL && "could not create renderer");
 
-  // ospCommit(oRenderer);
   ospSetObject(oRenderer,"dynamic_model",ospNewModel());
   ospSetObject(oRenderer,"world",oModel);
   ospSetObject(oRenderer,"model",oModel);
@@ -935,13 +625,6 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
 
   ospCommit(oRenderer);
 
-  // SetBackground(backgroundRGB[0], backgroundRGB[1], backgroundRGB[2]);
-
-  // cout << "new renderer: " << static_cast<void*>(oRenderer) << ", samples: " << this->Samples << endl;
-
-  // loop through actors and set mtime to force update
-  // this will force the actors to create new materials that will be
-  // associated with the new renderer
   vtkActorCollection *actorList = this->GetActors();
   actorList->InitTraversal();
 
@@ -951,7 +634,6 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
     a->Modified();
   }
 
-  #endif
 }
 
 //----------------------------------------------------------------------------

@@ -32,13 +32,6 @@
 
 #include "vtkOSPRay.h"
 
-// //
-// //ospray
-// //
-// #if 1
-// #include "ospray/ospray.h"
-// #include "ospray/common/ospcommon.h"
-// #endif
 
 //BTX
 namespace OSPRay {
@@ -109,12 +102,10 @@ public:
 
   // Description:
   // Ask lights to load themselves into graphics pipeline.
-  // TODO: is this necessary?
   int UpdateLights(void);
 
   // Description:
   // Turns off all lighting
-  // TODO: is this necessary?
   void ClearLights(void);
 
 
@@ -147,38 +138,6 @@ public:
     return this->OSPRayManager;
   }
 
-  //BTX
-  //Description:
-  //Convenience read accessors to OSPRay structures
-  // OSPRay::OSPRayInterface* GetOSPRayEngine()
-  // {
-  // return this->OSPRayEngine;
-  // }
-  // OSPRay::Factory* GetOSPRayFactory()
-  // {
-  //   return this->OSPRayFactory;
-  // }
-  // OSPRay::Scene* GetOSPRayScene()
-  // {
-  //   return this->OSPRayScene;
-  // }
-  // OSPRay::Group* GetOSPRayWorldGroup()
-  // {
-  //   return this->OSPRayWorldGroup;
-  // }
-  // OSPRay::LightSet* GetOSPRayLightSet()
-  // {
-  //   return this->OSPRayLightSet;
-  // }
-  // OSPRay::Camera* GetOSPRayCamera()
-  // {
-  //   return this->OSPRayCamera;
-  // }
-  // OSPRay::SyncDisplay* GetSyncDisplay()
-  // {
-  //   return this->SyncDisplay;
-  // }
-  //ETX
 
   bool hasVolumeHack;
 	void SetProgressiveRenderFlag() {prog_flag = true; }
@@ -225,16 +184,6 @@ private:
   float *ColorBuffer;
   float *DepthBuffer;
 
-  //BTX
-  // OSPRay::OSPRayInterface * OSPRayEngine;
-  // OSPRay::Factory * OSPRayFactory;
-  // OSPRay::Scene * OSPRayScene;
-  // OSPRay::Group * OSPRayWorldGroup;
-  // OSPRay::LightSet * OSPRayLightSet;
-  // OSPRay::Camera * OSPRayCamera;
-  // OSPRay::SyncDisplay * SyncDisplay;
-  // OSPRay::Light * DefaultLight;
-  //ETX
 
   int ChannelId;
 
@@ -251,7 +200,6 @@ private:
   double backgroundRGB[3];
 
 
-  // OSPFrameBuffer ospFramebuffer;
 };
 
 #endif

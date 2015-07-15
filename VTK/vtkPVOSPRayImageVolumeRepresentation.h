@@ -48,7 +48,6 @@ vtkPVDataRepresentation
 {
 public:
   static vtkPVOSPRayImageVolumeRepresentation* New();
-  // vtkTypeMacro(vtkPVOSPRayImageVolumeRepresentation, vtkGeometryRepresentationWithFaces);
   vtkTypeMacro(vtkPVOSPRayImageVolumeRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -66,8 +65,8 @@ public:
   vtkSetMacro(ColorAttributeType, int);
   vtkGetMacro(ColorAttributeType, int);
 
-  // // Description:
-  // // Pick the array to color with.
+  // Description:
+  // Pick the array to color with.
   vtkSetStringMacro(ColorArrayName);
   vtkGetStringMacro(ColorArrayName);
 
@@ -165,10 +164,8 @@ protected:
   vtkImageData* Cache;
   vtkPVCacheKeeper* CacheKeeper;
   vtkAbstractVolumeMapper* VolumeMapper;
-  // vtkSmartVolumeMapper* VolumeMapper;
   vtkVolumeProperty* Property;
   vtkOSPRayPVLODVolume* Actor;
-  // vtkActor* Actor;
 
   vtkOutlineSource* OutlineSource;
   vtkPolyDataMapper* OutlineMapper;;

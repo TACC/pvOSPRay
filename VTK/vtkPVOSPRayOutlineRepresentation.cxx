@@ -42,25 +42,6 @@ vtkStandardNewMacro(vtkPVOSPRayOutlineRepresentation);
 vtkPVOSPRayOutlineRepresentation::vtkPVOSPRayOutlineRepresentation()
 : vtkPVOSPRayRepresentation()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
-  // this->Mapper->Delete();
-  // this->Mapper = vtkOSPRayCompositeMapper::New();
-  // this->LODMapper->Delete();
-  // this->LODMapper = vtkOSPRayCompositeMapper::New();
-  // this->Actor->Delete();
-  // this->Actor = vtkOSPRayLODActor::New();
-  // this->Property->Delete();
-  // this->Property = vtkOSPRayProperty::New();
-
-  // this->Actor->SetMapper(this->Mapper);
-  // this->Actor->SetLODMapper(this->LODMapper);
-  // this->Actor->SetProperty(this->Property);
-
-  // vtkInformation* keys = vtkInformation::New();
-  // this->Actor->SetPropertyKeys(keys);
-  // keys->Delete();
-
-  // this->SetSuppressLOD(true);
 
     this->SetUseOutline(1);
 

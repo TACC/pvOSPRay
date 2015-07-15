@@ -39,8 +39,6 @@
 
 static void RenderUpdateCallback(void* pvView)
 {
-  // printf("callback\n");
-  // vtkPVOSPRayView* view = dynamic_cast<vtkPVOSPRayView*>(pvView);
   vtkPVOSPRayView* view = (vtkPVOSPRayView*)pvView;
   if (view)
     view->RenderUpdate();
@@ -50,7 +48,6 @@ vtkStandardNewMacro(vtkPVOSPRayView);
 //----------------------------------------------------------------------------
 vtkPVOSPRayView::vtkPVOSPRayView()
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   this->SynchronizedRenderers->SetDisableIceT(true);
 
   OSPRayRenderer = vtkOSPRayRenderer::New();
@@ -61,14 +58,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   OSPRayCamera->ParallelProjectionOff();
   OSPRayCamera->Delete();
 
-/*
-  vtkMemberFunctionCommand<vtkPVRenderView>* observer =
-    vtkMemberFunctionCommand<vtkPVRenderView>::New();
-  observer->SetCallback(*this, &vtkPVRenderView::ResetCameraClippingRange);
-  this->GetRenderer()->AddObserver(vtkCommand::ResetCameraClippingRangeEvent,
-    observer);
-  observer->FastDelete();
-*/
   OSPRayRenderer->SetUseDepthPeeling(0);
 
   this->Light->Delete();
@@ -79,19 +68,12 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   this->Light->SetIntensity(1.0);
   this->Light->SetLightType(2); // CameraLight
 
-  //TODO:
-  //replace with a OSPRay light kit that knows to instantiate vtkOSPRayLights
-//  this->LightKit = NULL;//vtkLightKit::New();
 
   OSPRayRenderer->AddLight(this->Light);
   OSPRayRenderer->SetAutomaticLightCreation(0);
 
-  //  this->OrderedCompositingBSPCutsSource = vtkBSPCutsGenerator::New();
-
-
   if (this->Interactor)
     {
-      // this->Interactor->SetRenderer(OSPRayRenderer);
       ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
       this->Interactor->AddObserver(
         vtkCommand::StartInteractionEvent,
@@ -103,7 +85,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 
-  //this->GetRenderer()->AddActor(this->CenterAxes);
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
 
@@ -122,7 +103,6 @@ vtkPVOSPRayView::~vtkPVOSPRayView()
 void vtkPVOSPRayView::SetActiveCamera(vtkCamera* camera)
 {
   this->GetRenderer()->SetActiveCamera(camera);
-//  this->GetNonCompositedRenderer()->SetActiveCamera(camera);
 }
 
 //----------------------------------------------------------------------------
@@ -130,8 +110,6 @@ void vtkPVOSPRayView::Initialize(unsigned int id)
 {
   this->Superclass::Initialize(id);
 
-  //disable multipass rendering so OSPRayrenderer will do old school
-  //rendering ( for OpenGL renderer )
   vtkOpenGLRenderer *glrenderer = vtkOpenGLRenderer::SafeDownCast
     (this->RenderView->GetRenderer());
   if(glrenderer)
@@ -149,14 +127,6 @@ void vtkPVOSPRayView::PrintSelf(ostream& os, vtkIndent indent)
 //-----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetThreads(int newval)
 {
-  //if (newval == this->Threads)
-    //{
-    //return;
-    //}
-  //this->Threads = newval;
-  //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
-    //(this->RenderView->GetRenderer());
-  //OSPRayRenderer->SetNumberOfWorkers(this->Threads);
 }
 
 //-----------------------------------------------------------------------------
@@ -180,14 +150,10 @@ void vtkPVOSPRayView::SetEnableAO(int newval)
   this->EnableAO = newval;
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
   renderer->SetEnableAO(this->EnableAO);
-  //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
-    //(this->RenderView->GetRenderer());
-  //OSPRayRenderer->SetEnableShadows(this->EnableShadows);
 }
 
 void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
 {
-  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   if (newval != EnableProgressiveRefinement)
   {
     EnableProgressiveRefinement = newval;
@@ -197,8 +163,6 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
         ProgressiveRenderer->resumeAutoUpdates();        
       else
         ProgressiveRenderer->stopAutoUpdates();
-  // this->AddObserver(vtkCommand::UpdateDataEvent,
-      // progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
     }
   }
 }
@@ -211,24 +175,13 @@ void vtkPVOSPRayView::SetSamples(int newval)
     return;
     }
   this->Samples = newval;
-  //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
-    //(this->RenderView->GetRenderer());
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
   renderer->SetSamples(Samples);
-  //OSPRayRenderer->SetSamples(this->Samples);
 }
 
 //-----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetMaxDepth(int newval)
 {
-  //if (newval == this->EnableShadows)
-    //{
-    //return;
-    //}
-  //this->MaxDepth = newval;
-  //vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
-    //(this->RenderView->GetRenderer());
-  //OSPRayRenderer->SetMaxDepth(this->MaxDepth);
 }
 
 

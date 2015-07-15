@@ -74,7 +74,6 @@ OSPRayDisplay::OSPRayDisplay(pqDisplayPanel* panel)
     }
 
   vtkSMProperty *prop = mrep->GetProperty("MaterialType");
-  //have to use a helper class because pqPropertyLinks won't map directly
   this->Internal->links.addPropertyLink(
     this->Internal->strAdapt,
     "currentText",

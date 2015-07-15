@@ -29,13 +29,10 @@
 
 #include "vtkOSPRayModule.h"
 #include "vtkProperty.h"
-// #include "Interface/Texture.h"
 
 //BTX
 namespace OSPRay {
   class Material;
-//TODO: what should we do to deal with template+namespace?
-//class Texture<Color>;
 }
 //ETX
 
@@ -82,14 +79,6 @@ public:
   vtkGetMacro(N, float);
   vtkSetMacro(Nt, float);
   vtkGetMacro(Nt, float);
-  //BTX
-  // vtkSetMacro(OSPRayMaterial, OSPRay::Material*);
-  // vtkGetMacro(OSPRayMaterial, OSPRay::Material*);
-  // vtkSetMacro(DiffuseTexture, OSPRay::Texture<OSPRay::Color>*);
-  // vtkGetMacro(DiffuseTexture, OSPRay::Texture<OSPRay::Color>*);
-  // vtkSetMacro(SpecularTexture, OSPRay::Texture<OSPRay::Color>*);
-  // vtkGetMacro(SpecularTexture, OSPRay::Texture<OSPRay::Color>*);
-  //ETX
     vtkSetMacro(OSPRayMaterial, osp::Material*);
   vtkGetMacro(OSPRayMaterial, osp::Material*);
 
@@ -109,11 +98,6 @@ private:
   // the last time OSPRayMaterial is modified
   vtkTimeStamp OSPRayMaterialMTime;
 
-  //BTX
-  // OSPRay::Material *OSPRayMaterial;
-  // OSPRay::Texture<OSPRay::Color> *DiffuseTexture;
-  // OSPRay::Texture<OSPRay::Color> *SpecularTexture;
-  //ETX
   osp::OSPTexture2D* DiffuseTexture;
 
   // type of material to use. possible values are: "lambertian", "phong",

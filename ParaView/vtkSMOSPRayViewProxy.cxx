@@ -110,17 +110,6 @@ for(int i=0; toTry[i] != NULL; i++)
   bool g = (pp->IsInDomains()>0);
   pp->RemoveAllUncheckedProxies();
 
-
-//   vtkQtProgressiveRenderer* progressiveRenderer = new vtkQtProgressiveRenderer();
-//   this->AddObserver(vtkCommand::UpdateDataEvent,
-//       progressiveRenderer, &vtkQtProgressiveRenderer::onViewUpdated);
-//   this->GetInteractor()->AddObserver(
-//       vtkCommand::StartInteractionEvent,
-//       progressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
-// this->GetInteractor()->AddObserver(
-//       vtkCommand::EndInteractionEvent,
-//       progressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
-
   if (g)
     {
       printf("using OSPRay representation: %s\n", toTry[i]);

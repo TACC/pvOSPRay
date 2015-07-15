@@ -80,7 +80,6 @@
      vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
      {
       this->NumColors = 128;
-      // std::cout << __PRETTY_FUNCTION__ << std::endl;
       this->SampleDistance             =  1.0;
       this->ImageSampleDistance        =  1.0;
       this->MinimumImageSampleDistance =  1.0;
@@ -131,7 +130,6 @@
       this->IntermixIntersectingGeometry = 1;
 
 
-      // volume = ospNewVolume("block_bricked_volume");
       volume = ospNewVolume("shared_structured_volume");
       transferFunction = ospNewTransferFunction("piecewise_linear"); 
       model = ospNewModel();
@@ -341,6 +339,7 @@
           this->GetInputInformation());
         this->GetInputAlgorithm()->Update();
       }
+      // vol->UpdateTransferFunctions( ren );
 
     //
     // OSPRay
@@ -400,6 +399,10 @@
        int dim[3];
        data->GetDimensions(dim);
   //! Create an OSPRay transfer function.
+
+       printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
+
+
 std::vector<float> isoValues;
 if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
 {
@@ -415,11 +418,15 @@ if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
       {
       OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
       ospSetData(volume, "isovalues", isovaluesData);
+      }
 
       if (this->GetInput()->GetPointData()->GetScalars("ospClipValues"))
 {
     float clipValue = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,0);
     int clipAxis = this->GetInput()->GetPointData()->GetScalars("ospClipValues")->GetComponent(0,1);
+
+  std::cout << "clipValue: " << clipValue << std::endl;
+  std::cout << "clipAxis: " << clipAxis << std::endl;
 osp::vec3f upper(dim[0],dim[1],dim[2]);
 if (clipAxis == 0)
   upper.x = clipValue;
@@ -431,8 +438,6 @@ else if (clipAxis == 2)
   ospSet3fv(volume, "volumeClippingBoxLower", &value.lower.x);
   ospSet3fv(volume, "volumeClippingBoxUpper", &value.upper.x);
 }
-}
-
 //Carson: TODO: don't reallocate data when only changed isovalues or clip values... 
 
       ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
