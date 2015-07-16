@@ -292,6 +292,8 @@ protected:
   osp::TransferFunction* transferFunction;
   int NumColors;
   std::vector<float> TFVals, TFOVals;
+  bool SharedData;
+  bool VolumeAdded;
 
 
 private:

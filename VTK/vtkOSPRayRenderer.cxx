@@ -120,6 +120,7 @@
     OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
     this->OSPRayManager->OSPRayVolumeRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
     this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
+    this->OSPRayManager->OSPRayVolumeModel = ospNewModel();  
     bool ao = EnableAO;
     EnableAO=-1;
     SetEnableAO(ao);
@@ -127,14 +128,17 @@
     OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
     ospSet3f(vRenderer, "bgColor", backgroundRGB[0], backgroundRGB[1], backgroundRGB[2]);
     OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
+    ospCommit(vModel);
     ospSetObject(vRenderer, "dynamic_model", vModel);
     SetEnableShadows(0);
 
     ospSetObject(vRenderer,"world",vModel);
     ospSetObject(vRenderer,"model",vModel);
     ospSetObject(vRenderer,"camera",oCamera);
+    ospCommit(vRenderer);
 
     Assert(oRenderer != NULL && "could not create renderer");
+    Assert(vRenderer != NULL && "could not create renderer");
 
     ospSetObject(oRenderer,"world",oModel);
     ospSetObject(oRenderer,"model",oModel);
