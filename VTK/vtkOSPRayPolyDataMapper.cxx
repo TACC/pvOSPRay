@@ -231,7 +231,7 @@ void vtkOSPRayPolyDataMapper::RenderPiece(vtkRenderer *ren, vtkActor *act) {
     // If we are coloring by texture, then load the texture map.
     // Use Map as indicator, because texture hangs around.
     if (this->ColorTextureMap) {
-      this->InternalColorTexture->Load(ren);
+      this->InternalColorTexture->Load(ren, true);
     }
 
     this->Draw(ren, act);

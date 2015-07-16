@@ -88,7 +88,7 @@ void vtkOSPRayTexture::ReleaseGraphicsResources(vtkWindow *win)
 }
 
 //----------------------------------------------------------------------------
-void vtkOSPRayTexture::Load(vtkRenderer *ren)
+void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
 {
   vtkImageData *input = this->GetInput();
 
@@ -219,7 +219,7 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren)
          ysize,
          type,
          pixels,
-         0);
+         nearest ? OSP_TEXTURE_FILTER_NEAREST : 0);
 
         ospCommit((OSPTexture2D)this->OSPRayTexture);
 

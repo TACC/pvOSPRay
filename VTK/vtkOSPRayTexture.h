@@ -54,7 +54,7 @@ public:
 
   // Description:
   // Implement base class method.
-  void Load(vtkRenderer *ren);
+  void Load(vtkRenderer *ren, bool nearest = false);
 
   // Description:
   // Release any graphics resources that are being consumed by this texture.
