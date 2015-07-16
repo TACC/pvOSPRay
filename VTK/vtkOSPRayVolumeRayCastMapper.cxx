@@ -365,10 +365,8 @@
       vtkImageData *data = this->GetInput();        
       vtkDataArray * scalars = this->GetScalars(data, this->ScalarMode,
           this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
-      // if (vol->GetProperty()->GetMTime() > PropertyTime)
+      if (vol->GetProperty()->GetMTime() > PropertyTime)
       {
-        printf("volume property rebuild!\n");
-        // vol->UpdateTransferFunctions(ren);
         vtkVolumeProperty* volProperty = vol->GetProperty();
         vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
         vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);

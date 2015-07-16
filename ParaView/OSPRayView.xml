@@ -882,10 +882,13 @@
           proxygroup="representations"
           proxyname="OSPRayVolumeRepresentation"> <!-- this is the only thing different -->
         </Proxy>
-
+        <ShareProperties subproxy="SurfaceRepresentation">
+          <Exception name="Input" />
+          <Exception name="Visibility" />
+        </ShareProperties>
         <ExposedProperties>
           <PropertyGroup label="Volume Rendering">
-            <Property name="LookupTable" /> 
+            <!-- <Property name="LookupTable" /> -->
             <Property name="ScalarOpacityUnitDistance"
                       panel_visibility="advanced" />
             <Property name="ScalarOpacityFunction"

@@ -269,10 +269,6 @@ void vtkPVOSPRayImageVolumeRepresentation::UpdateMapperParameters()
     }
 
   this->VolumeMapper->SelectScalarArray(colorArrayName);
-  if (colorArrayName)
-    printf("color array name: \"%s\"\n", colorArrayName);
-  else
-    printf("color array name not found\n");
   switch (fieldAssociation)
     {
   case vtkDataObject::FIELD_ASSOCIATION_CELLS:
