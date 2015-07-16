@@ -622,7 +622,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
   } else if (this->ColorCoordinates) {
     osp::Texture2D *texture = this->InternalColorTexture->GetOSPRayTexture();
     Assert(texture);
-    ospSetParam(ospMaterial, "map_Kd", ((OSPTexture2D)(texture)));
+    ospSetObject(ospMaterial, "map_Kd", ((OSPTexture2D)(texture)));
     ospCommit(ospMaterial);
 
     for (int i = 0; i < this->ColorCoordinates->GetNumberOfTuples(); i++) {
@@ -635,7 +635,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     vtkOSPRayTexture *osprayTexture =
         vtkOSPRayTexture::SafeDownCast(actor->GetTexture());
     if (osprayTexture) {
-      ospSetParam(ospMaterial, "map_Kd",
+      ospSetObject(ospMaterial, "map_Kd",
                   ((OSPTexture2D)(osprayTexture->GetOSPRayTexture())));
       ospCommit(ospMaterial);
     }
@@ -869,7 +869,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         ospSetData(ospMesh, "vertex.texcoord", texcoord);
       }
       if (!mesh->colors.empty()) {
-        std::cerr << "using color coordinates\n";
         // note: to share data use OSP_DATA_SHARED_BUFFER
         OSPData colors =
             ospNewData(mesh->colors.size(), OSP_FLOAT4, &mesh->colors[0]);

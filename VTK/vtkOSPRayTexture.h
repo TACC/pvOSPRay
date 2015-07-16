@@ -32,6 +32,7 @@
 //BTX
 #include "vtkWeakPointer.h" // needed for vtkWeakPointer.
 //ETX
+#include <vector>
 
 //BTX
 namespace OSPRay {
@@ -81,6 +82,7 @@ private:
   void DeleteOSPRayTexture();
 
   osp::Texture2D* OSPRayTexture;
+  std::vector<unsigned char> pixels;
   //ETX
 
   vtkOSPRayManager *OSPRayManager;

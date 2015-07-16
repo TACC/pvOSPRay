@@ -141,6 +141,8 @@ public:
 
   bool hasVolumeHack;
 	void SetProgressiveRenderFlag() {prog_flag = true; }
+  int GetAccumCounter() { return AccumCounter; }
+  int GetMaxAccumulation() { return MaxAccum; }
 
 protected:
   vtkOSPRayRenderer();
@@ -161,6 +163,9 @@ protected:
     return 0;
   };
   virtual double GetPickedZ() { return 0.0f; };
+  //creates the internal OSPRay renderer object
+
+  void UpdateOSPRayRenderer();
 
 private:
   vtkOSPRayRenderer(const vtkOSPRayRenderer&); // Not implemented.
@@ -195,6 +200,8 @@ private:
   int Samples;
   int MaxDepth;
   bool Accumulate;
+  int AccumCounter;
+  int MaxAccum;
 	bool prog_flag;
 
   double backgroundRGB[3];

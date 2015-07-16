@@ -145,13 +145,11 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
         if (this->MapColorScalarsThroughLookupTable ||
           scalars->GetDataType() != VTK_UNSIGNED_CHAR)
         {
-          printf("color mapping\n");
           dataPtr = this->MapScalarsToColors(scalars);
           bytesPerPixel = 4;
         }
         else
         {
-          printf("color chararray\n");
           dataPtr = static_cast<vtkUnsignedCharArray *> (scalars)->GetPointer(0);
         }
 
@@ -180,26 +178,13 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
             }
           }
         }
-      printf("creating new texture size %d %d\n", xsize, ysize);
-      for(int i =0; i < xsize*bytesPerPixel; i++)
-      {
-        // std::cerr << int(dataPtr[i]) << " ";
-      }
-      printf("\n\ncolor values: \n");
-
-        struct OColor { unsigned char r,g,b; };
-        OColor* pixels = new OColor[xsize*ysize];
-        for (int v = 0; v < ysize; v++)
+        pixels.resize(xsize*ysize*3);  //TODO: Carson: memory leak
+        for (int i=0; i < xsize*ysize; i++)
         {
-          for (int u = 0; u < xsize; u++)
-          {
-            unsigned char *color = &dataPtr[(v*xsize+u)*bytesPerPixel];
-            OColor pixel;
-            pixel.r = color[0];
-            pixel.g = color[1];
-            pixel.b = color[2];
-            pixels[v*xsize + u] = pixel;
-          }
+            unsigned char *color = &dataPtr[(i)*bytesPerPixel];
+            pixels[i*3+0] = color[0];
+            pixels[i*3+1] = color[1];
+            pixels[i*3+2] = color[2];
         }
 
         OSPDataType type = OSP_VOID_PTR;
@@ -218,7 +203,7 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
         this->OSPRayTexture = (osp::Texture2D*)ospNewTexture2D(xsize,
          ysize,
          type,
-         pixels,
+         &pixels[0],
          nearest ? OSP_TEXTURE_FILTER_NEAREST : 0);
 
         ospCommit((OSPTexture2D)this->OSPRayTexture);

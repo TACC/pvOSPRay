@@ -40,7 +40,8 @@ void vtkQtProgressiveRenderer::onTimeout(){
     if (!disableAutomaticUpdates)
     {
       _pqTimer.start(0);
-     Callback(CallbackArg);
+      if (renderer->GetAccumCounter() < renderer->GetMaxAccumulation())
+        Callback(CallbackArg);
     }
   }
 }
