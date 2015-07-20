@@ -85,11 +85,15 @@ public:
   // Transaction callback that hides the object
   void RemoveObjects();
 
+  void PreRender();
+
   //Description:
   //Lets you choose the OSPRay space sorting (acceleration) structure
   //type used internally. Default is 0=DYNBVH
   vtkSetMacro(SortType, int);
   vtkGetMacro(SortType, int);
+
+  int GetLastFrame() { return LastFrame; }
 
  protected:
   vtkOSPRayActor();
@@ -113,6 +117,7 @@ public:
   vtkOSPRayManager *OSPRayManager;
 
 public:
+  int LastFrame;
   vtkTimeStamp MeshMTime;
   osp::Model* OSPRayModel;
   std::map<int, osp::Model*> cache;

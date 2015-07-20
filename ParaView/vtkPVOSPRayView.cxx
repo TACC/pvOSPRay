@@ -49,7 +49,7 @@ vtkStandardNewMacro(vtkPVOSPRayView);
 vtkPVOSPRayView::vtkPVOSPRayView()
 {
   this->SynchronizedRenderers->SetDisableIceT(true);
-
+  EnableAO=-1;
   OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
 

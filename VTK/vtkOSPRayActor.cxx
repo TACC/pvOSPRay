@@ -64,7 +64,8 @@ vtkOSPRayActor::vtkOSPRayActor()
 {
   this->OSPRayManager = NULL;
   this->SortType = DYNBVH;
-  this->OSPRayModel = NULL;
+  this->OSPRayModel = ospNewModel();
+  LastFrame=-1;
 }
 
 // now some OSPRay resources, ignored previously, can be de-allocated safely
@@ -76,6 +77,7 @@ vtkOSPRayActor::~vtkOSPRayActor()
     this->ReleaseGraphicsResources(NULL);
     this->OSPRayManager->Delete();
   }
+  // delete this->OSPRayModel;
 }
 
 //----------------------------------------------------------------------------
@@ -105,6 +107,11 @@ void vtkOSPRayActor::Render( vtkRenderer * ren, vtkMapper * mapper )
       this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
       this->OSPRayManager->Register(this);
     }
+    // if (LastFrame < OSPRayRenderer->GetFrame())
+    // {
+      // printf("creating new model for actor\n");
+      // this->OSPRayModel = ospNewModel();
+    // }
 
     // TODO: be smarter on update or create rather than create every time
     // build transformation (with AffineTransfrom and Instance?)
@@ -113,6 +120,7 @@ void vtkOSPRayActor::Render( vtkRenderer * ren, vtkMapper * mapper )
     // normals), changing from FLAT to Gouraud shading needs to create a new mesh.
 
       mapper->Render(ren, this);
+      LastFrame = OSPRayRenderer->GetFrame();
     }
       UpdateObjects(ren);
   }
@@ -134,6 +142,14 @@ void vtkOSPRayActor::SetVisibility(int newval)
 void vtkOSPRayActor::RemoveObjects()
 {
 }
+
+//----------------------------------------------------------------------------
+void vtkOSPRayActor::PreRender()
+{
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
+  // this->OSPRayModel = ospNewModel();
+}
+
 
 //----------------------------------------------------------------------------
 void vtkOSPRayActor::UpdateObjects( vtkRenderer * ren )
@@ -162,7 +178,7 @@ void vtkOSPRayActor::UpdateObjects( vtkRenderer * ren )
   //during sort or during search.
 
   //Remove what was shown.
-  this->RemoveObjects();
+  // this->RemoveObjects();
 
   if (!this->GetVisibility())
     return;

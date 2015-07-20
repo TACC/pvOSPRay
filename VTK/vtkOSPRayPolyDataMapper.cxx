@@ -554,25 +554,30 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
   if (!OSPRayProperty) {
     return;
   }
+  vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(renderer);
+  
   vtkPolyData *input = this->GetInput();
 
   vtkInformation *inputInfo = this->GetInput()->GetInformation();
+  // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" << 
+  // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
 
-  if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
-    double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-    timestep = time;
-    if (OSPRayActor->cache[time] != NULL) {
 
-      OSPRayActor->OSPRayModel = OSPRayActor->cache[time];
-      return;
+  // if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
+  //   double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
+  //   timestep = time;
+  //   if (OSPRayActor->cache[time] != NULL) {
 
-    }
+  //     OSPRayActor->OSPRayModel = OSPRayActor->cache[time];
+  //     return;
 
-  } else if (!inputInfo) {
-  } else {
-    if (OSPRayActor->cache[timestep] != NULL) {
-    }
-  }
+  //   }
+
+  // } else if (!inputInfo) {
+  // } else {
+  //   if (OSPRayActor->cache[timestep] != NULL) {
+  //   }
+  // }
   OSPRayActor->MeshMTime.Modified();
 
   // Compute we need to for color
@@ -812,10 +817,16 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 //
 // ospray
 //
-
-#if USE_OSPRAY
     OSPRenderer renderer = ((OSPRenderer) this->OSPRayManager->OSPRayRenderer);
-    OSPRayActor->OSPRayModel = ospNewModel();
+    // OSPRayActor->OSPRayModel = ospNewModel();
+    //TODO: There should be a better way to clear geometries than to remake model
+    // printf("actor frame: %d renderer frame: %d\n", OSPRayActor->GetLastFrame(),OSPRayRenderer->GetFrame());
+    if (OSPRayActor->GetLastFrame() < OSPRayRenderer->GetFrame())
+    {
+      // printf("new actor model\n");
+      OSPRayActor->OSPRayModel = ospNewModel();
+      OSPRayActor->LastFrame = OSPRayRenderer->GetFrame();
+    }
 
     if (mesh->size()) {
 
@@ -823,6 +834,8 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       size_t numTexCoords = mesh->texCoords.size();
       size_t numPositions = mesh->vertices.size();
       size_t numTriangles = mesh->vertex_indices.size() / 3;
+
+      // printf("building mesh with numTriangles %d\n", numTriangles);
 
 
       ospray::vec3fa *vertices = (ospray::vec3fa *)embree::alignedMalloc(
@@ -934,8 +947,6 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     } else {
       OSPRayActor->cache[timestep] = OSPRayActor->OSPRayModel;
     }
-
-#endif
 
   } else {
     delete mesh;

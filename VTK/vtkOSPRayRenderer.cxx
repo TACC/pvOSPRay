@@ -50,10 +50,11 @@
 #include <vtkRenderWindowInteractor.h>
 
 
+#include "vtkOSPRayActor.h"
+
 //  VBOs
 //
 #if USE_VBOS
-#include "vtkOSPRayActor.h"
 #include <GL/glu.h>
 #include <assert.h>
 #endif
@@ -94,6 +95,7 @@
   prog_flag(false),
   Accumulate(false)
   {
+    Frame=0;
     hasVolumeHack= false;
 
     this->EngineInited=false;
@@ -315,6 +317,7 @@ void vtkOSPRayRenderer::UpdateSize()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
+  // std::cout << __PRETTY_FUNCTION__ << std::endl;
   if (! prog_flag)
   {
    if (osp_framebuffer)
@@ -362,6 +365,17 @@ this->UpdateCamera();
 this->UpdateLightGeometry();
 this->UpdateLights();
 
+//Clear all actors
+vtkActorCollection *actorList = this->GetActors();
+actorList->InitTraversal();
+
+for(int i=0; i<actorList->GetNumberOfItems(); i++) {
+  vtkActor *a = actorList->GetNextActor();
+  vtkOSPRayActor *OSPRayActor = vtkOSPRayActor::SafeDownCast(a);
+  if (OSPRayActor)
+    OSPRayActor->PreRender();
+}
+
 
 this->UpdateGeometry();
 
@@ -373,7 +387,7 @@ this->LayerRender();
 vtkTimerLog::MarkEndEvent("Total LayerRender");
 
 vtkTimerLog::MarkEndEvent("OSPRay Dev Render");
-
+  Frame++;
 }
 
 //----------------------------------------------------------------------------

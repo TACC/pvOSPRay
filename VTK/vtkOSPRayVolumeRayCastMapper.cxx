@@ -137,10 +137,10 @@
         volume = ospNewVolume("block_bricked_volume");
       transferFunction = ospNewTransferFunction("piecewise_linear"); 
       ospCommit(transferFunction);
-      model = ospNewModel();
+      // model = ospNewModel();
       // model = this->OSPRayManager->OSPRayVolumeModel;
       // ospAddVolume(model,(OSPVolume)volume);
-      ospCommit(model);
+      // ospCommit(model);
     }
 
 // Destruct a vtkOSPRayVolumeRayCastMapper - clean up any memory used
@@ -364,6 +364,7 @@
         this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
         this->OSPRayManager->Register(this);
       }
+      model = this->OSPRayManager->OSPRayVolumeModel;
 
       this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
       OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;

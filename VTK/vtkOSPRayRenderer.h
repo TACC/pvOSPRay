@@ -143,6 +143,7 @@ public:
 	void SetProgressiveRenderFlag() {prog_flag = true; }
   int GetAccumCounter() { return AccumCounter; }
   int GetMaxAccumulation() { return MaxAccum; }
+  int GetFrame() { return Frame; }
 
 protected:
   vtkOSPRayRenderer();
@@ -203,6 +204,7 @@ private:
   int AccumCounter;
   int MaxAccum;
 	bool prog_flag;
+  int Frame;
 
   double backgroundRGB[3];
 
