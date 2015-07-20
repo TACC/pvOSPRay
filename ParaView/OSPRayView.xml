@@ -1109,8 +1109,10 @@
         <BooleanDomain name="bool" />
         <Documentation>Set the visibility for the cube axes.</Documentation>
       </IntVectorProperty>
-      <!-- <RepresentationType subproxy="OutlineRepresentation"
-                          text="Outline" /> -->
+      <RepresentationType subproxy="SurfaceRepresentation"
+                          subtype="Surface"
+                          text="Outline" /> 
+      <!-- TODO: Carson: This should be changed to an actual Outline -->
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Points"
                           text="Points" />

@@ -131,7 +131,6 @@
 
       this->IntermixIntersectingGeometry = 1;
 
-
       if (SharedData)
         volume = ospNewVolume("shared_structured_volume");
       else
@@ -396,7 +395,7 @@
       }
       if (this->GetInput()->GetMTime() > this->BuildTime)
       {
-        printf("volume rebuild!\n");
+        // printf("volume rebuild!\n");
 
         void* ScalarDataPointer =
         this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
@@ -407,7 +406,7 @@
         data->GetDimensions(dim);
   //! Create an OSPRay transfer function.
 
-        printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
+        // printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
 
 
         std::vector<float> isoValues;
@@ -464,7 +463,6 @@
 
         buffer = (char*)ScalarDataPointer;
 
-      std::cout << "3\n";
         ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
         ospSet3f(volume, "gridOrigin", -dim[0]/2.0f, -dim[1]/2.0f, -dim[2]/2.0f);
         ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");

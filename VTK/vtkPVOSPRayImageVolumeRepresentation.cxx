@@ -1,15 +1,15 @@
 /*=========================================================================
 
-  Program:   ParaView
-  Module:    vtkPVOSPRayImageVolumeRepresentation.cxx
+Program:   ParaView
+Module:    vtkPVOSPRayImageVolumeRepresentation.cxx
 
-  Copyright (c) Kitware, Inc.
-  All rights reserved.
-  See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
+Copyright (c) Kitware, Inc.
+All rights reserved.
+See Copyright.txt or http://www.paraview.org/HTML/Copyright.html for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notice for more information.
+ This software is distributed WITHOUT ANY WARRANTY; without even
+ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
 #include "vtkPVOSPRayImageVolumeRepresentation.h"
@@ -43,18 +43,18 @@
 #include "vtkOSPRayProperty.h"
 #include "vtkObjectFactory.h"
 #include "vtkVolumeProperty.h"
-     #include "vtkPiecewiseFunction.h"
-     #include "vtkOSPRayPVLODVolume.h"
+#include "vtkPiecewiseFunction.h"
+#include "vtkOSPRayPVLODVolume.h"
 
 #include <map>
 #include <string>
 
 
 
-vtkStandardNewMacro(vtkPVOSPRayImageVolumeRepresentation);
+ vtkStandardNewMacro(vtkPVOSPRayImageVolumeRepresentation);
 //----------------------------------------------------------------------------
-vtkPVOSPRayImageVolumeRepresentation::vtkPVOSPRayImageVolumeRepresentation()
-{
+ vtkPVOSPRayImageVolumeRepresentation::vtkPVOSPRayImageVolumeRepresentation()
+ {
   this->VolumeMapper = vtkOSPRayVolumeRayCastMapper::New();
 
   this->Property = vtkVolumeProperty::New();
@@ -106,11 +106,11 @@ int vtkPVOSPRayImageVolumeRepresentation::ProcessViewRequest(
   vtkInformation* inInfo, vtkInformation* outInfo)
 {
   if (!this->Superclass::ProcessViewRequest(request_type, inInfo, outInfo))
-    {
+  {
     return 0;
-    }
+  }
   if (request_type == vtkPVView::REQUEST_UPDATE())
-    {
+  {
     vtkPVRenderView::SetPiece(inInfo, this,
       this->OutlineSource->GetOutputDataObject(0),
       this->DataSize);
@@ -122,21 +122,21 @@ int vtkPVOSPRayImageVolumeRepresentation::ProcessViewRequest(
       this, inInfo);
 
     vtkPVRenderView::SetRequiresDistributedRendering(inInfo, this, true);
-    }
+  }
   else if (request_type == vtkPVView::REQUEST_UPDATE_LOD())
-    {
+  {
     vtkPVRenderView::SetRequiresDistributedRenderingLOD(inInfo, this, true);
-    }
+  }
   else if (request_type == vtkPVView::REQUEST_RENDER())
-    {
+  {
     this->UpdateMapperParameters();
 
     vtkAlgorithmOutput* producerPort = vtkPVRenderView::GetPieceProducer(inInfo, this);
     if (producerPort)
-      {
+    {
       this->OutlineMapper->SetInputConnection(producerPort);
-      }
     }
+  }
   return 1;
 }
 
@@ -146,11 +146,11 @@ void vtkPVOSPRayImageVolumeRepresentation::PassOrderedCompositingInformation(
 {
   (void)inInfo;
   if (self->GetNumberOfInputConnections(0) == 1)
-    {
+  {
     vtkAlgorithmOutput* connection = self->GetInputConnection(0, 0);
     vtkAlgorithm* inputAlgo = connection->GetProducer();
     vtkStreamingDemandDrivenPipeline* sddp =
-      vtkStreamingDemandDrivenPipeline::SafeDownCast(inputAlgo->GetExecutive());
+    vtkStreamingDemandDrivenPipeline::SafeDownCast(inputAlgo->GetExecutive());
 
     int extent[6] = {1, -1, 1, -1, 1, -1};
     sddp->GetWholeExtent(sddp->GetOutputInformation(connection->GetIndex()),
@@ -165,49 +165,48 @@ void vtkPVOSPRayImageVolumeRepresentation::PassOrderedCompositingInformation(
     translator->GatherExtents(image);
     vtkPVRenderView::SetOrderedCompositingInformation(
       inInfo, self, translator.GetPointer(), extent, origin, spacing);
-    }
+  }
 }
 
 //----------------------------------------------------------------------------
 int vtkPVOSPRayImageVolumeRepresentation::RequestData(vtkInformation* request,
-    vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+  vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   vtkMath::UninitializeBounds(this->DataBounds);
   this->DataSize = 0;
 
-  // Pass caching information to the cache keeper.
+// Pass caching information to the cache keeper.
   this->CacheKeeper->SetCachingEnabled(this->GetUseCache());
   this->CacheKeeper->SetCacheTime(this->GetCacheKey());
 
   if (inputVector[0]->GetNumberOfInformationObjects()==1)
-    {
+  {
     vtkImageData* input = vtkImageData::GetData(inputVector[0], 0);
     if (!this->GetUsingCacheForUpdate())
-      {
+    {
       this->Cache->ShallowCopy(input);
-      }
+    }
     this->CacheKeeper->Update();
 
-    printf("lod disable\n");
     this->Actor->SetEnableLOD(0);
     this->VolumeMapper->SetInputConnection(
       this->CacheKeeper->GetOutputPort());
 
     this->OutlineSource->SetBounds(vtkImageData::SafeDownCast(
-        this->CacheKeeper->GetOutputDataObject(0))->GetBounds());
+      this->CacheKeeper->GetOutputDataObject(0))->GetBounds());
     this->OutlineSource->GetBounds(this->DataBounds);
     this->OutlineSource->Update();
 
     this->DataSize = this->CacheKeeper->GetOutputDataObject(0)->GetActualMemorySize();
-    }
+  }
   else
-    {
-    // when no input is present, it implies that this processes is on a node
-    // without the data input i.e. either client or render-server, in which case
-    // we show only the outline.
+  {
+// when no input is present, it implies that this processes is on a node
+// without the data input i.e. either client or render-server, in which case
+// we show only the outline.
     this->VolumeMapper->RemoveAllInputs();
     this->Actor->SetEnableLOD(1);
-    }
+  }
 
   return this->Superclass::RequestData(request, inputVector, outputVector);
 }
@@ -222,10 +221,10 @@ bool vtkPVOSPRayImageVolumeRepresentation::IsCached(double cache_key)
 void vtkPVOSPRayImageVolumeRepresentation::MarkModified()
 {
   if (!this->GetUseCache())
-    {
-    // Cleanup caches when not using cache.
+  {
+// Cleanup caches when not using cache.
     this->CacheKeeper->RemoveAllCaches();
-    }
+  }
   this->Superclass::MarkModified();
 }
 
@@ -234,10 +233,10 @@ bool vtkPVOSPRayImageVolumeRepresentation::AddToView(vtkView* view)
 {
   vtkPVRenderView* rview = vtkPVRenderView::SafeDownCast(view);
   if (rview)
-    {
+  {
     rview->GetRenderer()->AddActor(this->Actor);
     return true;
-    }
+  }
   return false;
 }
 
@@ -246,10 +245,10 @@ bool vtkPVOSPRayImageVolumeRepresentation::RemoveFromView(vtkView* view)
 {
   vtkPVRenderView* rview = vtkPVRenderView::SafeDownCast(view);
   if (rview)
-    {
+  {
     rview->GetRenderer()->RemoveActor(this->Actor);
     return true;
-    }
+  }
   return false;
 }
 
@@ -263,29 +262,29 @@ void vtkPVOSPRayImageVolumeRepresentation::UpdateMapperParameters()
   if (info &&
     info->Has(vtkDataObject::FIELD_ASSOCIATION()) &&
     info->Has(vtkDataObject::FIELD_NAME()))
-    {
+  {
     colorArrayName = info->Get(vtkDataObject::FIELD_NAME());
     fieldAssociation = info->Get(vtkDataObject::FIELD_ASSOCIATION());
-    }
+  }
 
   this->VolumeMapper->SelectScalarArray(colorArrayName);
   switch (fieldAssociation)
-    {
-  case vtkDataObject::FIELD_ASSOCIATION_CELLS:
+  {
+    case vtkDataObject::FIELD_ASSOCIATION_CELLS:
     this->VolumeMapper->SetScalarMode(VTK_SCALAR_MODE_USE_CELL_FIELD_DATA);
     break;
 
-  case vtkDataObject::FIELD_ASSOCIATION_NONE:
+    case vtkDataObject::FIELD_ASSOCIATION_NONE:
     this->VolumeMapper->SetScalarMode(VTK_SCALAR_MODE_USE_FIELD_DATA);
     break;
 
-  case vtkDataObject::FIELD_ASSOCIATION_POINTS:
-  default:
+    case vtkDataObject::FIELD_ASSOCIATION_POINTS:
+    default:
     this->VolumeMapper->SetScalarMode(VTK_SCALAR_MODE_USE_POINT_FIELD_DATA);
     break;
-    }
+  }
 
- vtkOSPRayVolumeRayCastMapper* ospMapper = vtkOSPRayVolumeRayCastMapper::SafeDownCast(this->VolumeMapper);
+  vtkOSPRayVolumeRayCastMapper* ospMapper = vtkOSPRayVolumeRayCastMapper::SafeDownCast(this->VolumeMapper);
   this->Actor->SetMapper(this->VolumeMapper);
   this->Actor->SetVisibility(colorArrayName != NULL && colorArrayName[0] != 0);
   this->Actor->SetVisibility(1);
