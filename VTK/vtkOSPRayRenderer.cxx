@@ -324,7 +324,7 @@ void vtkOSPRayRenderer::DeviceRender()
   if (! prog_flag)
   {
     if (osp_framebuffer)
-      ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | ComputeDepth ? OSP_FB_DEPTH : 0 | OSP_FB_ACCUM);
+      ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
   }
   else
@@ -430,7 +430,7 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
     
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | ComputeDepth ? OSP_FB_DEPTH : 0 | OSP_FB_ACCUM);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     DEBUG("");
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
     AccumCounter=0;
