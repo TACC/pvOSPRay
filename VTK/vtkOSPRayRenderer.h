@@ -138,8 +138,7 @@ public:
     return this->OSPRayManager;
   }
 
-
-  bool hasVolumeHack;
+  void SetHasVolume(bool st) { HasVolume=st;}
 	void SetProgressiveRenderFlag() {prog_flag = true; }
   int GetAccumCounter() { return AccumCounter; }
   int GetMaxAccumulation() { return MaxAccum; }
@@ -205,6 +204,8 @@ private:
   int MaxAccum;
 	bool prog_flag;
   int Frame;
+  bool ComputeDepth;
+  bool HasVolume;
 
   double backgroundRGB[3];
 

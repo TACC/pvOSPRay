@@ -499,7 +499,7 @@
       ospCommit(renderer);
       this->OSPRayManager->OSPRayVolumeModel = model;
 
-      OSPRayRenderer->hasVolumeHack = true;
+      OSPRayRenderer->SetHasVolume(true);
     }
 
     double vtkOSPRayVolumeRayCastMapper::GetZBufferValue(int x, int y)

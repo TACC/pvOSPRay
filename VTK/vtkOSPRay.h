@@ -36,7 +36,7 @@
 #include "vtkgl.h"
 #endif
 
-
+#define DEBUG(x) {   std::cout << __PRETTY_FUNCTION__ << ":" << __LINE__ << " " << x << std::endl; }
 #define USE_OSPRAY 1
 #define USE_VBOS 0
 
