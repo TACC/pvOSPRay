@@ -33,6 +33,7 @@ vtkStandardNewMacro(vtkOSPRayManager);
 //----------------------------------------------------------------------------
 vtkOSPRayManager::vtkOSPRayManager()
 {
+  VolumeModelLastFrame=-1;
   if (!initialized)
   {
     initialized=true;

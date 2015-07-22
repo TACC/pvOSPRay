@@ -125,7 +125,7 @@ Accumulate(false)
   this->OSPRayManager->OSPRayCamera = ospNewCamera("perspective");
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
   this->OSPRayManager->OSPRayVolumeRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
-  this->OSPRayManager->OSPRayDynamicModel = ospNewModel();
+//  this->OSPRayManager->OSPRayDynamicModel = ospNewModel();
   this->OSPRayManager->OSPRayVolumeModel = ospNewModel();
   bool ao = EnableAO;
   EnableAO=-1;
@@ -133,9 +133,10 @@ Accumulate(false)
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
   ospSet3f(vRenderer, "bgColor", backgroundRGB[0], backgroundRGB[1], backgroundRGB[2]);
-  OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
-  ospCommit(vModel);
-  ospSetObject(vRenderer, "dynamic_model", vModel);
+//  OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
+//  ospCommit(vModel);
+//  ospSetObject(vRenderer, "dynamic_model", vModel);
+  OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
   SetEnableShadows(0);
   
   ospSetObject(vRenderer,"world",vModel);
@@ -439,18 +440,18 @@ void vtkOSPRayRenderer::LayerRender()
   if (HasVolume)
   {
     OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
-    OSPModel vdModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
-    ospSetObject(vRenderer, "dynamic_model", vdModel);
+//    OSPModel vdModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
+//    ospSetObject(vRenderer, "dynamic_model", vdModel);
     OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
     OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
     
     ospSetObject(vRenderer,"world",vModel);
-    ospSetObject(vRenderer,"dynamic_model",vdModel);
+//    ospSetObject(vRenderer,"dynamic_model",vdModel);
     ospSetObject(vRenderer,"model",vModel);
     ospSetObject(vRenderer,"camera",oCamera);
     
     ospCommit(vModel);
-    ospCommit(vdModel);
+//    ospCommit(vdModel);
     ospCommit(vRenderer);
     
     

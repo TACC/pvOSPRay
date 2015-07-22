@@ -365,9 +365,16 @@
         this->OSPRayManager->Register(this);
       }
       model = this->OSPRayManager->OSPRayVolumeModel;
+      
+      if (OSPRayRenderer->GetFrame() > this->OSPRayManager->VolumeModelLastFrame)
+      {
+        this->OSPRayManager->VolumeModelLastFrame = OSPRayRenderer->GetFrame();
+        this->OSPRayManager->OSPRayVolumeModel = ospNewModel();
+        model = this->OSPRayManager->OSPRayVolumeModel;
+      }
 
-      this->OSPRayManager->OSPRayDynamicModel = ospNewModel();  
-      OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
+//      this->OSPRayManager->OSPRayDynamicModel = ospNewModel();
+//      OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
       
       OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
 
@@ -397,7 +404,12 @@
       }
       if (this->GetInput()->GetMTime() > this->BuildTime)
       {
-        // printf("volume rebuild!\n");
+        if (VolumeAdded)
+        {
+//          ospRemoveVolume(model,(OSPVolume)volume);
+          volume = ospNewVolume("block_bricked_volume");
+          VolumeAdded=false;
+        }
 
         void* ScalarDataPointer =
         this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
@@ -408,7 +420,7 @@
         data->GetDimensions(dim);
   //! Create an OSPRay transfer function.
 
-        // printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
+//         printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
 
 
         std::vector<float> isoValues;
@@ -466,7 +478,17 @@
         buffer = (char*)ScalarDataPointer;
 
         ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
-        ospSet3f(volume, "gridOrigin", -dim[0]/2.0f, -dim[1]/2.0f, -dim[2]/2.0f);
+        double origin[3];
+        vol->GetOrigin(origin);
+        double *bds = data->GetBounds();
+        origin[0] = bds[0];
+        origin[1] = bds[2];
+        origin[2] = bds[4];
+        
+        double spacing[3];
+        data->GetSpacing(spacing);
+        ospSet3f(volume, "gridOrigin", origin[0], origin[1], origin[2]);
+        ospSet3f(volume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
         ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
         if (SharedData)
         {
@@ -485,16 +507,13 @@
         this->BuildTime.Modified();
 
       }
-      DEBUG(OSPRayRenderer->GetEnableVolumeShading());
       ospSet1i(volume, "gradientShadingEnabled", OSPRayRenderer->GetEnableVolumeShading());
       ospSet1f(volume, "samplingRate", 0.25f);
-      ospSetObject(renderer, "dynamic_model", dynamicModel);
+//      ospSetObject(renderer, "dynamic_model", dynamicModel);
       ospCommit(volume);
+      ospAddVolume(model,(OSPVolume)volume);
       if (!VolumeAdded)
-      {
-        ospAddVolume(model,(OSPVolume)volume);
         VolumeAdded = true;
-      }
       ospCommit(model);
       ospSetObject(renderer, "model", model);
       ospCommit(renderer);
