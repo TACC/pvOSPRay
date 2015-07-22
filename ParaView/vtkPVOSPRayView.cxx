@@ -167,6 +167,18 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
   }
 }
 
+
+void vtkPVOSPRayView::SetEnableVolumeShading(int newval)
+{
+  if (newval == this->EnableVolumeShading)
+  {
+    return;
+  }
+  this->EnableVolumeShading = newval;
+  vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
+  renderer->SetEnableVolumeShading(this->EnableVolumeShading);
+}
+
 //-----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetSamples(int newval)
 {

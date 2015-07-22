@@ -98,6 +98,7 @@ Accumulate(false)
 {
   Frame=0;
   HasVolume= false;
+  ClearAccumFlag=false;
   ComputeDepth = vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1;
   
   this->EngineInited=false;
@@ -105,6 +106,7 @@ Accumulate(false)
   this->EnableShadows = -1;
   this->Samples = 1;
   this->MaxDepth = 5;
+  this->EnableVolumeShading = 0;
   
   this->ImageX = -1;
   this->ImageY = -1;
@@ -215,7 +217,6 @@ void vtkOSPRayRenderer::Clear()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::ClearAccumulation()
 {
-  DEBUG("");
   if (osp_framebuffer)
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   AccumCounter=0;
@@ -321,11 +322,12 @@ void vtkOSPRayRenderer::UpdateSize()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
-  if (! prog_flag)
+  if ((! prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer)
       ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
+    ClearAccumFlag=false;
   }
   else
     prog_flag = false;
@@ -431,7 +433,6 @@ void vtkOSPRayRenderer::LayerRender()
     
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
     this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
-    DEBUG("");
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
     AccumCounter=0;
   }
@@ -581,6 +582,12 @@ void vtkOSPRayRenderer::SetNumberOfWorkers( int newval )
   }
 }
 
+void vtkOSPRayRenderer::AddOSPRayRenderable(vtkOSPRayRenderable* inst)
+{
+  ospAddGeometry((OSPModel)this->OSPRayManager->OSPRayModel,inst->instance);
+  renderables.push_back(inst);
+}
+
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetEnableShadows( int newval )
 {
@@ -636,6 +643,11 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
   
 }
 
+void vtkOSPRayRenderer::SetEnableVolumeShading( int newval )
+{
+  EnableVolumeShading = newval;
+}
+
 void vtkOSPRayRenderer::UpdateOSPRayRenderer()
 {
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
@@ -661,6 +673,7 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   
   ospSet1i(oRenderer,"spp",Samples);
   ospSet1f(oRenderer,"epsilon", 10e-2);
+  ospSet1i(oRenderer,"shadowsEnabled", this->EnableShadows);
   
   ospCommit(oRenderer);
   SetBackground(backgroundRGB[0],backgroundRGB[1],backgroundRGB[2]);

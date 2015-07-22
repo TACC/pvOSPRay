@@ -62,6 +62,11 @@ public:
   vtkGetMacro(Samples, int);
   virtual void SetMaxDepth(int val);
   vtkGetMacro(MaxDepth, int);
+  virtual void SetEnableVolumeShading(int val);
+  vtkGetMacro(EnableVolumeShading, int);
+  
+//  void SetOSPSuppressLOD(bool st) { this->SuppressLOD = st; }
+//  vtkGetMacro(OSPSuppressLOD, bool);
 
   virtual void SetEnableProgressiveRefinement(int val);
   vtkGetMacro(EnableProgressiveRefinement, int);
@@ -80,9 +85,11 @@ protected:
   int EnableShadows;
   int EnableAO;
   int EnableProgressiveRefinement;
+  int EnableVolumeShading;
   int Threads;
   int Samples;
   int MaxDepth;
+//  int OSPSuppressLOD;
 
 	vtkOSPRayRenderer *OSPRayRenderer;
   vtkQtProgressiveRenderer* ProgressiveRenderer;

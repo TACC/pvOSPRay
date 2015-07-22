@@ -376,6 +376,7 @@
         this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
       if (vol->GetProperty()->GetMTime() > PropertyTime)
       {
+        OSPRayRenderer->SetClearAccumFlag();
         vtkVolumeProperty* volProperty = vol->GetProperty();
         vtkColorTransferFunction* colorTF = volProperty->GetRGBTransferFunction(0);
         vtkPiecewiseFunction *scalarTF = volProperty->GetScalarOpacity(0);
@@ -480,13 +481,13 @@
         ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
 
   // set to 1 to enable gradient shading
-        ospSet1i(volume, "gradientShadingEnabled", 0);
+
         this->BuildTime.Modified();
 
       }
-      ospCommit(volume);
-      ospSet1f(volume, "samplingRate", 4.0f);
-
+      DEBUG(OSPRayRenderer->GetEnableVolumeShading());
+      ospSet1i(volume, "gradientShadingEnabled", OSPRayRenderer->GetEnableVolumeShading());
+      ospSet1f(volume, "samplingRate", 0.25f);
       ospSetObject(renderer, "dynamic_model", dynamicModel);
       ospCommit(volume);
       if (!VolumeAdded)

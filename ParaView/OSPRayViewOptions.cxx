@@ -48,7 +48,7 @@ OSPRayViewOptions::OSPRayViewOptions(QWidget *widgetParent)
   QObject::connect(this->Internal->ui.ao,
                   SIGNAL(toggled(bool)),
                   this, SIGNAL(changesAvailable()));
-    QObject::connect(this->Internal->ui.progressiveRefinement,
+  QObject::connect(this->Internal->ui.progressiveRefinement,
                   SIGNAL(toggled(bool)),
                   this, SIGNAL(changesAvailable()));
   QObject::connect(this->Internal->ui.samples,
@@ -91,7 +91,7 @@ void OSPRayViewOptions::applyChanges()
   boolSetting = this->Internal->ui.ao->isChecked();
   vtkSMPropertyHelper(proxy, "EnableAO").Set(boolSetting);
 
-    boolSetting = this->Internal->ui.progressiveRefinement->isChecked();
+  boolSetting = this->Internal->ui.progressiveRefinement->isChecked();
   vtkSMPropertyHelper(proxy, "EnableProgressiveRefinement").Set(boolSetting);
 
   intSetting = this->Internal->ui.samples->value();
@@ -99,6 +99,8 @@ void OSPRayViewOptions::applyChanges()
 
   intSetting = this->Internal->ui.maxDepth->value();
   vtkSMPropertyHelper(proxy, "MaxDepth").Set(intSetting);
+  
+  vtkSMPropertyHelper(proxy, "SuppressLOD").Set(1);
 }
 
 //----------------------------------------------------------------------------

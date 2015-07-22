@@ -80,6 +80,18 @@
           Turns on Progressive Refinement.
         </Documentation>
       </IntVectorProperty>
+      
+      <IntVectorProperty name="EnableVolumeShading"
+        command="SetEnableVolumeShading"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on Volume Gradient Shading.
+        </Documentation>
+      </IntVectorProperty>
+      
       <IntVectorProperty name="Samples"
         command="SetSamples"
         immediate_update="1"
@@ -175,6 +187,14 @@
         number_of_elements="1"
         default_values="1.2">
       </DoubleVectorProperty>
+      
+      <IntVectorProperty name="OSuppressLOD"
+        command="SetOSPSuppressLOD"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
 
     </RepresentationProxy>
 
@@ -834,6 +854,7 @@
             <!-- OSPRay specific properties -->
             <Property name="MaterialType" />
             <Property name="Reflectance" />
+            <Property name="OSuppressLOD" />
             <Property name="Thickness" />
             <Property name="Eta" />
             <Property name="N" />
@@ -1259,7 +1280,7 @@
             <Property name="StaticMode"
                       panel_visibility="never" />
             <Property name="SuppressLOD"
-                      panel_visibility="never" />
+                      panel_visibility="advanced" />
             <Property name="Texture"
                       panel_visibility="advanced" />
             <Property name="UserTransform"

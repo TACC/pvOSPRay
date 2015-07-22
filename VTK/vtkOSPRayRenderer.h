@@ -32,6 +32,8 @@
 
 #include "vtkOSPRay.h"
 
+#include "vtkOSPRayRenderable.h"
+
 
 //BTX
 namespace OSPRay {
@@ -79,6 +81,12 @@ public:
   //Default is off.
   void SetEnableAO(int);
   vtkGetMacro(EnableAO, int);
+  
+  //Description:
+  //Turns on or off shadow rendering.
+  //Default is off.
+  void SetEnableVolumeShading(int);
+  vtkGetMacro(EnableVolumeShading, int);
 
   //Description:
   //Controls multisample (anitaliased) rendering.
@@ -140,9 +148,12 @@ public:
 
   void SetHasVolume(bool st) { HasVolume=st;}
 	void SetProgressiveRenderFlag() {prog_flag = true; }
+  void SetClearAccumFlag() {ClearAccumFlag = true; }
   int GetAccumCounter() { return AccumCounter; }
   int GetMaxAccumulation() { return MaxAccum; }
   int GetFrame() { return Frame; }
+
+  void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
 
 protected:
   vtkOSPRayRenderer();
@@ -177,6 +188,7 @@ private:
   //Description:
   // Overriden to help ensure that a OSPRay compatible class is created.
   vtkCamera * MakeCamera();
+  std::vector<vtkOSPRayRenderable*> renderables;
 
   bool IsStereo;
   bool EngineInited;
@@ -197,6 +209,7 @@ private:
   int NumberOfWorkers;
   int EnableShadows;
   int EnableAO;
+  int EnableVolumeShading;
   int Samples;
   int MaxDepth;
   bool Accumulate;
@@ -206,6 +219,7 @@ private:
   int Frame;
   bool ComputeDepth;
   bool HasVolume;
+  bool ClearAccumFlag;
 
   double backgroundRGB[3];
 

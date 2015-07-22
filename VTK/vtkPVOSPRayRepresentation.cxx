@@ -54,6 +54,7 @@ vtkPVOSPRayRepresentation::vtkPVOSPRayRepresentation()
   keys->Delete();
 
   this->SetSuppressLOD(true);
+  this->SuppressLOD = true;
 
 }
 

@@ -53,6 +53,9 @@ public:
   double GetN();
   void SetNt(double);
   double GetNt();
+  void SetOSPSuppressLOD(bool st) { this->SuppressLOD = st; }
+  bool GetOSPSuppressLOD() { return this->SuppressLOD; }
+
 
 //BTX
 protected:

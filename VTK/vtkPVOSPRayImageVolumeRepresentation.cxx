@@ -205,7 +205,7 @@ int vtkPVOSPRayImageVolumeRepresentation::RequestData(vtkInformation* request,
 // without the data input i.e. either client or render-server, in which case
 // we show only the outline.
     this->VolumeMapper->RemoveAllInputs();
-    this->Actor->SetEnableLOD(1);
+//    this->Actor->SetEnableLOD(1);
   }
 
   return this->Superclass::RequestData(request, inputVector, outputVector);
