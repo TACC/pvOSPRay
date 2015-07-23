@@ -46,17 +46,37 @@
 				<h1>Release Notes</h1>
 				<p>Significant new features and known issues for each release are listed below. To report a new issue, or to see the complete list of outstanding issues, please use the <a href="https://github.com/TACC/pvOSPRay/issues">pvOSPRAY issue tracker</a>.
 				</p>
-				
+
 				<h2>Alpha 2 Release (2015-07-22)</h2>
 				<ul>
 				<li>New Features</li>
 					<ul>
+					<li>Accurate transparency without depth peeling</li>
+					<li>Progressive refinement for high-quality results with interactive performance</li>
+					<li>Fast volume rendering with gradient shading and support for implicit isosurfaces</li>
 					</ul>
 				<li>Known Issues</li>
 					<ul>
+					<li>Minor memory leak during rendering</li>
+					<li>Memory leak when modifying volumes and geometries (changes to transfer functions are managed)</li>
+					<li>View does not always refresh with correct bounds and aspect ratio.  <b>workaround:</b> click the reset camera button in ParaView </li>
+					<li>Only uniform grids can be volume rendered</li>
+					<li>Volumes and geometry can not yet be combined.  Currently if there is a visible volume, geometry will not be rendered.</li>
+					<li>LightKit does not work.</li>
+					<li>Outline representations do not work.</li>
 					</ul>
 				</ul>
 
+				<h2>Alpha Release (2015-04-08)</h2>
+				<ul>
+				<li>New Features</li>
+					<ul>
+					<li>Real-time software rendering of polygonal and volumetric datasets</li>
+					<li>Logarithmic performance scaling with data size, supports volumes and geometries up to the memory limitations of a given system while maintaining interactive performance</li>
+					<li>Support for existing ParaView filters and materials</li>
+					<li>Ambient Occlusion shading</li>
+					</ul>
+				</ul>
 			</div>
 		</div>
 
