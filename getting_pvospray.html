@@ -77,7 +77,10 @@ Precompiled binaries for ParaView with built-in pvOSPRay support are available f
 <ul>
 <li><a href="https://utexas.box.com/s/0mn7ghco8ty64fazir58d6oh00hkvl3b">Linux x86_64</a></li>
 </ul>
-If you do not see your system listed, please see Building pvOSPRay from Source below.
+If you do not see your system listed, please see Building pvOSPRay from Source below. 
+</p>
+<p>
+NOTE: the precompiled binary only supports serial execution. If you would like to use pvOSPRay in a parallel runtime via MPI, please compile from source using the instructions below.
 </p>
 
 <h2>Building pvOSPRay from Source</h2>
@@ -87,8 +90,18 @@ the <a href="http://github.com/TACC/pvOSPRay">pvOSPRay GitHub
   repository</a>. The default "master" branch should always point to
 the latest tested bugfix release.
 
-<h3>Prerequisites</h3>
+<h3>Building with MPI</h3>
+<p>
+pvOSPRay supports parallel execution via MPI through the ParaView parallelization framework. To build the MPI-enabled version, enable both the pvOSPRay plugin build described below and the MPI build within ParaView. pvOSPRay has been tested with the following MPI stacks:
+<ul>
+<li><a href="https://software.intel.com/en-us/intel-mpi-library">Intel MPI Library</a></li>
+<li><a href="http://mvapich.cse.ohio-state.edu/news/">MVAPICH2</a></li>
+</ul>
+pvOSPRay is likely to work under other stacks as well. If you have success using another stack, please <a href="https://github.com/TACC/pvOSPRay/issues">let us know</a>.
+</p>
 
+<h3>Prerequisites</h3>
+<p>
 pvOSPRay currently supports both Linux and Mac OSX (a Windows version will soon follow).
 In addition, before you can build pvOSPRay you need the following prerequisites:
 <ul>
@@ -99,13 +112,14 @@ In addition, before you can build pvOSPRay you need the following prerequisites:
   directly includes its own copy of Embree, so a special installation
   of Embree is <em>not</em> required.</li>
 </ul>
+</p>
 
 <h3> Building pvOSPRay</h3>
 <p>
 Note: the instructions below build pvOSPRay as part of a ParaView source build. Instructions to build pvOSPRay separately from ParaView will be posted soon.
 </p>
 <p>
-Note: vtkOSPRay is currently contained within pvOSPRay and will be built along with pvOSPRay as part of the ParaView build.
+Note: <a href="http://tacc.github.io/vtkOSPRay/">vtkOSPRay</a> is currently contained within pvOSPRay and will be built along with pvOSPRay as part of the ParaView build.
 </p>
 <ol>
   <li>Download ParaView 4.3 source from <a href="http://www.paraview.org/download/">www.paraview.org</a> (<a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.3&type=source&os=all&downloadFile=ParaView-v4.3.1-source.tar.gz">click here to download</a>). Untar the source tree into a local directory. 
