@@ -72,8 +72,9 @@ Each demo image below is linked to a larger version for your reference. Just cli
 </p>
 
   <!-- ------------------------------------------------------- -->
-
-<h2><a name="load">Loading the Dataset</a></h2>
+<a name="load">
+<div id="anchor-pad">
+<h2>Loading the Dataset</h2>
 <p>
 The first task in this demo is to download the dataset to your local machine. Please click the link to download (or right-click and select "Save Link As..."): 
 <a href="data/disk_out_ref.ex2">disk_out_ref.ex2</a>.
@@ -124,7 +125,9 @@ The first task in this demo is to download the dataset to your local machine. Pl
 	</table>
 
 	  <!-- ------------------------------------------------------- -->
-<h2><a name="isosurfaces">Producing Isosurfaces</a></h2>
+<a name="isosurfaces">
+<div id="anchor-pad">
+<h2>Producing Isosurfaces</h2>
 <p>
 The next task in this demo will produce a set of isosurfaces rendered using both the default rasterizer and the OSPRay ray tracer.
 </p>
@@ -172,7 +175,9 @@ The next task in this demo will produce a set of isosurfaces rendered using both
 </table>
 
 	  <!-- ------------------------------------------------------- -->
-<h2><a name="isosurfaces">Opening an OSPRay Render Window</a></h2>
+<a name="ospray">
+<div id="anchor-pad">
+<h2>Opening an OSPRay Render Window</h2>
 <p>
 The next task in this demo will render the isosurface set from the previous task using the OSPRay ray tracer. If you do not know how to load the OSPRay plugin, please see <a href="walkthrough.html#plugin">this step</a> in the walk-through demo for instructions.
 </p>
@@ -213,7 +218,9 @@ The next task in this demo will render the isosurface set from the previous task
 
 
   <!-- ------------------------------------------------------- -->
-<h2><a name="glyphs">Producing Glyphs</a></h2>
+<a name="glyphs">
+<div id="anchor-pad">
+<h2>Producing Glyphs</h2>
 
 <p>
 This demo task will use OSPRay to render arrow glyphs to visualize a vector property of the <code>disk_out_ref.ex2</code> dataset.
@@ -256,7 +263,9 @@ This demo task will use OSPRay to render arrow glyphs to visualize a vector prop
 
 
   <!-- ------------------------------------------------------- -->
-<h2><a name="lod">Managing Level-Of-Detail</a></h2>
+<a name="lod">
+<div id="anchor-pad">
+<h2>Managing Level-Of-Detail</h2>
 
 <p>
 ParaView has a level-of-detail (LOD) control mechanism to reduce the geometric complexity of a visualization when the camera is moved. This feature helps rasterization, since the render cost for each view is dependent on the total amount of geometry. However, the feature does not help ray tracing, since the render cost only depends on the amount of <i>visible</i> geometry. Further, it can hurt ray tracing, since changing the LOD level changes all the scene geometry (since the geometric representation becomes more or less refined) and the ray tracer must rebuild its internal acceleration structures.
@@ -311,7 +320,9 @@ While this LOD-jumping does not greatly impact performance for this small datase
 
 
   <!-- ------------------------------------------------------- -->
-<h2><a name="streamlines">Producing Streamlines</a></h2>
+<a name="streamlines">
+<div id="anchor-pad">
+<h2>Producing Streamlines</h2>
 
 <p>
 For the final task of this demo, you will create streamlines to visualize the vector field of the <code>disk_out_ref.ex2</code> dataset.
