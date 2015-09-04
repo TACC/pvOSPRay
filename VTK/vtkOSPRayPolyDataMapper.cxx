@@ -130,6 +130,23 @@ class Mesh {
 }
 
 int vtkOSPRayPolyDataMapper::timestep = 0;  // HACK!
+void* alignedMalloc(size_t size, size_t align=64)
+{
+  if (size == 0) return NULL;
+  char* base = (char*)malloc(size + align + sizeof(int));
+  if (base == NULL) throw std::bad_alloc();
+
+  char* unaligned = base + sizeof(int);
+  char*   aligned = unaligned + align - ((size_t)unaligned & (align - 1));
+  ((int*)aligned)[-1] = (int)((size_t)aligned - (size_t)base);
+  return aligned;
+}
+
+void alignedFree(const void* ptr) {
+  if (ptr == NULL) return;
+  int ofs = ((int*)ptr)[-1];
+  free((char*)ptr - ofs);
+}
 
 //----------------------------------------------------------------------------
 // Construct empty object.
@@ -838,11 +855,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       // printf("building mesh with numTriangles %d\n", numTriangles);
 
 
-      ospray::vec3fa *vertices = (ospray::vec3fa *)embree::alignedMalloc(
+      ospray::vec3fa *vertices = (ospray::vec3fa *)alignedMalloc(
           sizeof(ospray::vec3fa) * numPositions);
-      ospray::vec3i *triangles = (ospray::vec3i *)embree::alignedMalloc(
+      ospray::vec3i *triangles = (ospray::vec3i *)alignedMalloc(
           sizeof(ospray::vec3i) * numTriangles);
-      ospray::vec3fa *normals = (ospray::vec3fa *)embree::alignedMalloc(
+      ospray::vec3fa *normals = (ospray::vec3fa *)alignedMalloc(
           sizeof(ospray::vec3fa) * numNormals);
 
       for (size_t i = 0; i < numPositions; i++) {

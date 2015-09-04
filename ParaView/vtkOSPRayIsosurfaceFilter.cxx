@@ -60,7 +60,7 @@ void vtkOSPRayIsosurfaceFilter::PrintSelf(ostream& os, vtkIndent indent)
 
  void vtkOSPRayIsosurfaceFilter::SetValue(int i, double val)
   {
-    std::cout << __PRETTY_FUNCTION__ << " " << i << " " << val << std::endl;
+//    std::cout << __PRETTY_FUNCTION__ << " " << i << " " << val << std::endl;
     NumberOfContours=std::max(NumberOfContours,i+1);
     ContourValues[i]=val;
     Modified();

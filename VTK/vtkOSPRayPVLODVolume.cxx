@@ -127,7 +127,7 @@ int vtkOSPRayPVLODVolume::RenderOpaqueGeometry(vtkViewport *vp)
 int vtkOSPRayPVLODVolume::RenderTranslucentPolygonalGeometry(vtkViewport *vp)
 {
   if (!this->CanRender()) { return 1; }
-  std::cout << __PRETTY_FUNCTION__ << " 1" << std::endl;
+  //std::cout << __PRETTY_FUNCTION__ << " 1" << std::endl;
   int retval = this->LODProp->RenderTranslucentPolygonalGeometry(vp);
 
   this->EstimatedRenderTime = this->LODProp->GetEstimatedRenderTime();

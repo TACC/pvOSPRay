@@ -407,7 +407,7 @@
         if (VolumeAdded)
         {
 //          ospRemoveVolume(model,(OSPVolume)volume);
-          volume = ospNewVolume("block_bricked_volume");
+//          volume = ospNewVolume("block_bricked_volume");
           VolumeAdded=false;
         }
 
@@ -471,33 +471,39 @@
           std::cerr << "could not create ospray volume!\n";
           return;
         }
-
-        char* buffer = NULL;
-        size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
-
-        buffer = (char*)ScalarDataPointer;
-
-        ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
-        double origin[3];
-        vol->GetOrigin(origin);
-        double *bds = data->GetBounds();
-        origin[0] = bds[0];
-        origin[1] = bds[2];
-        origin[2] = bds[4];
         
-        double spacing[3];
-        data->GetSpacing(spacing);
-        ospSet3f(volume, "gridOrigin", origin[0], origin[1], origin[2]);
-        ospSet3f(volume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
-        ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
-        if (SharedData)
+        static bool once = false;
+        if (!once)  //TODO: take this out and check for valid data changes
         {
-          OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
-          ospSetData(volume, "voxelData", voxelData);
-        }
-        else
-        {
-          ospSetRegion(volume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
+          once = true;
+
+          char* buffer = NULL;
+          size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
+
+          buffer = (char*)ScalarDataPointer;
+
+          ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
+          double origin[3];
+          vol->GetOrigin(origin);
+          double *bds = data->GetBounds();
+          origin[0] = bds[0];
+          origin[1] = bds[2];
+          origin[2] = bds[4];
+          
+          double spacing[3];
+          data->GetSpacing(spacing);
+          ospSet3f(volume, "gridOrigin", origin[0], origin[1], origin[2]);
+          ospSet3f(volume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
+          ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
+          if (SharedData)
+          {
+            OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
+            ospSetData(volume, "voxelData", voxelData);
+          }
+          else
+          {
+            ospSetRegion(volume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
+          }
         }
 
         ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
