@@ -36,20 +36,20 @@
 #include "vtkTimerLog.h"
 
 //VBO includes
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <GL/glx.h>
-#ifndef __APPLE__
-#include <GL/glu.h>
-#else
-#include <OpenGL/glu.h>
-#endif
+// #include <X11/Xlib.h>
+// #include <X11/Xutil.h>
+// #include <X11/Xatom.h>
+// #ifndef __APPLE__
+// #include <GL/glu.h>
+// #else
+// #include <OpenGL/glu.h>
+// #endif
+// #include <GL/glx.h>
 
 
-#include <GL/glext.h>
-#include "vtkOpenGL.h"
-#include "vtkOpenGLError.h"
+// #include <GL/glext.h>
+// #include "vtkOpenGL.h"
+// #include "vtkOpenGLError.h"
 #include <map>
 #include <algorithm>
 

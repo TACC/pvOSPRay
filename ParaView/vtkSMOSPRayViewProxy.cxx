@@ -38,7 +38,6 @@
 #include "vtkSMSourceProxy.h"
 
 #include "vtkQtProgressiveRenderer.h"
-#include "vtkPVGenericRenderWindowInteractor.h"
 
 #include <assert.h>
 

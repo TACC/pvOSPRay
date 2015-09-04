@@ -200,8 +200,7 @@
 
 <RepresentationProxy name="OSPRayVolumeRepresentation"
                          class="vtkPVOSPRayImageVolumeRepresentation"
-                         processes="client|renderserver|dataserver"
-                         si_class="vtkSIUniformGridVolumeRepresentationProxy">
+                         processes="client|renderserver|dataserver">
     <!-- proxy that sets up ospray display pipeline at vtk level -->
        <InputProperty command="SetInputConnection"
                      name="Input">

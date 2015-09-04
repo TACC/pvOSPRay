@@ -29,13 +29,12 @@
 #include "vtkOSPRayRenderer.h"
 #include "vtkObjectFactory.h"
 #include "vtkPVAxesWidget.h"
-#include "vtkPVGenericRenderWindowInteractor.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkRenderViewBase.h"
+#include "vtkRenderWindowInteractor.h"
 
 #include "vtkQtProgressiveRenderer.h"
 #include "vtkCommand.h"
-#include "vtkPVGenericRenderWindowInteractor.h"
 
 static void RenderUpdateCallback(void* pvView)
 {
