@@ -27,7 +27,7 @@ endif()
 
 vtk_module(vtkOSPRay
   DEPENDS
-    vtkRenderingOpenGL
+    vtkRenderingOpenGL2
     vtkFiltersCore
     vtkParallelCore
     vtkFiltersHybrid

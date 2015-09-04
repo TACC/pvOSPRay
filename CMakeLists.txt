@@ -31,6 +31,7 @@ if(NOT ParaView_SOURCE_DIR)
   pv_setup_module_environment("pvOSPRay")
 else()
   # we're building from within ParaView Source.
+    include_directories(${VTK_INCLUDE_DIRS})
 endif()
 
 # set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
