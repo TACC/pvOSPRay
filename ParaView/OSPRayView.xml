@@ -80,7 +80,7 @@
           Turns on Progressive Refinement.
         </Documentation>
       </IntVectorProperty>
-      
+
       <IntVectorProperty name="EnableVolumeShading"
         command="SetEnableVolumeShading"
         immediate_update="1"
@@ -91,7 +91,7 @@
           Turns on Volume Gradient Shading.
         </Documentation>
       </IntVectorProperty>
-      
+
       <IntVectorProperty name="Samples"
         command="SetSamples"
         immediate_update="1"
@@ -187,7 +187,7 @@
         number_of_elements="1"
         default_values="1.2">
       </DoubleVectorProperty>
-      
+
       <IntVectorProperty name="OSuppressLOD"
         command="SetOSPSuppressLOD"
         immediate_update="1"
@@ -201,7 +201,7 @@
 <RepresentationProxy name="OSPRayVolumeRepresentation"
                          class="vtkPVOSPRayImageVolumeRepresentation"
                          processes="client|renderserver|dataserver"
-                         si_class="vtkSIUniformGridVolumeRepresentationProxy">
+                         si_class="vtkSIProxy">
     <!-- proxy that sets up ospray display pipeline at vtk level -->
        <InputProperty command="SetInputConnection"
                      name="Input">
@@ -408,7 +408,7 @@
       </DoubleVectorProperty>
     </RepresentationProxy>
 
-<RepresentationProxy 
+<RepresentationProxy
                          name="OSPRayUniformGridVolumeRepresentation"
                          class="vtkPVOSPRayImageVolumeRepresentation"
                          processes="client|renderserver|dataserver"
@@ -756,7 +756,7 @@
                proxyname="OSPRaySurfaceRepresentation"> <!-- this is the only thing different -->
         </Proxy>
 
-    
+
         <ExposedProperties>
           <PropertyGroup panel_visibility="default"
                          panel_widget="ColorEditor"
@@ -1071,7 +1071,7 @@
 
     <!-- base_proxygroup="internal_representations"
                            base_proxyname="PVRepresentationBase" -->
-    <PVRepresentationProxy 
+    <PVRepresentationProxy
                            class="vtkPVCompositeRepresentation"
                            name="OSPRayUniformGridRepresentation"
                            processes="client|renderserver|dataserver">
@@ -1132,7 +1132,7 @@
       </IntVectorProperty>
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Surface"
-                          text="Outline" /> 
+                          text="Outline" />
       <!-- TODO: Carson: This should be changed to an actual Outline -->
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Points"
@@ -1297,7 +1297,7 @@
                       panel_visibility="never" />
           </PropertyGroup>
         </ExposedProperties>
-      </SubProxy> 
+      </SubProxy>
       <!-- <SubProxy>
         <Proxy name="OutlineRepresentation"
                proxygroup="representations"
