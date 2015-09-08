@@ -25,7 +25,7 @@ if (BUILD_AGAINST_PARAVIEW)
   list(APPEND _vtk_modules vtkPVClientServerCoreRendering)
 endif()
 
-if (PARAVIEW_RENDERING_BACKEND STREQUAL "OpenGL2")
+if (VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
   list(APPEND _vtk_modules vtkRenderingOpenGL2)
 else()
   list(APPEND _vtk_modules vtkRenderingOpenGL)
