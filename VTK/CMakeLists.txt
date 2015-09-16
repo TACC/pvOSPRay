@@ -74,6 +74,7 @@ SET ( OSPRAY_CLASSES
   )
 
 IF (BUILD_AGAINST_PARAVIEW)
+  add_definitions(-DVTKOSPRAY_FOR_PARAVIEW)
   # paraview uses its own LOD actor, put it in here
   SET ( OSPRAY_CLASSES ${OSPRAY_CLASSES}
     vtkOSPRayLODActor.cxx
@@ -87,6 +88,13 @@ IF (BUILD_AGAINST_PARAVIEW)
     vtkPVOSPRayImageVolumeRepresentation.h
     vtkOSPRayCompositeMapper.cxx)
 ENDIF (BUILD_AGAINST_PARAVIEW)
+
+add_definitions(
+  -DvtkCommonCore_EXPORTS
+  -DvtkPVClientServerCoreRendering_EXPORTS
+  -DvtkRenderingVolume_EXPORTS
+  -DvtkPVVTKExtensionsRendering_EXPORTS
+  )
 
 SET ( OSPRAY_SRCS
   ${OSPRAY_CLASSES}
