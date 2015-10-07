@@ -128,6 +128,11 @@ public:
   static void PassOrderedCompositingInformation(
     vtkPVDataRepresentation* self, vtkInformation* inInfo);
 
+
+  //OSPRay specific values
+  void SetSamplingRate(double sr);
+  vtkGetMacro(SamplingRate,double);
+
 //BTX
 protected:
   vtkPVOSPRayImageVolumeRepresentation();
@@ -174,6 +179,7 @@ protected:
   char* ColorArrayName;
   unsigned long DataSize;
   double DataBounds[6];
+  double SamplingRate;
 
 private:
   vtkPVOSPRayImageVolumeRepresentation(const vtkPVOSPRayImageVolumeRepresentation&); // Not implemented
