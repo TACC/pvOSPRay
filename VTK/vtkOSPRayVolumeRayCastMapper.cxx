@@ -514,7 +514,7 @@
 
       }
       ospSet1i(volume, "gradientShadingEnabled", OSPRayRenderer->GetEnableVolumeShading());
-      ospSet1f(volume, "samplingRate", 0.25f);
+      ospSet1f(volume, "samplingRate", 1.0f);
 //      ospSetObject(renderer, "dynamic_model", dynamicModel);
       ospCommit(volume);
       ospAddVolume(model,(OSPVolume)volume);

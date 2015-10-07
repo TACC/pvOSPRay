@@ -363,6 +363,14 @@
         <BooleanDomain name="bool" />
         <Documentation>Enable/Disable shading.</Documentation>
       </IntVectorProperty>
+      <DoubleVectorProperty command="SetSamplingRate"
+                            default_values="0.25"
+                            name="SamplingRate"
+                            number_of_elements="1">
+        <DoubleRangeDomain max="2"
+                           min="0.01"
+                           name="range" />
+      </DoubleVectorProperty>
       <IntVectorProperty command="SetIndependantComponents"
                          default_values="1"
                          name="MapScalars"
@@ -918,6 +926,9 @@
                       panel_visibility="advanced"
                       panel_visibility_default_for_representation="volume" />
             <Property name="Shade"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="volume" />
+            <Property name="SamplingRate"
                       panel_visibility="advanced"
                       panel_visibility_default_for_representation="volume" />
             <Property name="InterpolationType"
@@ -1502,6 +1513,9 @@
                       panel_visibility="advanced"
                       panel_visibility_default_for_representation="volume" />
             <Property name="Shade"
+                      panel_visibility="advanced"
+                      panel_visibility_default_for_representation="volume" />
+            <Property name="SamplingRate"
                       panel_visibility="advanced"
                       panel_visibility_default_for_representation="volume" />
             <Property name="InterpolationType"

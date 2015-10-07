@@ -159,10 +159,6 @@ Accumulate(false)
   this->ColorBuffer = NULL;
   this->DepthBuffer = NULL;
   this->osp_framebuffer = NULL;
-  
-  
-  
-  
 }
 
 //----------------------------------------------------------------------------
@@ -323,6 +319,7 @@ void vtkOSPRayRenderer::UpdateSize()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
+  renderables.clear();
   if ((! prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer)
@@ -436,6 +433,7 @@ void vtkOSPRayRenderer::LayerRender()
     this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
     AccumCounter=0;
+    this->UpdateCamera();
   }
   if (HasVolume)
   {
@@ -444,6 +442,9 @@ void vtkOSPRayRenderer::LayerRender()
 //    ospSetObject(vRenderer, "dynamic_model", vdModel);
     OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
     OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
+
+    for(int i=0;i<renderables.size();i++)
+      ospAddGeometry((OSPModel)this->OSPRayManager->OSPRayVolumeModel,renderables[i]->instance);
     
     ospSetObject(vRenderer,"world",vModel);
 //    ospSetObject(vRenderer,"dynamic_model",vdModel);
@@ -660,7 +661,9 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   else
   {
-    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
+    this->OSPRayManager->OSPRayRenderer = this->OSPRayManager->OSPRayVolumeRenderer;
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   
