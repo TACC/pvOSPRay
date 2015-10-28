@@ -8,7 +8,9 @@
 #include "pqServerManagerModel.h"
 #include "pqView.h"
 #include "vtkCommand.h"
-#include "vtkPVGenericRenderWindowInteractor.h"
+//#include "vtkPVGenericRenderWindowInteractor.h"
+//#include "vtkGenericRenderWindowInteractor.h"
+#include "vtkGenericRenderWindowInteractor.h"
 #include "vtkPVView.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMSession.h"
@@ -89,4 +91,4 @@ void vtkQtProgressiveRenderer::onViewUpdated()
   _pqTimer.start(0);
   renderer->SetSamples(Samples);
   }
-  
+
