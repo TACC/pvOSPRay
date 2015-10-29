@@ -879,7 +879,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
                                     mesh->vertexNormals[i].z());
       }
 
-      OSPGeometry ospMesh = ospNewTriangleMesh();
+      OSPGeometry ospMesh = ospNewGeometry("triangles");
       OSPData position = ospNewData(numPositions, OSP_FLOAT3A, &vertices[0]);
       ospSetData(ospMesh, "position", position);
 
