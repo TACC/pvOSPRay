@@ -489,7 +489,7 @@ void vtkOSPRayRenderer::LayerRender()
     float *s = (float *)b;
     float *d = this->DepthBuffer;
     for (int i = 0; i < size; i++, s++, d++)
-      *d = isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
+      *d = std::isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
     
     ospUnmapFrameBuffer(b, this->osp_framebuffer);
     

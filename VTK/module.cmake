@@ -26,8 +26,10 @@ if (BUILD_AGAINST_PARAVIEW)
 endif()
 
 if (VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+  message("GL2")
   list(APPEND _vtk_modules vtkRenderingOpenGL2)
 else()
+  message("GL1")
   list(APPEND _vtk_modules vtkRenderingOpenGL)
 endif()
 

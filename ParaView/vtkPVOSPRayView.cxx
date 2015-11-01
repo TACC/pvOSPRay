@@ -81,6 +81,10 @@ vtkPVOSPRayView::vtkPVOSPRayView()
         vtkCommand::EndInteractionEvent,
         ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
     }
+  else
+    {
+      //cerr << "AW SNAP!" << endl;
+    }
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 
@@ -156,13 +160,31 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
   if (newval != EnableProgressiveRefinement)
   {
     EnableProgressiveRefinement = newval;
-    if (this->Interactor)
+    if (this->Interactor && ProgressiveRenderer)
     {
       if (newval)
         ProgressiveRenderer->resumeAutoUpdates();        
       else
         ProgressiveRenderer->stopAutoUpdates();
     }
+    else
+      {
+       if (this->Interactor)
+         {
+       ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
+      this->Interactor->AddObserver(
+        vtkCommand::StartInteractionEvent,
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+      this->Interactor->AddObserver(
+        vtkCommand::EndInteractionEvent,
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
+         }
+       else
+         {
+           //cerr << "TOLD YOU SO" << endl;
+         }
+
+      }
   }
 }
 

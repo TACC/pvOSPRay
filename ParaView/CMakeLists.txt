@@ -94,6 +94,7 @@ add_paraview_plugin(
     OSPRayDisplay.cxx
     # OSPRayViewOptions.cxx
 )
+target_link_libraries(pvOSPRay ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${PARAVIEW_LIBRARIES})
 
 # if (BUILD_TESTING)
   # add_subdirectory(Testing)

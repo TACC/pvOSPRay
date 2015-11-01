@@ -126,6 +126,7 @@ class Mesh {
   std::vector<Vec4> colors;
   std::vector<ospray::vec3fa> wireframe_vertex;
   std::vector<int> wireframe_index;
+  std::vector<ospray::vec3f> points_vertex;
 };
 }
 
@@ -254,13 +255,6 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
 
   switch (this->Representation) {
     case VTK_POINTS: {
-      std::cout << "VTK_POINTS\n";
-      for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
-        double coord[3];
-        for (int i = 0; i < npts; i++) {
-        }
-        total_triangles++;
-      }
     }  // VTK_POINTS;
     break;
     case VTK_WIREFRAME: {
@@ -681,8 +675,17 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     vtkPoints *ptarray = points;
     double coord[3];
     vtkIdType cell;
-    while ((cell = ca->GetNextCell(npts, pts))) {
-    }
+    vtkIdType point;
+    while ((cell = ca->GetNextCell(npts, pts)))
+      {
+       for (int p = 0; p < npts; p++)
+         {
+         point = pts[p];
+         ptarray->GetPoint(point, coord);
+         mesh->points_vertex.push_back
+           (ospray::vec3f(coord[0], coord[1], coord[2]));
+         }
+      }
   }
 
   std::vector<ospray::vec3fa> slVertex;
@@ -773,7 +776,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     do {
       wasNan = false;
       for (int j = 0; j < 3; j++) {
-        if (isnan(pos[j])) {
+        if (std::isnan(pos[j])) {
           wasNan = true;
         }
       }
@@ -813,7 +816,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
   transform->Delete();
   points->Delete();
 
-  if (mesh->size() || mesh->wireframe_vertex.size() || slVertex.size()) {
+  if (mesh->size() ||
+      mesh->wireframe_vertex.size() ||
+      slVertex.size() ||
+      mesh->points_vertex.size()) {
 //
 // ospray
 //
@@ -828,7 +834,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       OSPRayActor->LastFrame = OSPRayRenderer->GetFrame();
     }
 
-    if (mesh->size()) {
+    if (mesh->size() && !mesh->points_vertex.size()) {
 
       size_t numNormals = mesh->vertexNormals.size();
       size_t numTexCoords = mesh->texCoords.size();
@@ -898,6 +904,35 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
       ospAddGeometry(OSPRayActor->OSPRayModel, ospMesh);
 
+    }
+
+    if (mesh->points_vertex.size()) {
+      double Color[3];
+      OSPRayProperty->GetColor(Color);
+      OSPMaterial pointMat = ospNewMaterial(renderer, "default");
+      if (pointMat) {
+        ospSet3f(pointMat, "kd", Color[0], Color[1], Color[2]);
+        ospCommit(pointMat);
+      }
+      OSPGeometry ospMesh = ospNewGeometry("spheres");
+      OSPData vertex = ospNewData(mesh->points_vertex.size(), OSP_FLOAT3,
+                                  &mesh->points_vertex[0]);
+      ospSetObject(ospMesh, "spheres", vertex);
+      ospSet1i(ospMesh, "bytes_per_sphere", 3*sizeof(float));
+      ospSet1i(ospMesh, "offset_center", 0*sizeof(float));
+      ospSet1i(ospMesh, "offset_radius", -1);//3*sizeof(float));
+      ospSet1f(ospMesh, "radius", this->PointSize);
+      ospSet1i(ospMesh, "offset_materialID", -1);
+      ospSet1i(ospMesh, "materialID", 0);
+      ospAddGeometry(OSPRayActor->OSPRayModel, ospMesh);
+      if (pointMat)
+       {
+         ospSetMaterial(ospMesh, pointMat);
+       }
+      ospCommit(vertex);
+      ospCommit(ospMesh);
+      ospRelease(vertex);
+      ospRelease(ospMesh);
     }
 
     if (mesh->wireframe_vertex.size()) {
