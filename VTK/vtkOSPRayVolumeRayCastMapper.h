@@ -175,7 +175,6 @@ public:
     {return this->GetGradientMagnitudeScale();};
   virtual float GetGradientMagnitudeBias(int)
     {return this->GetGradientMagnitudeBias();};
-  vtkSetMacro(SamplingRate, double);
 
 //ETX
 
@@ -295,7 +294,6 @@ protected:
   std::vector<float> TFVals, TFOVals;
   bool SharedData;
   bool VolumeAdded;
-  double SamplingRate;
 
 
 private:

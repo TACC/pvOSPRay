@@ -408,9 +408,3 @@ void vtkPVOSPRayImageVolumeRepresentation::SetRequestedRenderMode(int mode)
 {
 }
 
-void vtkPVOSPRayImageVolumeRepresentation::SetSamplingRate(double sr)
-{
-  SamplingRate=sr;
-  vtkOSPRayVolumeRayCastMapper* ospMapper = vtkOSPRayVolumeRayCastMapper::SafeDownCast(this->VolumeMapper);
-  ospMapper->SetSamplingRate(sr);
-}
