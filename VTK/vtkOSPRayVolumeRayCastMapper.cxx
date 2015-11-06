@@ -79,7 +79,6 @@
 // Construct a new vtkOSPRayVolumeRayCastMapper with default values
      vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
      {
-      this->SamplingRate=0.125;
       this->VolumeAdded=false;
       this->SharedData = false;
       this->NumColors = 128;
@@ -515,7 +514,7 @@
 
       }
       ospSet1i(volume, "gradientShadingEnabled", OSPRayRenderer->GetEnableVolumeShading());
-      ospSet1f(volume, "samplingRate", SamplingRate);
+      ospSet1f(volume, "samplingRate", 1.0f);
 //      ospSetObject(renderer, "dynamic_model", dynamicModel);
       ospCommit(volume);
       ospAddVolume(model,(OSPVolume)volume);
