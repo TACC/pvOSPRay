@@ -28,8 +28,8 @@ IF(PARAVIEW_BUILD_QT_GUI)
   INCLUDE_DIRECTORIES(
     ${PARAVIEW_GUI_INCLUDE_DIRS}
     )
-  #INCLUDE(${QT_USE_FILE})
-  SET(CPP_SRCS 
+  INCLUDE(${QT_USE_FILE})
+  QT4_WRAP_CPP(MOC_SRCS
     OSPRayView.h
     OSPRayDisplay.h
     # OSPRayViewOptions.h
@@ -37,20 +37,10 @@ IF(PARAVIEW_BUILD_QT_GUI)
     vtkOSPRayIsosurfaceFilter.h
     )
 
-  SET(UI_SRCS
+  QT4_WRAP_UI(UI_SRCS
     OSPRayDisplay.ui
     # OSPRayViewOptions.ui
     )
-
-if (PARAVIEW_QT_VERSION VERSION_GREATER "4")
-  qt5_wrap_cpp(__Module_MOC_SRCS ${CPP_SRCS})
-  qt5_wrap_ui(__Module_UI_SRCS ${UI_SRCS})
-  #  qt5_add_resources(__Module_RESOURCE_SRCS ${Module_RESOURCE_FILES})
-else ()
-  qt4_wrap_cpp(__Module_MOC_SRCS ${CPP_SRCS})
-  qt4_wrap_ui(__Module_UI_SRCS ${UI_SRCS})
-  # qt4_add_resources(__Module_RESOURCE_SRCS ${Module_RESOURCE_FILES})
-endif ()
 
   # ADD_PARAVIEW_VIEW_MODULE(
   #   VIEW_IFACE VIEW_IFACE_SRCS
@@ -97,8 +87,8 @@ add_paraview_plugin(
   GUI_INTERFACES
     ${VIEW_IFACE} ${OPTIONS_IFACE} ${DISPLAY_IFACE}
   GUI_SOURCES
-  ${VIEW_IFACE_SRCS} ${OPTIONS_IFACE_SRCS} ${DISPLAY_IFACE_SRCS} ${__Module_UI_SRCS}
-    ${__Module_MOC_SRCS}
+    ${VIEW_IFACE_SRCS} ${OPTIONS_IFACE_SRCS} ${DISPLAY_IFACE_SRCS} ${UI_SRCS}
+    ${MOC_SRCS}
     OSPRayView.cxx
     vtkQtProgressiveRenderer.cxx
     OSPRayDisplay.cxx
