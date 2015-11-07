@@ -41,7 +41,7 @@
 #include "vtkStreamingDemandDrivenPipeline.h"
 #include "vtkColorTransferFunction.h"
 #include "vtkPiecewiseFunction.h"
-
+#include "vtkTimerLog.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
@@ -79,9 +79,7 @@
 // Construct a new vtkOSPRayVolumeRayCastMapper with default values
      vtkOSPRayVolumeRayCastMapper::vtkOSPRayVolumeRayCastMapper()
      {
-      this->SamplingRate=0.125;
       this->VolumeAdded=false;
-      this->SharedData = false;
       this->NumColors = 128;
       this->SampleDistance             =  1.0;
       this->ImageSampleDistance        =  1.0;
@@ -132,16 +130,16 @@
 
       this->IntermixIntersectingGeometry = 1;
 
+      this->OSPRayManager = vtkOSPRayManager::Singleton();
+
+      this->SharedData = false;
       if (SharedData)
-        volume = ospNewVolume("shared_structured_volume");
+        OSPRayVolume = ospNewVolume("shared_structured_volume");
       else
-        volume = ospNewVolume("block_bricked_volume");
-      transferFunction = ospNewTransferFunction("piecewise_linear"); 
+        OSPRayVolume = ospNewVolume("block_bricked_volume");
+      transferFunction = ospNewTransferFunction("piecewise_linear");
       ospCommit(transferFunction);
-      // model = ospNewModel();
-      // model = this->OSPRayManager->OSPRayVolumeModel;
-      // ospAddVolume(model,(OSPVolume)volume);
-      // ospCommit(model);
+      SamplingRate=0.25;
     }
 
 // Destruct a vtkOSPRayVolumeRayCastMapper - clean up any memory used
@@ -335,7 +333,7 @@
 
     void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     {
-  // make sure that we have scalar input and update the scalar input
+      // make sure that we have scalar input and update the scalar input
       if ( this->GetInput() == NULL )
       {
         vtkErrorMacro(<< "No Input!");
@@ -350,9 +348,9 @@
       }
       // vol->UpdateTransferFunctions( ren );
 
-    //
-    // OSPRay
-    //
+      //
+      // OSPRay
+      //
 
       vtkOSPRayRenderer* OSPRayRenderer =
       vtkOSPRayRenderer::SafeDownCast(ren);
@@ -360,28 +358,15 @@
       {
         return;
       }
-      if (!this->OSPRayManager)
-      {
-        this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-        this->OSPRayManager->Register(this);
-      }
-      model = this->OSPRayManager->OSPRayVolumeModel;
-      
-      if (OSPRayRenderer->GetFrame() > this->OSPRayManager->VolumeModelLastFrame)
-      {
-        this->OSPRayManager->VolumeModelLastFrame = OSPRayRenderer->GetFrame();
-        this->OSPRayManager->OSPRayVolumeModel = ospNewModel();
-        model = this->OSPRayManager->OSPRayVolumeModel;
-      }
+      OSPRayModel = this->OSPRayManager->OSPRayVolumeModel;
 
-//      this->OSPRayManager->OSPRayDynamicModel = ospNewModel();
-//      OSPModel dynamicModel = this->OSPRayManager->OSPRayDynamicModel;
-      
       OSPRenderer renderer = this->OSPRayManager->OSPRayVolumeRenderer;
 
-      vtkImageData *data = this->GetInput();        
+      vtkImageData *data = this->GetInput();
       vtkDataArray * scalars = this->GetScalars(data, this->ScalarMode,
         this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
+
+      // test for modifications to volume properties
       if (vol->GetProperty()->GetMTime() > PropertyTime)
       {
         OSPRayRenderer->SetClearAccumFlag();
@@ -392,23 +377,35 @@
         double* tfData = colorTF->GetDataPointer();
 
         TFVals.resize(NumColors*3);
-        TFOVals.resize(NumColors); 
+        TFOVals.resize(NumColors);
         scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFOVals[0]);
         colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFVals[0]);
+        std::cout << "colors:\n";
+        for(int i =0;i<NumColors;i++)
+          std::cout << TFVals[i*3+0] << " " << TFVals[i*3+1] << " " << TFVals[i*3+2] << std::endl;
+        std::cout << "opacities:\n";
+        for(int i =0;i<NumColors;i++)
+          std::cout << TFOVals[i] << " ";
+        std::cout << std::endl;
+
 
         OSPData colorData = ospNewData(NumColors, OSP_FLOAT3, &TFVals[0]);// TODO: memory leak?  does ospray manage this>
         ospSetData(transferFunction, "colors", colorData);
         OSPData tfAlphaData = ospNewData(NumColors, OSP_FLOAT, &TFOVals[0]);
         ospSetData(transferFunction, "opacities", tfAlphaData);
         ospCommit(transferFunction);
+        // this->SamplingRate = volProperty->GetSamplingRate();
+        ospSet1i(OSPRayVolume, "gradientShadingEnabled", volProperty->GetShade());
+        // std::cerr << "samplingRate: " << SamplingRate << std::endl;
+        // OSPRayRenderer->SetSamples(volProperty->GetSamples());
         PropertyTime.Modified();
       }
+
+      // test for modifications to input
       if (this->GetInput()->GetMTime() > this->BuildTime)
       {
         if (VolumeAdded)
         {
-//          ospRemoveVolume(model,(OSPVolume)volume);
-//          volume = ospNewVolume("block_bricked_volume");
           VolumeAdded=false;
         }
 
@@ -419,10 +416,7 @@
 
         int dim[3];
         data->GetDimensions(dim);
-  //! Create an OSPRay transfer function.
-
-//         printf("volume dimensions %d %d %d\n", dim[0],dim[1],dim[2]);
-
+        //! Create an OSPRay transfer function.
 
         std::vector<float> isoValues;
         if (this->GetInput()->GetPointData()->GetScalars("ospIsoValues"))
@@ -438,7 +432,7 @@
         if (isoValues.size())
         {
           OSPData isovaluesData = ospNewData(isoValues.size(), OSP_FLOAT, &isoValues[0]);
-          ospSetData(volume, "isovalues", isovaluesData);
+          ospSetData(OSPRayVolume, "isovalues", isovaluesData);
         }
 
         if (this->GetInput()->GetPointData()->GetScalars("ospClipValues"))
@@ -456,75 +450,62 @@
           else if (clipAxis == 2)
             upper.z = clipValue;
           osp::box3f value(osp::vec3f(0,0,0), upper);
-          ospSet3fv(volume, "volumeClippingBoxLower", &value.lower.x);
-          ospSet3fv(volume, "volumeClippingBoxUpper", &value.upper.x);
+          ospSet3fv(OSPRayVolume, "volumeClippingBoxLower", &value.lower.x);
+          ospSet3fv(OSPRayVolume, "volumeClippingBoxUpper", &value.upper.x);
         }
-//Carson: TODO: don't reallocate data when only changed isovalues or clip values... 
 
         ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
 
-  //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
+        //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
         ospCommit(transferFunction);
 
-  //! Set the dynamic model on the renderer.
-        if (!volume)
-        {
-          std::cerr << "could not create ospray volume!\n";
-          return;
-        }
-        
-        static bool once = false;
-        if (!once)  //TODO: take this out and check for valid data changes
-        {
-          once = true;
+        // static bool once = false;
+        // if (!once)  //TODO: take this out and check for valid data changes
+        // {
+        //   once = true;
+          std::cout << "recomputing volume\n";
 
           char* buffer = NULL;
           size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
 
           buffer = (char*)ScalarDataPointer;
 
-          ospSet3i(volume, "dimensions", dim[0], dim[1], dim[2]);
+          ospSet3i(OSPRayVolume, "dimensions", dim[0], dim[1], dim[2]);
           double origin[3];
           vol->GetOrigin(origin);
           double *bds = data->GetBounds();
           origin[0] = bds[0];
           origin[1] = bds[2];
           origin[2] = bds[4];
-          
+
           double spacing[3];
           data->GetSpacing(spacing);
-          ospSet3f(volume, "gridOrigin", origin[0], origin[1], origin[2]);
-          ospSet3f(volume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
-          ospSetString(volume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
+          ospSet3f(OSPRayVolume, "gridOrigin", origin[0], origin[1], origin[2]);
+          ospSet3f(OSPRayVolume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
+          ospSetString(OSPRayVolume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
           if (SharedData)
           {
             OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
-            ospSetData(volume, "voxelData", voxelData);
+            ospSetData(OSPRayVolume, "voxelData", voxelData);
           }
           else
           {
-            ospSetRegion(volume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
+            ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
           }
-        }
+        // }
 
-        ospSetObject((OSPObject)volume, "transferFunction", transferFunction);
-
-  // set to 1 to enable gradient shading
-
+        ospSetObject((OSPObject)OSPRayVolume, "transferFunction", transferFunction);
         this->BuildTime.Modified();
-
       }
-      ospSet1i(volume, "gradientShadingEnabled", OSPRayRenderer->GetEnableVolumeShading());
-      ospSet1f(volume, "samplingRate", SamplingRate);
-//      ospSetObject(renderer, "dynamic_model", dynamicModel);
-      ospCommit(volume);
-      ospAddVolume(model,(OSPVolume)volume);
+      ospSet1f(OSPRayVolume, "samplingRate", SamplingRate);
+      ospCommit(OSPRayVolume);
+      ospAddVolume(OSPRayModel,(OSPVolume)OSPRayVolume);
       if (!VolumeAdded)
         VolumeAdded = true;
-      ospCommit(model);
-      ospSetObject(renderer, "model", model);
+      ospCommit(OSPRayModel);
+      ospSetObject(renderer, "model", OSPRayModel);
       ospCommit(renderer);
-      this->OSPRayManager->OSPRayVolumeModel = model;
+      this->OSPRayManager->OSPRayVolumeModel = OSPRayModel;
 
       OSPRayRenderer->SetHasVolume(true);
     }

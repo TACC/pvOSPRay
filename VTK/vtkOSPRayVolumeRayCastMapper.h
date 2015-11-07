@@ -21,7 +21,7 @@
 // vtkVolumeMapper
 
  //
- // Carson: 6/18/2015: note that for Paraview 4.3 I had to modify 
+ // Carson: 6/18/2015: note that for Paraview 4.3 I had to modify
  //   ParaViewCore/VTKExtensions/Rendering/vtkPVLODVolume.h to not check
  //  for valid scalars before rendering volumetric data.
  //
@@ -29,7 +29,7 @@
 #ifndef __vtkOSPRayVolumeRayCastMapper_h
 #define __vtkOSPRayVolumeRayCastMapper_h
 
-#include "vtkRenderingVolumeModule.h" // For export macro
+// #include "vtkRenderingVolumeModule.h" // For export macro
 #include "vtkVolumeMapper.h"
 #include "vtkVolumeRayCastFunction.h" // For vtkVolumeRayCastStaticInfo
                                       // and vtkVolumeRayCastDynamicInfo
@@ -140,6 +140,8 @@ public:
   // the number of available processors detected.
   void SetNumberOfThreads( int num );
   int GetNumberOfThreads();
+  vtkSetMacro(SamplingRate, double);
+  vtkGetMacro(SamplingRate, double);
 
   // Description:
   // If IntermixIntersectingGeometry is turned on, the zbuffer will be
@@ -175,7 +177,6 @@ public:
     {return this->GetGradientMagnitudeScale();};
   virtual float GetGradientMagnitudeBias(int)
     {return this->GetGradientMagnitudeBias();};
-  vtkSetMacro(SamplingRate, double);
 
 //ETX
 
@@ -287,8 +288,8 @@ protected:
 
 
   vtkOSPRayManager *OSPRayManager;
-  osp::Volume* volume;
-  osp::Model* model;
+  osp::Volume* OSPRayVolume;
+  osp::Model* OSPRayModel;
   vtkTimeStamp  BuildTime,PropertyTime;
   osp::TransferFunction* transferFunction;
   int NumColors;
@@ -304,4 +305,3 @@ private:
 };
 
 #endif
-

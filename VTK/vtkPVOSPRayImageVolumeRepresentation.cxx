@@ -158,6 +158,11 @@ void vtkPVOSPRayImageVolumeRepresentation::PassOrderedCompositingInformation(
     double origin[3], spacing[3];
     vtkImageData* image = vtkImageData::SafeDownCast(
       inputAlgo->GetOutputDataObject(connection->GetIndex()));
+    if (!image)
+    {
+      std::cerr << "expected image data in vtkPVOSPRayImageVolumeRepresentation\n";
+      return;
+    }
     image->GetOrigin(origin);
     image->GetSpacing(spacing);
 

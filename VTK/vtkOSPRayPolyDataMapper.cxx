@@ -572,11 +572,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     return;
   }
   vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(renderer);
-  
+
   vtkPolyData *input = this->GetInput();
 
   vtkInformation *inputInfo = this->GetInput()->GetInformation();
-  // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" << 
+  // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" <<
   // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
 
 
@@ -649,7 +649,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
     for (int i = 0; i < this->ColorCoordinates->GetNumberOfTuples(); i++) {
       double *tcoord = this->ColorCoordinates->GetTuple(i);
-			if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
+    if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
       mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], tcoord[1]));
     }
 
@@ -665,7 +665,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     vtkDataArray *tcoords = input->GetPointData()->GetTCoords();
     for (int i = 0; i < tcoords->GetNumberOfTuples(); i++) {
       double *tcoord = tcoords->GetTuple(i);
-			if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
+    if (tcoord[0] >= 1.0) tcoord[0] = 0.99999;	// avoid sampling texture at 1
       mesh->texCoords.push_back(vtkosp::Vec2(tcoord[0], tcoord[1]));
     }
   }
@@ -742,7 +742,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         std::cout << "Tex coords " << this->ColorCoordinates->GetSize() << std::endl;
         double* minmax = vstc->GetRange();
         std::cout << "m: " << minmax[0] << " M:" << minmax[1] << std::endl;
-        
+
         double scale = minmax[1] - minmax[0];
 
         for (int i = 0; i < scalarSize; i++) {

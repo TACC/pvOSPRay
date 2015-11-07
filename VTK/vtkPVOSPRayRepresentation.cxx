@@ -27,6 +27,7 @@
 #include "vtkOSPRayLODActor.h"
 #include "vtkOSPRayPolyDataMapper.h"
 #include "vtkOSPRayProperty.h"
+#include "vtkOSPRayManager.h"
 #include "vtkObjectFactory.h"
 
 //-----------------------------------------------------------------------------
@@ -36,10 +37,12 @@ vtkStandardNewMacro(vtkPVOSPRayRepresentation);
 //-----------------------------------------------------------------------------
 vtkPVOSPRayRepresentation::vtkPVOSPRayRepresentation()
 {
+  vtkOSPRayManager::Singleton();
   this->Mapper->Delete();
   this->Mapper = vtkOSPRayCompositeMapper::New();
   this->LODMapper->Delete();
   this->LODMapper = vtkOSPRayCompositeMapper::New();
+
   this->Actor->Delete();
   this->Actor = vtkOSPRayLODActor::New();
   this->Property->Delete();
@@ -55,7 +58,6 @@ vtkPVOSPRayRepresentation::vtkPVOSPRayRepresentation()
 
   this->SetSuppressLOD(true);
   this->SuppressLOD = true;
-
 }
 
 //-----------------------------------------------------------------------------

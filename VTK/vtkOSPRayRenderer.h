@@ -1,18 +1,18 @@
-/* ======================================================================================= 
-   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+/* =======================================================================================
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin
    All rights reserved.
-                                                                                           
-   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
-   except in compliance with the License.                                                  
-   A copy of the License is included with this software in the file LICENSE.               
-   If your copy does not contain the License, you may obtain a copy of the License at:     
-                                                                                           
-       http://opensource.org/licenses/BSD-3-Clause                                         
-                                                                                           
-   Unless required by applicable law or agreed to in writing, software distributed under   
-   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
-   KIND, either express or implied.                                                        
-   See the License for the specific language governing permissions and limitations under   
+
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file
+   except in compliance with the License.
+   A copy of the License is included with this software in the file LICENSE.
+   If your copy does not contain the License, you may obtain a copy of the License at:
+
+       http://opensource.org/licenses/BSD-3-Clause
+
+   Unless required by applicable law or agreed to in writing, software distributed under
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.
+   See the License for the specific language governing permissions and limitations under
    limitations under the License.
 
    pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
@@ -33,6 +33,9 @@
 #include "vtkOSPRay.h"
 
 #include "vtkOSPRayRenderable.h"
+#include <queue>
+#include <utility>
+#include <string>
 
 
 //BTX
@@ -81,7 +84,7 @@ public:
   //Default is off.
   void SetEnableAO(int);
   vtkGetMacro(EnableAO, int);
-  
+
   //Description:
   //Turns on or off shadow rendering.
   //Default is off.
@@ -131,10 +134,15 @@ public:
     return this->DepthBuffer;
   }
 
+  //Setup ospray world, camera etc. before
+  // renders are called in the geometry
+  void PreRender();
   // Description:
   // Concrete render method. Do not call this directly. The pipeline calls
   // it during Renderwindow::Render()
   void DeviceRender();
+
+  void LayerRender();
 
   //Description:
   //All classes that make OSPRay calls should get hold of this and
@@ -147,11 +155,12 @@ public:
   }
 
   void SetHasVolume(bool st) { HasVolume=st;}
-	void SetProgressiveRenderFlag() {prog_flag = true; }
+  void SetProgressiveRenderFlag() {prog_flag = true; }
   void SetClearAccumFlag() {ClearAccumFlag = true; }
   int GetAccumCounter() { return AccumCounter; }
   int GetMaxAccumulation() { return MaxAccum; }
   int GetFrame() { return Frame; }
+  vtkSetMacro(ComputeDepth, bool);
 
   void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
 
@@ -183,7 +192,6 @@ private:
   void operator=(const vtkOSPRayRenderer&); // Not implemented.
 
   void InitEngine();
-  void LayerRender();
 
   //Description:
   // Overriden to help ensure that a OSPRay compatible class is created.
@@ -195,8 +203,8 @@ private:
   bool EngineStarted;
 
   int ImageX;
-	int ImageY;
-	OSPFrameBuffer osp_framebuffer;
+  int ImageY;
+  OSPFrameBuffer osp_framebuffer;
 
   float *ColorBuffer;
   float *DepthBuffer;
@@ -215,15 +223,15 @@ private:
   bool Accumulate;
   int AccumCounter;
   int MaxAccum;
-	bool prog_flag;
+  bool prog_flag;
   int Frame;
   bool ComputeDepth;
   bool HasVolume;
   bool ClearAccumFlag;
 
   double backgroundRGB[3];
-
-
+  std::queue<std::pair<std::string, double> > Statistics;
+  int StatisticFramesPerOutput;
 };
 
 #endif
