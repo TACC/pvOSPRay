@@ -380,14 +380,6 @@
         TFOVals.resize(NumColors);
         scalarTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFOVals[0]);
         colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFVals[0]);
-        std::cout << "colors:\n";
-        for(int i =0;i<NumColors;i++)
-          std::cout << TFVals[i*3+0] << " " << TFVals[i*3+1] << " " << TFVals[i*3+2] << std::endl;
-        std::cout << "opacities:\n";
-        for(int i =0;i<NumColors;i++)
-          std::cout << TFOVals[i] << " ";
-        std::cout << std::endl;
-
 
         OSPData colorData = ospNewData(NumColors, OSP_FLOAT3, &TFVals[0]);// TODO: memory leak?  does ospray manage this>
         ospSetData(transferFunction, "colors", colorData);
@@ -459,40 +451,46 @@
         //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
         ospCommit(transferFunction);
 
-        // static bool once = false;
-        // if (!once)  //TODO: take this out and check for valid data changes
-        // {
-        //   once = true;
-          std::cout << "recomputing volume\n";
+        std::cout << "recomputing volume\n";
 
-          char* buffer = NULL;
-          size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
+        //
+        // Send Volumetric data to OSPRay
+        //
+        static bool once = false;
+        if (!once)
+        {
+          once = true;
 
-          buffer = (char*)ScalarDataPointer;
+        char* buffer = NULL;
+        size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
 
-          ospSet3i(OSPRayVolume, "dimensions", dim[0], dim[1], dim[2]);
-          double origin[3];
-          vol->GetOrigin(origin);
-          double *bds = data->GetBounds();
-          origin[0] = bds[0];
-          origin[1] = bds[2];
-          origin[2] = bds[4];
+        buffer = (char*)ScalarDataPointer;
 
-          double spacing[3];
-          data->GetSpacing(spacing);
-          ospSet3f(OSPRayVolume, "gridOrigin", origin[0], origin[1], origin[2]);
-          ospSet3f(OSPRayVolume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
-          ospSetString(OSPRayVolume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
-          if (SharedData)
-          {
-            OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
-            ospSetData(OSPRayVolume, "voxelData", voxelData);
-          }
-          else
-          {
-            ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
-          }
-        // }
+        ospSet3i(OSPRayVolume, "dimensions", dim[0], dim[1], dim[2]);
+        double origin[3];
+        vol->GetOrigin(origin);
+        double *bds = data->GetBounds();
+        origin[0] = bds[0];
+        origin[1] = bds[2];
+        origin[2] = bds[4];
+
+        double spacing[3];
+        data->GetSpacing(spacing);
+        ospSet3f(OSPRayVolume, "gridOrigin", origin[0], origin[1], origin[2]);
+        ospSet3f(OSPRayVolume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
+        ospSetString(OSPRayVolume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
+        if (SharedData)
+        {
+          OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
+          ospSetData(OSPRayVolume, "voxelData", voxelData);
+        }
+        else
+        {
+          ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
+        }
+      }
+
+        //TODO: manage memory
 
         ospSetObject((OSPObject)OSPRayVolume, "transferFunction", transferFunction);
         this->BuildTime.Modified();

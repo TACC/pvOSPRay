@@ -98,7 +98,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 // called by Renderer::UpdateCamera()
 void vtkOSPRayCamera::Render(vtkRenderer *ren)
 {
-  if (this->GetMTime() > this->LastRenderTime)
+  // if (this->GetMTime() > this->LastRenderTime)
     {
     this->OrientOSPRayCamera(ren);
 
