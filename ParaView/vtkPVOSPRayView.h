@@ -77,6 +77,8 @@ public:
 
   void RenderUpdate();
 
+virtual void Update();
+
 //BTX
 protected:
   vtkPVOSPRayView();
@@ -93,6 +95,7 @@ protected:
 
 	vtkOSPRayRenderer *OSPRayRenderer;
   vtkQtProgressiveRenderer* ProgressiveRenderer;
+  void CreateProgressiveRenderer();
 
 private:
   vtkPVOSPRayView(const vtkPVOSPRayView&); // Not implemented

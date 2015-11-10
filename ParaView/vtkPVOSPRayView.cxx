@@ -39,6 +39,7 @@
 
 static void RenderUpdateCallback(void* pvView)
 {
+  std::cerr << __PRETTY_FUNCTION__ << std::endl;
   vtkPVOSPRayView* view = (vtkPVOSPRayView*)pvView;
   if (view)
     view->RenderUpdate();
@@ -48,10 +49,12 @@ vtkStandardNewMacro(vtkPVOSPRayView);
 //----------------------------------------------------------------------------
 vtkPVOSPRayView::vtkPVOSPRayView()
 {
+  std::cerr << __PRETTY_FUNCTION__ << std::endl;
   this->SynchronizedRenderers->SetDisableIceT(true);
   EnableAO=-1;
   OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
+
 
   vtkOSPRayCamera *OSPRayCamera = vtkOSPRayCamera::New();
   OSPRayRenderer->SetActiveCamera(OSPRayCamera);
@@ -71,21 +74,13 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   OSPRayRenderer->AddLight(this->Light);
   OSPRayRenderer->SetAutomaticLightCreation(0);
-
-  if (this->Interactor)
-    {
-      ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
-      this->Interactor->AddObserver(
-        vtkCommand::StartInteractionEvent,
-        ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
-      this->Interactor->AddObserver(
-        vtkCommand::EndInteractionEvent,
-        ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
-    }
+  ProgressiveRenderer = NULL;
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
+  this->EnableProgressiveRefinement = -1;
+  SetEnableProgressiveRefinement(true);
 }
 
 //----------------------------------------------------------------------------
@@ -98,6 +93,11 @@ vtkPVOSPRayView::~vtkPVOSPRayView()
 //----------------------------------------------------------------------------
 void vtkPVOSPRayView::SetActiveCamera(vtkCamera* camera)
 {
+        std::cerr << __PRETTY_FUNCTION__ << std::endl;    
+      if (this->Interactor)
+    {
+      std::cerr << __PRETTY_FUNCTION__ << "wee" << std::endl;
+    }
   this->GetRenderer()->SetActiveCamera(camera);
 }
 
@@ -106,6 +106,11 @@ void vtkPVOSPRayView::Initialize(unsigned int id)
 {
   this->Superclass::Initialize(id);
 
+      std::cerr << __PRETTY_FUNCTION__ << std::endl;    
+      if (this->Interactor)
+    {
+      std::cerr << __PRETTY_FUNCTION__ << "wee" << std::endl;
+    }
   vtkOpenGLRenderer *glrenderer = vtkOpenGLRenderer::SafeDownCast
     (this->RenderView->GetRenderer());
   if(glrenderer)
@@ -113,6 +118,25 @@ void vtkPVOSPRayView::Initialize(unsigned int id)
     glrenderer->SetPass(NULL);
     }
 }
+  void vtkPVOSPRayView::Update() { std::cerr << "Update\n";        if (this->Interactor)
+    {
+      std::cerr << __PRETTY_FUNCTION__ << "wee" << std::endl;
+    } 
+  if (this->Interactor)
+  {
+    static bool once = false;
+    if (!once)
+    {
+      once = true;
+      std::cerr << __PRETTY_FUNCTION__ << std::endl;
+      int enabledProg = this->EnableProgressiveRefinement;
+      EnableProgressiveRefinement = -1;
+      SetEnableProgressiveRefinement(true);
+      SetEnableProgressiveRefinement(enabledProg);
+    }
+  }
+  this->Superclass::Update();
+  }
 
 //----------------------------------------------------------------------------
 void vtkPVOSPRayView::PrintSelf(ostream& os, vtkIndent indent)
@@ -155,10 +179,21 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
     EnableProgressiveRefinement = newval;
     if (this->Interactor)
     {
+      std::cerr << __PRETTY_FUNCTION__ << std::endl;
+      if (!ProgressiveRenderer)
+        CreateProgressiveRenderer();
       if (newval)
+      {
+
+      std::cerr << __PRETTY_FUNCTION__ << "enabling progressive" << std::endl;
         ProgressiveRenderer->resumeAutoUpdates();
+      }
       else
+      {
+
+      std::cerr << __PRETTY_FUNCTION__ << "disabling progressive" << std::endl;
         ProgressiveRenderer->stopAutoUpdates();
+      }
     }
   }
 }
@@ -195,6 +230,22 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 
 void vtkPVOSPRayView::RenderUpdate()
 {
+        std::cerr << __PRETTY_FUNCTION__ << std::endl;    
+      if (this->Interactor)
+    {
+      std::cerr << __PRETTY_FUNCTION__ << "wee" << std::endl;
+    }
 	this->OSPRayRenderer->SetProgressiveRenderFlag();
   this->StillRender();
+}
+
+void vtkPVOSPRayView::CreateProgressiveRenderer()
+{
+  ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
+  this->Interactor->AddObserver(
+    vtkCommand::StartInteractionEvent,
+    ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+  this->Interactor->AddObserver(
+    vtkCommand::EndInteractionEvent,
+    ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
 }

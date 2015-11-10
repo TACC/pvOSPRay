@@ -364,6 +364,7 @@ void vtkOSPRayRenderer::PreRender()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
+  std::cerr << "DeviceRender " << prog_flag << " " << AccumCounter << " " << ClearAccumFlag << std::endl;
   static vtkTimerLog* timer = vtkTimerLog::New();
   timer->StartTimer();
   PreRender();
