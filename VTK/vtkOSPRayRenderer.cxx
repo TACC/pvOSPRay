@@ -121,6 +121,7 @@ Accumulate(false)
 
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
+  this->EnableAO=false;
   bool ao = EnableAO;
   EnableAO=-1;
   SetEnableAO(ao);
@@ -210,7 +211,6 @@ void vtkOSPRayRenderer::ClearAccumulation()
   if (osp_framebuffer)
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   AccumCounter=0;
-
 }
 
 
@@ -218,7 +218,6 @@ void vtkOSPRayRenderer::ClearAccumulation()
 // Ask lights to load themselves into graphics pipeline.
 int vtkOSPRayRenderer::UpdateLights()
 {
-
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
   OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
   std::vector<OSPLight> lights;
@@ -293,8 +292,6 @@ int vtkOSPRayRenderer::UpdateLights()
   ospSetData(vRenderer, "lights",lightsArray);
   ospCommit(renderer);
 
-
-
   return 0;
 }
 
@@ -311,7 +308,7 @@ void vtkOSPRayRenderer::UpdateSize()
 
 void vtkOSPRayRenderer::PreRender()
 {
-    if ((! prog_flag) || ClearAccumFlag)
+  if ((!prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer)
       ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
@@ -343,7 +340,7 @@ void vtkOSPRayRenderer::PreRender()
   HasVolume = false;
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   this->OSPRayManager->OSPRayModel = ospNewModel();
-  this->OSPRayManager->OSPRayVolumeModel = ospNewModel();
+  this->OSPRayManager->OSPRayVolumeModel = this->OSPRayManager->OSPRayModel;  //TODO: the volume and geometry are now managed in the same model object, can remove volumemodel entirely
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
   ospSetObject(oRenderer,"world",oModel);
@@ -436,7 +433,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
     AccumCounter=0;
   }
-  if (HasVolume)
+  if (HasVolume && !EnableAO)
   {
     OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
     OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
@@ -656,7 +653,8 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   else
   {
-    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
