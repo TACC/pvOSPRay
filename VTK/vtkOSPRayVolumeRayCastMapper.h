@@ -35,6 +35,7 @@
                                       // and vtkVolumeRayCastDynamicInfo
 #include "vtkOSPRayModule.h"
 #include <vector>
+#include <map>
 
 
 
@@ -60,6 +61,12 @@ class vtkRayCastImageDisplayHelper;
 
 
 class vtkOSPRayManager;
+
+struct vtkOSPRayVolumeCacheEntry
+{
+  osp::Volume* Volume;
+  vtkTimeStamp BuildTime;
+};
 
 
 // Macro for tri-linear interpolation - do four linear interpolations on
@@ -297,6 +304,7 @@ protected:
   bool SharedData;
   bool VolumeAdded;
   double SamplingRate;
+  std::map< vtkVolume*, std::map< double, vtkOSPRayVolumeCacheEntry* > > Cache;
 
 
 private:

@@ -366,6 +366,73 @@
       vtkDataArray * scalars = this->GetScalars(data, this->ScalarMode,
         this->ArrayAccessMode, this->ArrayId, this->ArrayName, this->CellFlag);
 
+      void* ScalarDataPointer =
+      this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
+      int ScalarDataType =
+      this->GetInput()->GetPointData()->GetScalars()->GetDataType();
+
+      int dim[3];
+      data->GetDimensions(dim);
+
+      //
+      // Cache timesteps
+      //
+      double timestep=-1;
+      vtkInformation *inputInfo = this->GetInput()->GetInformation();
+      // // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" <<
+      // // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
+      if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP()))
+      {
+        std::cerr << "has timestep\n";
+        timestep = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
+        std::cerr << "timestep time: " << timestep << std::endl;
+      }
+      vtkOSPRayVolumeCacheEntry* cacheEntry = Cache[vol][timestep];
+      if (!cacheEntry)
+      {
+        cacheEntry = new vtkOSPRayVolumeCacheEntry();
+        if (SharedData)
+          OSPRayVolume = ospNewVolume("shared_structured_volume");
+        else
+          OSPRayVolume = ospNewVolume("block_bricked_volume");
+        cacheEntry->Volume = OSPRayVolume;
+        Cache[vol][timestep] = cacheEntry;
+
+        //
+        // Send Volumetric data to OSPRay
+        //
+        std::cout << "recomputing volume\n";
+
+        char* buffer = NULL;
+        size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
+
+        buffer = (char*)ScalarDataPointer;
+
+        ospSet3i(OSPRayVolume, "dimensions", dim[0], dim[1], dim[2]);
+        double origin[3];
+        vol->GetOrigin(origin);
+        double *bds = data->GetBounds();
+        origin[0] = bds[0];
+        origin[1] = bds[2];
+        origin[2] = bds[4];
+
+        double spacing[3];
+        data->GetSpacing(spacing);
+        ospSet3f(OSPRayVolume, "gridOrigin", origin[0], origin[1], origin[2]);
+        ospSet3f(OSPRayVolume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
+        ospSetString(OSPRayVolume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
+        if (SharedData)
+        {
+          OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
+          ospSetData(OSPRayVolume, "voxelData", voxelData);
+        }
+        else
+        {
+          ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
+        }
+      }
+      OSPRayVolume = cacheEntry->Volume;
+
       // test for modifications to volume properties
       if (vol->GetProperty()->GetMTime() > PropertyTime)
       {
@@ -396,18 +463,10 @@
       // test for modifications to input
       if (this->GetInput()->GetMTime() > this->BuildTime)
       {
-        if (VolumeAdded)
-        {
-          VolumeAdded=false;
-        }
-
-        void* ScalarDataPointer =
-        this->GetInput()->GetPointData()->GetScalars()->GetVoidPointer(0);
-        int ScalarDataType =
-        this->GetInput()->GetPointData()->GetScalars()->GetDataType();
-
-        int dim[3];
-        data->GetDimensions(dim);
+        // if (VolumeAdded)
+        // {
+        //   VolumeAdded=false;
+        // }
         //! Create an OSPRay transfer function.
 
         std::vector<float> isoValues;
@@ -451,66 +510,6 @@
         //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
         ospCommit(transferFunction);
 
-
-        //
-        // Cache timesteps
-        //
-
-        // vtkInformation *inputInfo = this->GetInput()->GetInformation();
-        // // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" <<
-        // // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
-
-
-        //  if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
-        //    double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-        // //    // timestep = time;
-        //    std::cerr << "timestep time: " << time << std::endl;
-        // // //   if (OSPRayActor->cache[time] != NULL) {
-
-        // // //     OSPRayActor->OSPRayModel = OSPRayActor->cache[time];
-        // // //     return;
-
-        // // // }
-        //  } else if (!inputInfo) {
-        //  } else {
-        // //    // if (OSPRayActor->cache[timestep] != NULL) {
-        // //    // }
-        //  }
-
-        std::cout << "recomputing volume\n";
-
-        //
-        // Send Volumetric data to OSPRay
-        //
-
-        char* buffer = NULL;
-        size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
-
-        buffer = (char*)ScalarDataPointer;
-
-        ospSet3i(OSPRayVolume, "dimensions", dim[0], dim[1], dim[2]);
-        double origin[3];
-        vol->GetOrigin(origin);
-        double *bds = data->GetBounds();
-        origin[0] = bds[0];
-        origin[1] = bds[2];
-        origin[2] = bds[4];
-
-        double spacing[3];
-        data->GetSpacing(spacing);
-        ospSet3f(OSPRayVolume, "gridOrigin", origin[0], origin[1], origin[2]);
-        ospSet3f(OSPRayVolume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
-        ospSetString(OSPRayVolume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
-        if (SharedData)
-        {
-          OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
-          ospSetData(OSPRayVolume, "voxelData", voxelData);
-        }
-        else
-        {
-          ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
-        }
-
         //TODO: manage memory
 
         ospSetObject((OSPObject)OSPRayVolume, "transferFunction", transferFunction);
@@ -519,8 +518,8 @@
       ospSet1f(OSPRayVolume, "samplingRate", SamplingRate);
       ospCommit(OSPRayVolume);
       ospAddVolume(OSPRayModel,(OSPVolume)OSPRayVolume);
-      if (!VolumeAdded)
-        VolumeAdded = true;
+      // if (!VolumeAdded)
+        // VolumeAdded = true;
       ospCommit(OSPRayModel);
       ospSetObject(renderer, "model", OSPRayModel);
       ospCommit(renderer);

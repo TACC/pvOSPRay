@@ -210,7 +210,6 @@ void vtkOSPRayRenderer::ClearAccumulation()
   if (osp_framebuffer)
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
   AccumCounter=0;
-
 }
 
 
@@ -218,7 +217,6 @@ void vtkOSPRayRenderer::ClearAccumulation()
 // Ask lights to load themselves into graphics pipeline.
 int vtkOSPRayRenderer::UpdateLights()
 {
-
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
   OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
   std::vector<OSPLight> lights;
@@ -293,8 +291,6 @@ int vtkOSPRayRenderer::UpdateLights()
   ospSetData(vRenderer, "lights",lightsArray);
   ospCommit(renderer);
 
-
-
   return 0;
 }
 
@@ -311,7 +307,7 @@ void vtkOSPRayRenderer::UpdateSize()
 
 void vtkOSPRayRenderer::PreRender()
 {
-    if ((! prog_flag) || ClearAccumFlag)
+  if ((!prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer)
       ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
@@ -656,8 +652,8 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   else
   {
-    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
-    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 

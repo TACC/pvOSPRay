@@ -60,6 +60,7 @@ private:
   vtkTimeStamp LastRenderTime;
 
   vtkOSPRayManager *OSPRayManager;
+  double Aspect;
 };
 
 #endif

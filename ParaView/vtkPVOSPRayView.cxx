@@ -85,11 +85,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 
-
   this->SetInteractionMode(INTERACTION_MODE_3D);
-
-
-
 }
 
 //----------------------------------------------------------------------------

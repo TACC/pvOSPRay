@@ -37,72 +37,77 @@
 #include <OpenGL/glu.h>
 #endif
 
-vtkStandardNewMacro(vtkOSPRayCamera);
+   vtkStandardNewMacro(vtkOSPRayCamera);
 
 //----------------------------------------------------------------------------
-vtkOSPRayCamera::vtkOSPRayCamera()
-{
-  this->OSPRayManager = NULL;
-}
+   vtkOSPRayCamera::vtkOSPRayCamera()
+   {
+    this->OSPRayManager = NULL;
+  }
 
 //----------------------------------------------------------------------------
-vtkOSPRayCamera::~vtkOSPRayCamera()
-{
-  if (this->OSPRayManager)
+  vtkOSPRayCamera::~vtkOSPRayCamera()
+  {
+    if (this->OSPRayManager)
     {
-    this->OSPRayManager->Delete();
+      this->OSPRayManager->Delete();
     }
-}
+  }
 
 //----------------------------------------------------------------------------
-void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
-{
-  vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
-  if (!OSPRayRenderer)
+  void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
+  {
+    vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
+    if (!OSPRayRenderer)
     {
-    return;
+      return;
     }
     OSPRayRenderer->ClearAccumulation();
 
-  if (!this->OSPRayManager)
+    if (!this->OSPRayManager)
     {
-    this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-    this->OSPRayManager->Register(this);
+      this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
+      this->OSPRayManager->Register(this);
     }
 
   // for figuring out aspect ratio
-  int lowerLeft[2];
-  int usize, vsize;
-  ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
+    int lowerLeft[2];
+    int usize, vsize;
+    ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
 
-  double *eye, *lookat, *up, vfov;
-  eye    = this->Position;
-  lookat = this->FocalPoint;
-  up     = this->ViewUp;
-  vfov   = this->ViewAngle;
+    double *eye, *lookat, *up, vfov;
+    eye    = this->Position;
+    lookat = this->FocalPoint;
+    up     = this->ViewUp;
+    vfov   = this->ViewAngle;
 
-  OSPCamera ospCamera = ((OSPCamera)this->OSPRayManager->OSPRayCamera);
+    OSPCamera ospCamera = ((OSPCamera)this->OSPRayManager->OSPRayCamera);
     if (vsize == 0)
       return;
-  ospSetf(ospCamera,"aspect",float(usize)/float(vsize));
-  ospSetf(ospCamera,"fovy",vfov);
-  Assert(ospCamera != NULL && "could not create camera");
-  ospSet3f(ospCamera,"pos",eye[0], eye[1], eye[2]);
-  ospSet3f(ospCamera,"up",up[0], up[1], up[2]);
-  ospSet3f(ospCamera,"dir",lookat[0]-eye[0],lookat[1]-eye[1],lookat[2]-eye[2]);
-  ospCommit(ospCamera);
+    ospSetf(ospCamera,"aspect",float(usize)/float(vsize));
+    ospSetf(ospCamera,"fovy",vfov);
+    Assert(ospCamera != NULL && "could not create camera");
+    ospSet3f(ospCamera,"pos",eye[0], eye[1], eye[2]);
+    ospSet3f(ospCamera,"up",up[0], up[1], up[2]);
+    ospSet3f(ospCamera,"dir",lookat[0]-eye[0],lookat[1]-eye[1],lookat[2]-eye[2]);
+    ospCommit(ospCamera);
 
-}
+  }
 
 //----------------------------------------------------------------------------
 // called by Renderer::UpdateCamera()
-void vtkOSPRayCamera::Render(vtkRenderer *ren)
-{
-  // if (this->GetMTime() > this->LastRenderTime)
+  void vtkOSPRayCamera::Render(vtkRenderer *ren)
+  {
+    int lowerLeft[2];
+    int usize, vsize;
+    ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
+    double newAspect = float(usize)/float(vsize);
+    if (this->GetMTime() > this->LastRenderTime || (newAspect != this->Aspect) )
     {
-    this->OrientOSPRayCamera(ren);
+      this->Aspect = newAspect;
+      this->OrientOSPRayCamera(ren);
 
-    this->LastRenderTime.Modified();
+      this->LastRenderTime.Modified();
 
     }
-}
+  }

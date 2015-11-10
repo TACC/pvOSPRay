@@ -20,7 +20,7 @@
 using namespace std;
 
 vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*cb)(void*), void* arg,QObject* parent)
-  :delayUpdate(false), renderer(r),disableAutomaticUpdates(false), Samples(1)
+:delayUpdate(false), renderer(r),disableAutomaticUpdates(false), Samples(1)
 {
   Callback = cb; CallbackArg = arg;
   QObject::connect(&_pqTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
@@ -46,22 +46,22 @@ void vtkQtProgressiveRenderer::onTimeout(){
   }
 }
 
-  void vtkQtProgressiveRenderer::stopAutoUpdates()
-  {
-    disableAutomaticUpdates=true;
-  }
-  void vtkQtProgressiveRenderer::resumeAutoUpdates()
-  {
-    disableAutomaticUpdates=false;
-    _pqTimer.start(100);
-  }
+void vtkQtProgressiveRenderer::stopAutoUpdates()
+{
+  disableAutomaticUpdates=true;
+}
+void vtkQtProgressiveRenderer::resumeAutoUpdates()
+{
+  disableAutomaticUpdates=false;
+  _pqTimer.start(100);
+}
 
 void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
 {
   vtkSMRenderViewProxy* rvProxy =
-    vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
+  vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
   if (rvProxy)
-    {
+  {
     rvProxy->AddObserver(vtkCommand::UpdateDataEvent,
       this, &vtkQtProgressiveRenderer::onViewUpdated);
     rvProxy->GetInteractor()->AddObserver(
@@ -70,23 +70,23 @@ void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
     rvProxy->GetInteractor()->AddObserver(
       vtkCommand::EndInteractionEvent,
       this, &vtkQtProgressiveRenderer::onEndInteractionEvent);
-    }
+  }
 }
 
 void vtkQtProgressiveRenderer::onViewUpdated()
 {
 }
 
-  void vtkQtProgressiveRenderer::onStartInteractionEvent()
+void vtkQtProgressiveRenderer::onStartInteractionEvent()
 {
   delayUpdate=true;
   Samples = renderer->GetSamples();
   renderer->SetSamples(1);
-  }
-    void vtkQtProgressiveRenderer::onEndInteractionEvent()
+}
+void vtkQtProgressiveRenderer::onEndInteractionEvent()
 {
-    delayUpdate=false;
+  delayUpdate=false;
   _pqTimer.start(0);
   renderer->SetSamples(Samples);
-  }
-  
+}
+
