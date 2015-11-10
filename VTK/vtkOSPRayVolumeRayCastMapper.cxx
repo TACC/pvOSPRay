@@ -401,7 +401,6 @@
         //
         // Send Volumetric data to OSPRay
         //
-        std::cout << "recomputing volume\n";
 
         char* buffer = NULL;
         size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);

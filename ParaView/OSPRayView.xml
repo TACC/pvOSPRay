@@ -35,7 +35,7 @@
        </ExposedProperties>
      </SubProxy>
 
-      <IntVectorProperty name="EnableShadows"
+<!--       <IntVectorProperty name="EnableShadows"
         command="SetEnableShadows"
         immediate_update="1"
         number_of_elements="1"
@@ -45,7 +45,7 @@
         <Documentation>
           Turns on shadow.
         </Documentation>
-      </IntVectorProperty>
+      </IntVectorProperty> -->
 
       <IntVectorProperty name="EnableAO"
         command="SetEnableAO"

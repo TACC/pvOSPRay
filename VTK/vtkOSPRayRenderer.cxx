@@ -432,7 +432,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
     AccumCounter=0;
   }
-  if (HasVolume)
+  if (HasVolume && !EnableAO)
   {
     OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
     OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
