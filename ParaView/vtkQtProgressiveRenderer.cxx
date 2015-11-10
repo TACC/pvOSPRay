@@ -8,7 +8,7 @@
 #include "pqServerManagerModel.h"
 #include "pqView.h"
 #include "vtkCommand.h"
-#include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkGenericRenderWindowInteractor.h"
 #include "vtkPVView.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMSession.h"
