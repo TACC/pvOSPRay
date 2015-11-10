@@ -22,7 +22,6 @@ using namespace std;
 vtkQtProgressiveRenderer::vtkQtProgressiveRenderer(vtkOSPRayRenderer* r,void (*cb)(void*), void* arg,QObject* parent)
 :delayUpdate(false), renderer(r),disableAutomaticUpdates(false), Samples(1)
 {
-  std::cerr << __PRETTY_FUNCTION__ << std::endl;
   Callback = cb; CallbackArg = arg;
   QObject::connect(&_pqTimer, SIGNAL(timeout()), this, SLOT(onTimeout()));
   _pqTimer.setSingleShot(true);
@@ -34,7 +33,6 @@ vtkQtProgressiveRenderer::~vtkQtProgressiveRenderer()
 }
 
 void vtkQtProgressiveRenderer::onTimeout(){
-  std::cerr << __PRETTY_FUNCTION__ << std::endl;
   if (delayUpdate)
     _pqTimer.start(100);
   else
@@ -60,12 +58,10 @@ void vtkQtProgressiveRenderer::resumeAutoUpdates()
 
 void vtkQtProgressiveRenderer::onViewAdded(pqView* view)
 {
-  std::cerr << __PRETTY_FUNCTION__ << std::endl;
   vtkSMRenderViewProxy* rvProxy =
   vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
   if (rvProxy)
   {
-    std::cerr << __PRETTY_FUNCTION__ << std::endl;
     rvProxy->AddObserver(vtkCommand::UpdateDataEvent,
       this, &vtkQtProgressiveRenderer::onViewUpdated);
     rvProxy->GetInteractor()->AddObserver(
@@ -83,14 +79,12 @@ void vtkQtProgressiveRenderer::onViewUpdated()
 
 void vtkQtProgressiveRenderer::onStartInteractionEvent()
 {
-  std::cerr << __PRETTY_FUNCTION__ << std::endl;
   delayUpdate=true;
   Samples = renderer->GetSamples();
   renderer->SetSamples(1);
 }
 void vtkQtProgressiveRenderer::onEndInteractionEvent()
 {
-    std::cerr << __PRETTY_FUNCTION__ << std::endl;
   delayUpdate=false;
   _pqTimer.start(0);
   renderer->SetSamples(Samples);
