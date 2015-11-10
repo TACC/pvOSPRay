@@ -51,9 +51,9 @@ vtkOSPRayManager::vtkOSPRayManager()
     ospInit(&ac, av);
   }
   this->OSPRayVolumeRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
-  this->OSPRayVolumeModel = ospNewModel();
   this->OSPRayCamera = ospNewCamera("perspective");
   this->OSPRayModel = ospNewModel();
+  this->OSPRayVolumeModel = this->OSPRayModel;
 }
 
 //----------------------------------------------------------------------------

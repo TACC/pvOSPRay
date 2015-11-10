@@ -343,7 +343,7 @@ void vtkOSPRayRenderer::PreRender()
   HasVolume = false;
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   this->OSPRayManager->OSPRayModel = ospNewModel();
-  this->OSPRayManager->OSPRayVolumeModel = ospNewModel();
+  this->OSPRayManager->OSPRayVolumeModel = this->OSPRayManager->OSPRayModel;  //TODO: the volume and geometry are now managed in the same model object, can remove volumemodel entirely
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
   ospSetObject(oRenderer,"world",oModel);
@@ -656,6 +656,7 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   else
   {
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;

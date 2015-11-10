@@ -451,15 +451,37 @@
         //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
         ospCommit(transferFunction);
 
+
+        //
+        // Cache timesteps
+        //
+
+        // vtkInformation *inputInfo = this->GetInput()->GetInformation();
+        // // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" <<
+        // // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
+
+
+        //  if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP())) {
+        //    double time = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
+        // //    // timestep = time;
+        //    std::cerr << "timestep time: " << time << std::endl;
+        // // //   if (OSPRayActor->cache[time] != NULL) {
+
+        // // //     OSPRayActor->OSPRayModel = OSPRayActor->cache[time];
+        // // //     return;
+
+        // // // }
+        //  } else if (!inputInfo) {
+        //  } else {
+        // //    // if (OSPRayActor->cache[timestep] != NULL) {
+        // //    // }
+        //  }
+
         std::cout << "recomputing volume\n";
 
         //
         // Send Volumetric data to OSPRay
         //
-        static bool once = false;
-        if (!once)
-        {
-          once = true;
 
         char* buffer = NULL;
         size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
@@ -488,7 +510,6 @@
         {
           ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
         }
-      }
 
         //TODO: manage memory
 
