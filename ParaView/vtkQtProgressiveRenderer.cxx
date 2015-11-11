@@ -10,6 +10,7 @@
 #include "vtkCommand.h"
 #include "vtkGenericRenderWindowInteractor.h"
 #include "vtkPVView.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMSession.h"
 

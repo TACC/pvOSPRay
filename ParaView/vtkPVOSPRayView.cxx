@@ -32,10 +32,10 @@
 #include "vtkGenericRenderWindowInteractor.h"
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkRenderViewBase.h"
+#include "vtkRenderWindowInteractor.h"
 
 #include "vtkQtProgressiveRenderer.h"
 #include "vtkCommand.h"
-#include "vtkGenericRenderWindowInteractor.h"
 
 static void RenderUpdateCallback(void* pvView)
 {
@@ -160,7 +160,7 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
   if (newval != EnableProgressiveRefinement)
   {
     EnableProgressiveRefinement = newval;
-    if (this->Interactor)
+    if (this->Interactor && ProgressiveRenderer)
     {
       if (!ProgressiveRenderer)
         CreateProgressiveRenderer();
@@ -173,6 +173,24 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
         ProgressiveRenderer->stopAutoUpdates();
       }
     }
+    else
+      {
+       if (this->Interactor)
+         {
+       ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
+      this->Interactor->AddObserver(
+        vtkCommand::StartInteractionEvent,
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
+      this->Interactor->AddObserver(
+        vtkCommand::EndInteractionEvent,
+        ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
+         }
+       else
+         {
+           //cerr << "TOLD YOU SO" << endl;
+         }
+
+      }
   }
 }
 

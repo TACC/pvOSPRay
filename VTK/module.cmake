@@ -25,9 +25,16 @@ if (BUILD_AGAINST_PARAVIEW)
   list(APPEND _vtk_modules vtkPVClientServerCoreRendering)
 endif()
 
+if (VTK_RENDERING_BACKEND STREQUAL "OpenGL2")
+  message("GL2")
+  list(APPEND _vtk_modules vtkRenderingOpenGL2)
+else()
+  message("GL1")
+  list(APPEND _vtk_modules vtkRenderingOpenGL)
+endif()
+
 vtk_module(vtkOSPRay
   DEPENDS
-    vtkRenderingOpenGL
     vtkFiltersCore
     vtkParallelCore
     vtkFiltersHybrid

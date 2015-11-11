@@ -33,7 +33,7 @@
 #if defined(__APPLE__) && (defined(VTK_USE_CARBON) || defined(VTK_USE_COCOA))
 # include <OpenGL/gl.h> // Include OpenGL API.
 #else
-#include "vtkgl.h"
+#include "vtkOpenGL.h"
 #endif
 
 #define DEBUG(x) {   std::cout << __PRETTY_FUNCTION__ << ":" << __LINE__ << " " << x << std::endl; }
