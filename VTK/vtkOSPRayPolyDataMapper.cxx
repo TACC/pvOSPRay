@@ -272,6 +272,18 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
 
   switch (this->Representation) {
     case VTK_POINTS: {
+      double coord[3];
+      for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
+        ptarray->GetPoint(index[0], coord);
+         mesh->points_vertex.push_back
+           (ospray::vec3f(coord[0], coord[1], coord[2]));
+        for (vtkIdType i = 1; i < npts; i++) {
+
+          ptarray->GetPoint(index[i], coord);
+                   mesh->points_vertex.push_back
+           (ospray::vec3f(coord[0], coord[1], coord[2]));
+        }
+      }
     }  // VTK_POINTS;
     break;
     case VTK_WIREFRAME: {
