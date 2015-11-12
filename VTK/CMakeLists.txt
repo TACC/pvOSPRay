@@ -39,47 +39,28 @@ endif(BUILD_AGAINST_PARAVIEW)
 
 
 
-# setup include paths
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/vtkOSPRay)
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/vtkOSPRay)
-# message("cmake_current_binary_dir: " ${CMAKE_CURRENT_BINARY_DIR})
-# message("project source dir: " ${PROJECT_SOURCE_DIR})
-# message("project binary dir: " ${PROJECT_BINARY_DIR})
-
-
-# if(PARAVIEW_BUILD_QT_GUI)
-#   INCLUDE(${QT_USE_FILE})
-# endif(PARAVIEW_BUILD_QT_GUI)
-FIND_PACKAGE(Qt4 REQUIRED)
-INCLUDE(${QT_USE_FILE})
-INCLUDE_DIRECTORIES(
-  ${QT_INCLUDE_DIR}
- )
-
 # Set vtkOSPRay source files.
 SET ( OSPRAY_CLASSES
-  vtkOSPRay/vtkOSPRayActor.cxx
-  vtkOSPRay/vtkOSPRayCamera.cxx
-  vtkOSPRay/vtkOSPRayLight.cxx
-  vtkOSPRay/vtkOSPRayManager.cxx
-  vtkOSPRay/vtkOSPRayPolyDataMapper.cxx
-  vtkOSPRay/vtkOSPRayProperty.cxx
-  vtkOSPRay/vtkOSPRayRenderer.cxx
-  vtkOSPRay/vtkOSPRayTestSource.cxx
-  vtkOSPRay/vtkOSPRayTexture.cxx
-  vtkOSPRay/vtkOSPRayVolumeRayCastMapper.h
-  vtkOSPRay/vtkOSPRayVolumeRayCastMapper.cxx
-  vtkOSPRay/vtkOSPRayPVLODVolume.cxx
+  vtkOSPRayActor.cxx
+  #vtkOSPRayRenderable.cxx
+  vtkOSPRayCamera.cxx
+  vtkOSPRayLight.cxx
+  vtkOSPRayManager.cxx
+  vtkOSPRayPolyDataMapper.cxx
+  vtkOSPRayProperty.cxx
+  vtkOSPRayRenderer.cxx
+  vtkOSPRayTestSource.cxx
+  vtkOSPRayTexture.cxx
+  vtkOSPRayVolumeRayCastMapper.h
+  vtkOSPRayVolumeRayCastMapper.cxx
+  vtkOSPRayPVLODVolume.cxx
   )
 
 IF (BUILD_AGAINST_PARAVIEW)
   add_definitions(-DVTKOSPRAY_FOR_PARAVIEW)
   # paraview uses its own LOD actor, put it in here
   SET ( OSPRAY_CLASSES ${OSPRAY_CLASSES}
-    vtkOSPRay/vtkOSPRayLODActor.cxx
+    vtkOSPRayLODActor.cxx
     vtkPVOSPRayRepresentation.cxx
     vtkPVOSPRayRepresentation.h
     vtkPVOSPRayOutlineRepresentation.cxx
@@ -88,7 +69,7 @@ IF (BUILD_AGAINST_PARAVIEW)
     #        something changed between the VTK in PV 4.1 and PV 4.3
     vtkPVOSPRayImageVolumeRepresentation.cxx
     vtkPVOSPRayImageVolumeRepresentation.h
-    vtkOSPRay/vtkOSPRayCompositeMapper.cxx)
+    vtkOSPRayCompositeMapper.cxx)
 ENDIF (BUILD_AGAINST_PARAVIEW)
 
 add_definitions(
@@ -108,6 +89,30 @@ set (${vtk-module}_NO_HeaderTest 1)
 vtk_module_library(${vtk-module} ${OSPRAY_SRCS} ${MOCSrcs} ${UISrcs})
 find_package(OSPRay)
 
+
+# setup include paths
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/vtkOSPRay)
+message("include dirs " ${PROJECT_SOURCE_DIR}/vtkOSPRay)
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/vtkOSPRay)
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/Base)
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/Base)
+# message("cmake_current_binary_dir: " ${CMAKE_CURRENT_BINARY_DIR})
+# message("project source dir: " ${PROJECT_SOURCE_DIR})
+# message("project binary dir: " ${PROJECT_BINARY_DIR})
+
+
+# if(PARAVIEW_BUILD_QT_GUI)
+#   INCLUDE(${QT_USE_FILE})
+# endif(PARAVIEW_BUILD_QT_GUI)
+FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
+INCLUDE_DIRECTORIES(
+  ${QT_INCLUDE_DIR}
+ )
+
 MESSAGE("here")
 MESSAGE("ospray libs:" + ${OSPRAY_LIBRARIES})
 MESSAGE("vtk-module: " + ${vtk-module})
@@ -126,6 +131,6 @@ if(WIN32)
 endif()
 
 #Examples ####################################################################
-IF ( BUILD_EXAMPLES )
-  ADD_SUBDIRECTORY(Examples)
-ENDIF ( BUILD_EXAMPLES )
+#IF ( BUILD_EXAMPLES )
+  #ADD_SUBDIRECTORY(Examples)
+#ENDIF ( BUILD_EXAMPLES )
