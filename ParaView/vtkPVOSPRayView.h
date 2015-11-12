@@ -58,6 +58,8 @@ public:
   vtkGetMacro(EnableShadows, int);
   virtual void SetEnableAO(int val);
   vtkGetMacro(EnableAO, int);
+  virtual void SetEnablePathtracing(int val);
+  vtkGetMacro(EnablePathtracing, int);
   virtual void SetSamples(int val);
   vtkGetMacro(Samples, int);
   virtual void SetMaxDepth(int val);
@@ -86,6 +88,7 @@ protected:
 
   int EnableShadows;
   int EnableAO;
+  int EnablePathtracing;
   int EnableProgressiveRefinement;
   int EnableVolumeShading;
   int Threads;

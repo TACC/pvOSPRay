@@ -19,7 +19,8 @@
 include_directories(
   ${VTK_INCLUDE_DIRS}
   ${pvOSPRay_SOURCE_DIR}/VTK
-  ${pvOSPRay_BINARY_DIR}/VTK
+  ${pvOSPRay_SOURCE_DIR}/VTK/vtkOSPRay
+  ${pvOSPRay_BINARY_DIR}/VTK/vtkOSPRay
 )
 # message("pvOSPRay_SOURCE_DIR " ${pvOSPRay_SOURCE_DIR})
 # message("pvOSPRay_BINARY_DIR " ${pvOSPRay_BINARY_DIR})

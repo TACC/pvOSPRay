@@ -58,6 +58,17 @@
         </Documentation>
       </IntVectorProperty>
 
+      <IntVectorProperty name="EnablePathtracing"
+        command="SetEnablePathtracing"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on pathtracing.
+        </Documentation>
+      </IntVectorProperty>
+
       <IntVectorProperty name="EnableProgressiveRefinement"
         command="SetEnableProgressiveRefinement"
         immediate_update="1"

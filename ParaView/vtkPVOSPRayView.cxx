@@ -155,6 +155,17 @@ void vtkPVOSPRayView::SetEnableAO(int newval)
   renderer->SetEnableAO(this->EnableAO);
 }
 
+void vtkPVOSPRayView::SetEnablePathtracing(int newval)
+{
+  if (newval == this->EnablePathtracing)
+    {
+    return;
+    }
+  this->EnablePathtracing = newval;
+  vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
+  renderer->SetEnablePathtracing(this->EnablePathtracing);
+}
+
 void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
 {
   if (newval != EnableProgressiveRefinement)

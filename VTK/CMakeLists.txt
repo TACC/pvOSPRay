@@ -42,7 +42,9 @@ endif(BUILD_AGAINST_PARAVIEW)
 # setup include paths
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/vtkOSPRay)
 INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR})
+INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/vtkOSPRay)
 # message("cmake_current_binary_dir: " ${CMAKE_CURRENT_BINARY_DIR})
 # message("project source dir: " ${PROJECT_SOURCE_DIR})
 # message("project binary dir: " ${PROJECT_BINARY_DIR})
@@ -59,25 +61,25 @@ INCLUDE_DIRECTORIES(
 
 # Set vtkOSPRay source files.
 SET ( OSPRAY_CLASSES
-  vtkOSPRayActor.cxx
-  vtkOSPRayCamera.cxx
-  vtkOSPRayLight.cxx
-  vtkOSPRayManager.cxx
-  vtkOSPRayPolyDataMapper.cxx
-  vtkOSPRayProperty.cxx
-  vtkOSPRayRenderer.cxx
-  vtkOSPRayTestSource.cxx
-  vtkOSPRayTexture.cxx
-  vtkOSPRayVolumeRayCastMapper.h
-  vtkOSPRayVolumeRayCastMapper.cxx
-  vtkOSPRayPVLODVolume.cxx
+  vtkOSPRay/vtkOSPRayActor.cxx
+  vtkOSPRay/vtkOSPRayCamera.cxx
+  vtkOSPRay/vtkOSPRayLight.cxx
+  vtkOSPRay/vtkOSPRayManager.cxx
+  vtkOSPRay/vtkOSPRayPolyDataMapper.cxx
+  vtkOSPRay/vtkOSPRayProperty.cxx
+  vtkOSPRay/vtkOSPRayRenderer.cxx
+  vtkOSPRay/vtkOSPRayTestSource.cxx
+  vtkOSPRay/vtkOSPRayTexture.cxx
+  vtkOSPRay/vtkOSPRayVolumeRayCastMapper.h
+  vtkOSPRay/vtkOSPRayVolumeRayCastMapper.cxx
+  vtkOSPRay/vtkOSPRayPVLODVolume.cxx
   )
 
 IF (BUILD_AGAINST_PARAVIEW)
   add_definitions(-DVTKOSPRAY_FOR_PARAVIEW)
   # paraview uses its own LOD actor, put it in here
   SET ( OSPRAY_CLASSES ${OSPRAY_CLASSES}
-    vtkOSPRayLODActor.cxx
+    vtkOSPRay/vtkOSPRayLODActor.cxx
     vtkPVOSPRayRepresentation.cxx
     vtkPVOSPRayRepresentation.h
     vtkPVOSPRayOutlineRepresentation.cxx
@@ -86,7 +88,7 @@ IF (BUILD_AGAINST_PARAVIEW)
     #        something changed between the VTK in PV 4.1 and PV 4.3
     vtkPVOSPRayImageVolumeRepresentation.cxx
     vtkPVOSPRayImageVolumeRepresentation.h
-    vtkOSPRayCompositeMapper.cxx)
+    vtkOSPRay/vtkOSPRayCompositeMapper.cxx)
 ENDIF (BUILD_AGAINST_PARAVIEW)
 
 add_definitions(
@@ -98,7 +100,7 @@ add_definitions(
 
 SET ( OSPRAY_SRCS
   ${OSPRAY_CLASSES}
-  vtkOSPRayObjectFactory.cxx
+#   vtkOSPRayObjectFactory.cxx
   )
 
 set (${vtk-module}_NO_HeaderTest 1)
