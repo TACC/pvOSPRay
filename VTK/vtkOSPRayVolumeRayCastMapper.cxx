@@ -383,9 +383,9 @@
       // // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
       if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP()))
       {
-        std::cerr << "has timestep\n";
+        //std::cerr << "has timestep\n";
         timestep = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-        std::cerr << "timestep time: " << timestep << std::endl;
+        //std::cerr << "timestep time: " << timestep << std::endl;
       }
       vtkOSPRayVolumeCacheEntry* cacheEntry = Cache[vol][timestep];
       if (!cacheEntry)
