@@ -22,54 +22,38 @@ include_directories(
   ${pvOSPRay_SOURCE_DIR}/VTK/vtkOSPRay
   ${pvOSPRay_BINARY_DIR}/VTK/vtkOSPRay
 )
-# message("pvOSPRay_SOURCE_DIR " ${pvOSPRay_SOURCE_DIR})
-# message("pvOSPRay_BINARY_DIR " ${pvOSPRay_BINARY_DIR})
 
 IF(PARAVIEW_BUILD_QT_GUI)
   INCLUDE_DIRECTORIES(
     ${PARAVIEW_GUI_INCLUDE_DIRS}
     )
-  INCLUDE(${QT_USE_FILE})
-  QT4_WRAP_CPP(MOC_SRCS
-    OSPRayView.h
-    OSPRayDisplay.h
-    # OSPRayViewOptions.h
-    vtkQtProgressiveRenderer.h
-    vtkOSPRayIsosurfaceFilter.h
-    )
+  SET (pvOSPRay_SRCS
+      OSPRayView.h
+      OSPRayDisplay.h
+      vtkQtProgressiveRenderer.h
+      vtkOSPRayIsosurfaceFilter.h
+      )
+  IF (PARAVIEW_QT_VERSION VERSION_GREATER "4")
+    INCLUDE (ParaViewQt5)
+    QT5_WRAP_UI(UI_SRCS
+      OSPRayDisplay.ui
+      )
+    QT5_WRAP_CPP(MOC_SRCS
+      ${pvOSPRay_SRCS})
+  ELSE ()
+    INCLUDE (${QT_USE_FILE})
+    QT4_WRAP_UI(UI_SRCS
+      OSPRayDisplay.ui
+      )
+    QT4_WRAP_CPP(MOC_SRCS
+      ${pvOSPRay_SRCS})
+  ENDIF ()
 
-  QT4_WRAP_UI(UI_SRCS
-    OSPRayDisplay.ui
-    # OSPRayViewOptions.ui
-    )
-
-  # ADD_PARAVIEW_VIEW_MODULE(
-  #   VIEW_IFACE VIEW_IFACE_SRCS
-  #   VIEW_TYPE OSPRayView
-  #   VIEW_NAME OSPRay
-  #   VIEW_XML_GROUP views
-  #   VIEW_XML_NAME OSPRay
-  #   )
-
-  # ADD_PARAVIEW_VIEW_OPTIONS(
-  #   OPTIONS_IFACE OPTIONS_IFACE_SRCS
-  #   VIEW_TYPE OSPRayView
-  #   ACTIVE_VIEW_OPTIONS pqActiveRenderViewOptions
-  #   GLOBAL_VIEW_OPTIONS OSPRayViewOptions
-  #   )
-
-  # ADD_PARAVIEW_DISPLAY_PANEL_DECORATOR(
-  #   DISPLAY_IFACE DISPLAY_IFACE_SRCS
-  #   CLASS_NAME OSPRayDisplay
-  #   PANEL_TYPES pqDisplayProxyEditor)
-
-ADD_PQPROXY(
+  add_pqproxy(
     VIEW_IFACE VIEW_IFACE_SRCS
     TYPE OSPRayView
     XML_GROUP views
-    XML_NAME OSPRay
-    )
-
+    XML_NAME OSPRay)
 ENDIF()
 
 LINK_DIRECTORIES ( ${OSPRAY_BUILD_DIR} )
