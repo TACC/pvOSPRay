@@ -33,6 +33,7 @@
 #include "vtkPVSynchronizedRenderer.h"
 #include "vtkRenderViewBase.h"
 #include "vtkRenderWindowInteractor.h"
+#include "vtkMultiProcessController.h"
 
 #include "vtkQtProgressiveRenderer.h"
 #include "vtkCommand.h"
@@ -69,7 +70,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   this->Light->SetIntensity(1.0);
   this->Light->SetLightType(2); // CameraLight
 
-
   OSPRayRenderer->AddLight(this->Light);
   OSPRayRenderer->SetAutomaticLightCreation(0);
   ProgressiveRenderer = NULL;
@@ -85,7 +85,8 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 vtkPVOSPRayView::~vtkPVOSPRayView()
 {
   OSPRayRenderer->Delete();
-  delete ProgressiveRenderer;
+  if (ProgressiveRenderer)
+    delete ProgressiveRenderer;
 }
 
 //----------------------------------------------------------------------------
@@ -99,13 +100,14 @@ void vtkPVOSPRayView::Initialize(unsigned int id)
 {
   this->Superclass::Initialize(id);
   vtkOpenGLRenderer *glrenderer = vtkOpenGLRenderer::SafeDownCast
-    (this->RenderView->GetRenderer());
+  (this->RenderView->GetRenderer());
   if(glrenderer)
-    {
+  {
     glrenderer->SetPass(NULL);
-    }
+  }
 }
-  void vtkPVOSPRayView::Update() { 
+
+void vtkPVOSPRayView::Update() { 
   if (this->Interactor)
   {
     static bool once = false;
@@ -119,7 +121,7 @@ void vtkPVOSPRayView::Initialize(unsigned int id)
     }
   }
   this->Superclass::Update();
-  }
+}
 
 //----------------------------------------------------------------------------
 void vtkPVOSPRayView::PrintSelf(ostream& os, vtkIndent indent)
@@ -136,20 +138,20 @@ void vtkPVOSPRayView::SetThreads(int newval)
 void vtkPVOSPRayView::SetEnableShadows(int newval)
 {
   if (newval == this->EnableShadows)
-    {
+  {
     return;
-    }
+  }
   this->EnableShadows = newval;
   vtkOSPRayRenderer *OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast
-    (this->RenderView->GetRenderer());
+  (this->RenderView->GetRenderer());
   OSPRayRenderer->SetEnableShadows(this->EnableShadows);
 }
 void vtkPVOSPRayView::SetEnableAO(int newval)
 {
   if (newval == this->EnableAO)
-    {
+  {
     return;
-    }
+  }
   this->EnableAO = newval;
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
   renderer->SetEnableAO(this->EnableAO);
@@ -158,9 +160,9 @@ void vtkPVOSPRayView::SetEnableAO(int newval)
 void vtkPVOSPRayView::SetEnablePathtracing(int newval)
 {
   if (newval == this->EnablePathtracing)
-    {
+  {
     return;
-    }
+  }
   this->EnablePathtracing = newval;
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
   renderer->SetEnablePathtracing(this->EnablePathtracing);
@@ -168,41 +170,27 @@ void vtkPVOSPRayView::SetEnablePathtracing(int newval)
 
 void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
 {
-  if (newval != EnableProgressiveRefinement)
+ if (vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1)
+   return;
+ if (this->Interactor && !ProgressiveRenderer)
+ {
+   CreateProgressiveRenderer();
+ }
+ if (newval != EnableProgressiveRefinement)
+ {
+  EnableProgressiveRefinement = newval;
+  if (this->Interactor && ProgressiveRenderer)
   {
-    EnableProgressiveRefinement = newval;
-    if (this->Interactor && ProgressiveRenderer)
+    if (newval)
     {
-      if (!ProgressiveRenderer)
-        CreateProgressiveRenderer();
-      if (newval)
-      {
-        ProgressiveRenderer->resumeAutoUpdates();
-      }
-      else
-      {
-        ProgressiveRenderer->stopAutoUpdates();
-      }
+      ProgressiveRenderer->resumeAutoUpdates();
     }
     else
-      {
-       if (this->Interactor)
-         {
-       ProgressiveRenderer = new vtkQtProgressiveRenderer(OSPRayRenderer,RenderUpdateCallback, this);
-      this->Interactor->AddObserver(
-        vtkCommand::StartInteractionEvent,
-        ProgressiveRenderer, &vtkQtProgressiveRenderer::onStartInteractionEvent);
-      this->Interactor->AddObserver(
-        vtkCommand::EndInteractionEvent,
-        ProgressiveRenderer, &vtkQtProgressiveRenderer::onEndInteractionEvent);
-         }
-       else
-         {
-           //cerr << "TOLD YOU SO" << endl;
-         }
-
-      }
+    {
+      ProgressiveRenderer->stopAutoUpdates();
+    }
   }
+}
 }
 
 
@@ -221,9 +209,9 @@ void vtkPVOSPRayView::SetEnableVolumeShading(int newval)
 void vtkPVOSPRayView::SetSamples(int newval)
 {
   if (newval == this->Samples)
-    {
+  {
     return;
-    }
+  }
   this->Samples = newval;
   vtkOSPRayRenderer *renderer = vtkOSPRayRenderer::SafeDownCast(this->RenderView->GetRenderer());
   renderer->SetSamples(Samples);
