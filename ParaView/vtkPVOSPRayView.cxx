@@ -54,7 +54,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
 
-
   vtkOSPRayCamera *OSPRayCamera = vtkOSPRayCamera::New();
   OSPRayRenderer->SetActiveCamera(OSPRayCamera);
   OSPRayCamera->ParallelProjectionOff();
@@ -173,9 +172,7 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
  if (vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1)
    return;
  if (this->Interactor && !ProgressiveRenderer)
- {
    CreateProgressiveRenderer();
- }
  if (newval != EnableProgressiveRefinement)
  {
   EnableProgressiveRefinement = newval;
@@ -190,9 +187,8 @@ void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
       ProgressiveRenderer->stopAutoUpdates();
     }
   }
+ }
 }
-}
-
 
 void vtkPVOSPRayView::SetEnableVolumeShading(int newval)
 {
@@ -221,7 +217,6 @@ void vtkPVOSPRayView::SetSamples(int newval)
 void vtkPVOSPRayView::SetMaxDepth(int newval)
 {
 }
-
 
 void vtkPVOSPRayView::RenderUpdate()
 {
