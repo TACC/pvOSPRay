@@ -32,6 +32,7 @@
 
 class vtkDataRepresentation;
 class vtkQtProgressiveRenderer;
+class vtkPVSynchronizedRenderer;
 
 class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {
@@ -76,10 +77,12 @@ public:
   // Overridden to ensure that we always use an vtkOpenGLCamera of the 2D
   // renderer.
   virtual void SetActiveCamera(vtkCamera*);
+  virtual void Render (bool interactive, bool skip_rendering);
 
   void RenderUpdate();
 
 virtual void Update();
+vtkPVSynchronizedRenderer* GetSynchronizedRenderers() { return this->SynchronizedRenderers; }
 
 //BTX
 protected:

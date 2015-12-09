@@ -40,6 +40,7 @@
 
 static void RenderUpdateCallback(void* pvView)
 {
+
   vtkPVOSPRayView* view = (vtkPVOSPRayView*)pvView;
   if (view)
     view->RenderUpdate();
@@ -51,6 +52,17 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 {
   this->SynchronizedRenderers->SetDisableIceT(true);
   EnableAO=-1;
+  EnablePathtracing=-1;
+  EnableProgressiveRefinement=-1;
+  // EnableShadows=-1;
+  // EnableVolumeShading=-1;
+  // Samples=-1;
+  // EnableVolumeShading=-1;
+  // SetEnableAO(false);
+  // SetEnablePathtracing(false);
+  // SetEnableShadows(false);
+  // SetEnableVolumeShading(false);
+  // SetSamples(1);
   OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
 
@@ -76,7 +88,6 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   this->OrientationWidget->SetParentRenderer(OSPRayRenderer);
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
-  this->EnableProgressiveRefinement = -1;
   SetEnableProgressiveRefinement(true);
 }
 
@@ -169,8 +180,6 @@ void vtkPVOSPRayView::SetEnablePathtracing(int newval)
 
 void vtkPVOSPRayView::SetEnableProgressiveRefinement(int newval)
 {
- if (vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1)
-   return;
  if (this->Interactor && !ProgressiveRenderer)
    CreateProgressiveRenderer();
  if (newval != EnableProgressiveRefinement)
@@ -218,10 +227,21 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 {
 }
 
+void vtkPVOSPRayView::Render (bool interactive, bool skip_rendering)
+{
+    this->Superclass::Render(interactive, skip_rendering);
+}
+
 void vtkPVOSPRayView::RenderUpdate()
 {
+  if (GetUseDistributedRenderingForStillRender())
+    return;
+  if (!GetEnableProgressiveRefinement())
+    return;
+  // SynchronizeForCollaboration();
 	this->OSPRayRenderer->SetProgressiveRenderFlag();
   this->StillRender();
+  // this->InteractiveRender();
 }
 
 void vtkPVOSPRayView::CreateProgressiveRenderer()
