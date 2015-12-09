@@ -309,6 +309,7 @@ void vtkOSPRayRenderer::UpdateSize()
 
 void vtkOSPRayRenderer::PreRender()
 {
+  std::cerr << "ComputeDepth? " << ComputeDepth << std::endl;
   if ((!prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer)
@@ -490,10 +491,13 @@ void vtkOSPRayRenderer::LayerRender()
       ospUnmapFrameBuffer(b, this->osp_framebuffer);
 
       this->GetRenderWindow()->MakeCurrent();
+      int gldepth;
+      glGetIntegerv(GL_DEPTH_FUNC, &gldepth);
       glDepthFunc(GL_ALWAYS);
 
       this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
                                               renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+      glDepthFunc(gldepth);
     }
   }
   //

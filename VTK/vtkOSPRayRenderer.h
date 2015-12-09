@@ -166,10 +166,11 @@ public:
   int GetMaxAccumulation() { return MaxAccum; }
   int GetFrame() { return Frame; }
   void SetComputeDepth(bool use_depth) { 
-    if (use_depth = ComputeDepth)
+    if (use_depth == ComputeDepth)
       return;
     ComputeDepth= use_depth;
     FramebufferDirty=true;
+    std::cerr << "SetComputeDetph: " << ComputeDepth << std::endl;
   }
 
   void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
