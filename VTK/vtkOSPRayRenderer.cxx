@@ -98,7 +98,8 @@ Accumulate(false)
   Frame=0;
   HasVolume= false;
   ClearAccumFlag=false;
-  ComputeDepth = vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1;
+  ComputeDepth = false;
+  FramebufferDirty = true;
 
   this->EngineInited=false;
   this->NumberOfWorkers = 1;
@@ -417,8 +418,9 @@ void vtkOSPRayRenderer::LayerRender()
   hRenderDiff = 0;
   // memory allocation and acess to the OSPRay image
   int size = renderSize[0]*renderSize[1];
-  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1])
+  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1] || FramebufferDirty )
   {
+    FramebufferDirty = false;
     this->ImageX = renderSize[0];
     this->ImageY = renderSize[1];
 
@@ -447,7 +449,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(vRenderer);
 
 
-    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
   }
   else
@@ -458,7 +460,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(renderer);
     ospCommit(ospModel);
 
-    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
   }
 
@@ -477,28 +479,32 @@ void vtkOSPRayRenderer::LayerRender()
     double clipDiv = 1.0 / (clipMax - clipMin);
 
     const void *b = ospMapFrameBuffer(this->osp_framebuffer, OSP_FB_DEPTH);
+    if (!b)
+      std::cerr << "ERROR: no depth from ospray\n";
+    else 
+    {
+      float *s = (float *)b;
+      float *d = this->DepthBuffer;
+      for (int i = 0; i < size; i++, s++, d++)
+        *d = std::isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
+      ospUnmapFrameBuffer(b, this->osp_framebuffer);
 
-    float *s = (float *)b;
-    float *d = this->DepthBuffer;
-    for (int i = 0; i < size; i++, s++, d++)
-      *d = std::isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
-    ospUnmapFrameBuffer(b, this->osp_framebuffer);
+      this->GetRenderWindow()->MakeCurrent();
+      glDepthFunc(GL_ALWAYS);
 
-    this->GetRenderWindow()->MakeCurrent();
-    glDepthFunc(GL_ALWAYS);
-
-    this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
-                                            renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+      this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
+                                              renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+    }
   }
   //
   // Copy RGBA Buffer
   //
 
   const void* rgba = ospMapFrameBuffer(this->osp_framebuffer);
-  // memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));
-  glDrawPixels(renderSize[0],renderSize[1],GL_RGBA,GL_UNSIGNED_BYTE,rgba);
-  ospUnmapFrameBuffer(rgba, this->osp_framebuffer);
-  return;
+  memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));
+  // glDrawPixels(renderSize[0],renderSize[1],GL_RGBA,GL_UNSIGNED_BYTE,rgba);
+  // ospUnmapFrameBuffer(rgba, this->osp_framebuffer);
+  // return;
 
   vtkTimerLog::MarkStartEvent("Image Conversion");
 

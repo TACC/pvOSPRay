@@ -165,7 +165,12 @@ public:
   int GetAccumCounter() { return AccumCounter; }
   int GetMaxAccumulation() { return MaxAccum; }
   int GetFrame() { return Frame; }
-  vtkSetMacro(ComputeDepth, bool);
+  void SetComputeDepth(bool use_depth) { 
+    if (use_depth = ComputeDepth)
+      return;
+    ComputeDepth= use_depth;
+    FramebufferDirty=true;
+  }
 
   void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
 
@@ -232,6 +237,7 @@ private:
   bool prog_flag;
   int Frame;
   bool ComputeDepth;
+  bool FramebufferDirty;
   bool HasVolume;
   bool ClearAccumFlag;
 

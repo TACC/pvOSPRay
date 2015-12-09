@@ -54,15 +54,9 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   EnableAO=-1;
   EnablePathtracing=-1;
   EnableProgressiveRefinement=-1;
-  // EnableShadows=-1;
-  // EnableVolumeShading=-1;
-  // Samples=-1;
-  // EnableVolumeShading=-1;
-  // SetEnableAO(false);
-  // SetEnablePathtracing(false);
-  // SetEnableShadows(false);
-  // SetEnableVolumeShading(false);
-  // SetSamples(1);
+  EnableShadows=-1;
+  EnableVolumeShading=-1;
+  Samples=-1;
   OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
 
@@ -89,6 +83,11 @@ vtkPVOSPRayView::vtkPVOSPRayView()
 
   this->SetInteractionMode(INTERACTION_MODE_3D);
   SetEnableProgressiveRefinement(true);
+  SetEnableAO(false);
+  SetEnablePathtracing(false);
+  SetEnableShadows(false);
+  SetEnableVolumeShading(false);
+  SetSamples(1);
 }
 
 //----------------------------------------------------------------------------
@@ -229,7 +228,11 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 
 void vtkPVOSPRayView::Render (bool interactive, bool skip_rendering)
 {
-    this->Superclass::Render(interactive, skip_rendering);
+  if (GetUseDistributedRenderingForStillRender())
+    OSPRayRenderer->SetComputeDepth(true);
+  else
+    OSPRayRenderer->SetComputeDepth(false);
+  this->Superclass::Render(interactive, skip_rendering);
 }
 
 void vtkPVOSPRayView::RenderUpdate()
