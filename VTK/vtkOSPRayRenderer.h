@@ -170,7 +170,6 @@ public:
       return;
     ComputeDepth= use_depth;
     FramebufferDirty=true;
-    std::cerr << "SetComputeDetph: " << ComputeDepth << std::endl;
   }
 
   void AddOSPRayRenderable(vtkOSPRayRenderable* inst);

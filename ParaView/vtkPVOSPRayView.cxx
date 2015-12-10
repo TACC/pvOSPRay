@@ -229,10 +229,7 @@ void vtkPVOSPRayView::SetMaxDepth(int newval)
 void vtkPVOSPRayView::Render (bool interactive, bool skip_rendering)
 {
   if (GetUseDistributedRenderingForStillRender())
-  {
-    std::cerr << "usedistributed\n";
     OSPRayRenderer->SetComputeDepth(true);
-  }
   else
     OSPRayRenderer->SetComputeDepth(false);
   this->Superclass::Render(interactive, skip_rendering);
