@@ -210,7 +210,7 @@ void vtkOSPRayRenderer::Clear()
 void vtkOSPRayRenderer::ClearAccumulation()
 {
   if (osp_framebuffer)
-    ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM | OSP_FB_ALPHA);
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
   AccumCounter=0;
 }
 
@@ -312,7 +312,7 @@ void vtkOSPRayRenderer::PreRender()
   if ((!prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer)
-      ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM | OSP_FB_ALPHA);
+      ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
     ClearAccumFlag=false;
   }
@@ -431,8 +431,8 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM | OSP_FB_ALPHA);
-    ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM | OSP_FB_ALPHA);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
   }
   if (HasVolume && !EnableAO)
@@ -449,7 +449,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(vRenderer);
 
 
-    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ALPHA|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
+    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
   }
   else
@@ -460,7 +460,7 @@ void vtkOSPRayRenderer::LayerRender()
     ospCommit(renderer);
     ospCommit(ospModel);
 
-    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ALPHA|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
+    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
   }
 
