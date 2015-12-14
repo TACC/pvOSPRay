@@ -60,6 +60,17 @@
 #include <assert.h>
 #endif
 
+/* DrawBufferMode */
+#define GL_NONE                           0
+#define GL_FRONT_LEFT                     0x0400
+#define GL_FRONT_RIGHT                    0x0401
+#define GL_BACK_LEFT                      0x0402
+#define GL_BACK_RIGHT                     0x0403
+#define GL_FRONT                          0x0404
+#define GL_BACK                           0x0405
+#define GL_LEFT                           0x0406
+#define GL_RIGHT                          0x0407
+#define GL_FRONT_AND_BACK                 0x0408
 
 #include <string>
 
@@ -100,6 +111,7 @@ Accumulate(false)
   HasVolume= false;
   ClearAccumFlag=false;
   ComputeDepth = vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1;
+  ComputeDepth = 1;//override ComputDepth
   
   this->EngineInited=false;
   this->NumberOfWorkers = 1;
@@ -159,6 +171,14 @@ Accumulate(false)
   this->ColorBuffer = NULL;
   this->DepthBuffer = NULL;
   this->osp_framebuffer = NULL;
+
+  this->BackLeftBuffer = static_cast<unsigned int>(GL_BACK_LEFT);
+  this->BackRightBuffer = static_cast<unsigned int>(GL_BACK_RIGHT);
+  this->FrontLeftBuffer = static_cast<unsigned int>(GL_FRONT_LEFT);
+  this->FrontRightBuffer = static_cast<unsigned int>(GL_FRONT_RIGHT);
+  this->BackBuffer = static_cast<unsigned int>(GL_BACK);
+  this->FrontBuffer = static_cast<unsigned int>(GL_FRONT);
+ 
 }
 
 //----------------------------------------------------------------------------
@@ -181,6 +201,14 @@ vtkOSPRayRenderer::~vtkOSPRayRenderer()
     delete[] this->DepthBuffer;
     this->DepthBuffer = NULL;
   }
+
+  this->BackLeftBuffer = 0;
+  this->BackRightBuffer = 0;
+  this->FrontLeftBuffer = 0;
+  this->FrontRightBuffer = 0;
+  this->BackBuffer = 0;
+  this->FrontBuffer = 0;
+
 }
 
 //----------------------------------------------------------------------------
@@ -322,13 +350,16 @@ void vtkOSPRayRenderer::DeviceRender()
   renderables.clear();
   if ((! prog_flag) || ClearAccumFlag)
   {
-    if (osp_framebuffer)
-      ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+    if (osp_framebuffer){
+      //disable clearing the framebuffer for now
+      ;//ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+    }
     AccumCounter=0;
     ClearAccumFlag=false;
   }
-  else
+  else {
     prog_flag = false;
+  }
   
   if (this->GetLayer() != 0 && this->GetActors()->GetNumberOfItems() == 0)
   {
@@ -405,13 +436,27 @@ void vtkOSPRayRenderer::LayerRender()
   bool    stereoDumy;
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
-  
+
+  vtkCamera * myActiveCamera = this->GetActiveCamera();
+  int myLeftEye = 0;
+  if (myActiveCamera != NULL){
+      myLeftEye = myActiveCamera->GetLeftEye();
+  }
+  //printf("LR:myLeftEye=%d\n", myLeftEye);
+  int myStereoCapableWindow = this->GetRenderWindow()->GetStereoCapableWindow();
+  //printf("LR:myStereoCapableWindow=%d\n", myStereoCapableWindow);
+  int myStereoMode = this->GetRenderWindow()->GetStereoRender();
+  //printf("LR:myStereoMode=%d\n", myStereoMode);
+
   // collect some useful info
   renderSize = this->GetSize();
   renWinSize = this->GetRenderWindow()->GetActualSize();
   renViewport= this->GetViewport();
-  renderPos[0] = int( renViewport[0] * renWinSize[0] + 0.5f );
-  renderPos[1] = int( renViewport[1] * renWinSize[1] + 0.5f );
+  float renderPosFloat[2];
+  renderPosFloat[0] = renViewport[0] * renWinSize[0] + 0.5f;
+  renderPosFloat[1] = renViewport[1] * renWinSize[1] + 0.5f;
+  renderPos[0] = int( renderPosFloat[0] );
+  renderPos[1] = int( renderPosFloat[1] );
   minWidth = renderSize[0];
   minHeight =renderSize[1];
   hOSPRayDiff = 0;
@@ -476,8 +521,18 @@ void vtkOSPRayRenderer::LayerRender()
   //
   if (ComputeDepth)
   {
-    double *clipValues = this->GetActiveCamera()->GetClippingRange();
-    double viewAngle = this->GetActiveCamera()->GetViewAngle();
+    if (this->OSPRayManager->stereoCamera!=NULL){
+     //printf("LR:Shifting Camera\n");
+     this->OSPRayManager->stereoCamera->ShiftCamera();
+    }
+    myActiveCamera = this->GetActiveCamera();
+    double *clipValues = myActiveCamera->GetClippingRange();
+    double viewAngle = myActiveCamera->GetViewAngle();
+
+    if (this->OSPRayManager->stereoCamera!=NULL){
+     //printf("LR:UnShifting Camera\n");
+     this->OSPRayManager->stereoCamera->UnShiftCamera();
+    }
     
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
@@ -497,8 +552,9 @@ void vtkOSPRayRenderer::LayerRender()
     this->GetRenderWindow()->MakeCurrent();
     glDepthFunc(GL_ALWAYS);
     
-    this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
-                                            renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+    //disable setting the Zbuffer for now
+    //this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
+    //                                        renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
   }
   //
   // Copy RGBA Buffer
@@ -514,22 +570,40 @@ void vtkOSPRayRenderer::LayerRender()
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
-    this->GetRenderWindow()->
-    SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                         renderPos[0] + renderSize[0] - 1,
-                         renderPos[1] + renderSize[1] - 1,
-                         (unsigned char*)this->ColorBuffer, 0, 0 );
+    if (myLeftEye==1){
+        //this->GetRenderWindow()->
+        this->
+        SetRGBACharPixelData( renderPos[0],  renderPos[1],
+                             renderPos[0] + renderSize[0] - 1,
+                             renderPos[1] + renderSize[1] - 1,
+                            (unsigned char*)this->ColorBuffer, 0, 0 );
+    } else {
+        //this->GetRenderWindow()->
+        this->
+        SetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
+                             renderPos[0] + renderSize[0] - 1,
+                             renderPos[1] + renderSize[1] - 1,
+                            (unsigned char*)this->ColorBuffer, 0, 0 );
+    }
     glFinish();
   }
   else
   {
     //layers on top add the colors of their non background pixels
     unsigned char*  GLbakBuffer = NULL;
-    GLbakBuffer = this->GetRenderWindow()->
-    GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                         renderPos[0] + renderSize[0] - 1,
-                         renderPos[1] + renderSize[1] - 1, 0 );
-    
+    if (myLeftEye==1){
+        //GLbakBuffer = this->GetRenderWindow()->
+        GLbakBuffer = this->
+        GetRGBACharPixelData( renderPos[0],  renderPos[1],
+                            renderPos[0] + renderSize[0] - 1,
+                            renderPos[1] + renderSize[1] - 1, 0 );
+    } else {
+        //GLbakBuffer = this->GetRenderWindow()->
+        GLbakBuffer = this->
+        GetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
+                            renderPos[0] + renderSize[0] - 1,
+                            renderPos[1] + renderSize[1] - 1, 0 );
+    }
     bool anyhit = false;
     unsigned char *optr = GLbakBuffer;
     unsigned char *iptr = (unsigned char*)this->ColorBuffer;
@@ -555,12 +629,22 @@ void vtkOSPRayRenderer::LayerRender()
     
     if (anyhit)
     {
-      // submit the modified RGB colors to GL BACK buffer
-      this->GetRenderWindow()->
-      SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                           renderPos[0] + renderSize[0] - 1,
-                           renderPos[1] + renderSize[1] - 1,
-                           GLbakBuffer, 0, 0 );
+      // submit the modified RGB colors to GL BACK bufferEyeTransformMatrix
+      if (myLeftEye==1){
+        //this->GetRenderWindow()->
+        this->
+        SetRGBACharPixelData( renderPos[0],  renderPos[1],
+                            renderPos[0] + renderSize[0] - 1,
+                            renderPos[1] + renderSize[1] - 1,
+                            GLbakBuffer, 0, 0 );
+      } else {
+        //this->GetRenderWindow()->
+        this->
+        SetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
+                            renderPos[0] + renderSize[0] - 1,
+                            renderPos[1] + renderSize[1] - 1,
+                            GLbakBuffer, 0, 0 );
+      }
     }
     
     delete [] GLbakBuffer;
@@ -661,9 +745,9 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   else
   {
-    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
     // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
-    this->OSPRayManager->OSPRayRenderer = this->OSPRayManager->OSPRayVolumeRenderer;
+    //this->OSPRayManager->OSPRayRenderer = this->OSPRayManager->OSPRayVolumeRenderer;
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   
@@ -701,4 +785,540 @@ void vtkOSPRayRenderer::SetMaxDepth( int newval )
   }
   
   this->MaxDepth = newval;
+}
+
+// ----------------------------------------------------------------------------
+// Description:
+// Return the OpenGL name of the back left buffer.
+// It is GL_BACK_LEFT if GL is bound to the window-system-provided
+// framebuffer. It is GL_COLOR_ATTACHMENT0_EXT if GL is bound to an
+// application-created framebuffer object (GPU-based offscreen rendering)
+// It is used by vtkOpenGLCamera.
+unsigned int vtkOSPRayRenderer::GetBackLeftBuffer()
+{
+  return this->BackLeftBuffer;
+}
+
+// ----------------------------------------------------------------------------
+// Description:
+// Return the OpenGL name of the back right buffer.
+// It is GL_BACK_RIGHT if GL is bound to the window-system-provided
+// framebuffer. It is GL_COLOR_ATTACHMENT0_EXT+1 if GL is bound to an
+// application-created framebuffer object (GPU-based offscreen rendering)
+// It is used by vtkOpenGLCamera.
+unsigned int vtkOSPRayRenderer::GetBackRightBuffer()
+{
+  return this->BackRightBuffer;
+}
+
+// ----------------------------------------------------------------------------
+// Description:
+// Return the OpenGL name of the front left buffer.
+// It is GL_FRONT_LEFT if GL is bound to the window-system-provided
+// framebuffer. It is GL_COLOR_ATTACHMENT0_EXT if GL is bound to an
+// application-created framebuffer object (GPU-based offscreen rendering)
+// It is used by vtkOpenGLCamera.
+unsigned int vtkOSPRayRenderer::GetFrontLeftBuffer()
+{
+  return this->FrontLeftBuffer;
+}
+
+// ----------------------------------------------------------------------------
+// Description:
+// Return the OpenGL name of the front right buffer.
+// It is GL_FRONT_RIGHT if GL is bound to the window-system-provided
+// framebuffer. It is GL_COLOR_ATTACHMENT0_EXT+1 if GL is bound to an
+// application-created framebuffer object (GPU-based offscreen rendering)
+// It is used by vtkOpenGLCamera.
+unsigned int vtkOSPRayRenderer::GetFrontRightBuffer()
+{
+  return this->FrontRightBuffer;
+}
+
+// ----------------------------------------------------------------------------
+// Description:
+// Return the OpenGL name of the back left buffer.
+// It is GL_BACK if GL is bound to the window-system-provided
+// framebuffer. It is GL_COLOR_ATTACHMENT0_EXT if GL is bound to an
+// application-created framebuffer object (GPU-based offscreen rendering)
+// It is used by vtkOpenGLCamera.
+unsigned int vtkOSPRayRenderer::GetBackBuffer()
+{
+  return this->BackBuffer;
+}
+
+// ----------------------------------------------------------------------------
+// Description:
+// Return the OpenGL name of the front left buffer.
+// It is GL_FRONT if GL is bound to the window-system-provided
+// framebuffer. It is GL_COLOR_ATTACHMENT0_EXT if GL is bound to an
+// application-created framebuffer object (GPU-based offscreen rendering)
+// It is used by vtkOpenGLCamera.
+unsigned int vtkOSPRayRenderer::GetFrontBuffer()
+{
+  return this->FrontBuffer;
+}
+
+int vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
+                                                int x2, int y2,
+                                                int front,
+                                                unsigned char* data)
+{
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
+
+
+  // set the current window
+  this->GetRenderWindow()->MakeCurrent();
+
+
+  if (y1 < y2)
+    {
+    y_low = y1;
+    y_hi  = y2;
+    }
+  else
+    {
+    y_low = y2;
+    y_hi  = y1;
+    }
+
+
+  if (x1 < x2)
+    {
+    x_low = x1;
+    x_hi  = x2;
+    }
+  else
+    {
+    x_low = x2;
+    x_hi  = x1;
+    }
+
+
+  // Must clear previous errors first.
+  while(glGetError() != GL_NO_ERROR)
+    {
+    ;
+    }
+
+  if (front)
+    {
+    glReadBuffer(static_cast<GLenum>(this->GetFrontLeftBuffer()));
+    }
+  else
+    {
+    glReadBuffer(static_cast<GLenum>(this->GetBackLeftBuffer()));
+    }
+
+  width  = abs(x_hi - x_low) + 1;
+  height = abs(y_hi - y_low) + 1;
+
+  glDisable( GL_SCISSOR_TEST );
+
+  glReadPixels( x_low, y_low, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                data);
+
+  if (glGetError() != GL_NO_ERROR)
+    {
+    return VTK_ERROR;
+    }
+  else
+    {
+    return VTK_OK;
+    }
+
+}
+
+int vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
+                                                int x2, int y2,
+                                                int front,
+                                                unsigned char* data)
+{
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
+
+
+  // set the current window
+  this->GetRenderWindow()->MakeCurrent();
+
+
+  if (y1 < y2)
+    {
+    y_low = y1;
+    y_hi  = y2;
+    }
+  else
+    {
+    y_low = y2;
+    y_hi  = y1;
+    }
+
+
+  if (x1 < x2)
+    {
+    x_low = x1;
+    x_hi  = x2;
+    }
+  else
+    {
+    x_low = x2;
+    x_hi  = x1;
+    }
+
+
+  // Must clear previous errors first.
+  while(glGetError() != GL_NO_ERROR)
+    {
+    ;
+    }
+
+  if (front)
+    {
+    glReadBuffer(static_cast<GLenum>(this->GetFrontRightBuffer()));
+    }
+  else
+    {
+    glReadBuffer(static_cast<GLenum>(this->GetBackRightBuffer()));
+    }
+
+  width  = abs(x_hi - x_low) + 1;
+  height = abs(y_hi - y_low) + 1;
+
+  glDisable( GL_SCISSOR_TEST );
+
+  glReadPixels( x_low, y_low, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                data);
+
+  if (glGetError() != GL_NO_ERROR)
+    {
+    return VTK_ERROR;
+    }
+  else
+    {
+    return VTK_OK;
+    }
+
+}
+
+unsigned char *vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
+                                                           int x2, int y2,
+                                                           int front)
+{
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
+
+  if (y1 < y2)
+    {
+    y_low = y1;
+    y_hi  = y2;
+    }
+  else
+    {
+    y_low = y2;
+    y_hi  = y1;
+    }
+
+
+  if (x1 < x2)
+    {
+    x_low = x1;
+    x_hi  = x2;
+    }
+  else
+    {
+    x_low = x2;
+    x_hi  = x1;
+    }
+
+  width  = abs(x_hi - x_low) + 1;
+  height = abs(y_hi - y_low) + 1;
+
+  unsigned char *data = new unsigned char[ (width*height)*4 ];
+  this->GetRGBACharPixelData(x1, y1, x2, y2, front, data);
+
+  return data;
+}
+
+unsigned char *vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
+                                                           int x2, int y2,
+                                                           int front)
+{
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
+
+  if (y1 < y2)
+    {
+    y_low = y1;
+    y_hi  = y2;
+    }
+  else
+    {
+    y_low = y2;
+    y_hi  = y1;
+    }
+
+
+  if (x1 < x2)
+    {
+    x_low = x1;
+    x_hi  = x2;
+    }
+  else
+    {
+    x_low = x2;
+    x_hi  = x1;
+    }
+
+  width  = abs(x_hi - x_low) + 1;
+  height = abs(y_hi - y_low) + 1;
+
+  unsigned char *data = new unsigned char[ (width*height)*4 ];
+  this->GetRGBACharPixelDataRight(x1, y1, x2, y2, front, data);
+
+  return data;
+}
+
+int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
+                                                int y2, unsigned char *data,
+                                                int front, int blend)
+{
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
+
+
+  // set the current window
+  this->GetRenderWindow()->MakeCurrent();
+
+
+  // Error checking
+  // Must clear previous errors first.
+  while(glGetError() != GL_NO_ERROR)
+    {
+    ;
+    }
+
+  GLint buffer;
+  glGetIntegerv(GL_DRAW_BUFFER, &buffer);
+
+  if (front)
+    {
+    glDrawBuffer(this->GetFrontLeftBuffer());
+    }
+  else
+    {
+    glDrawBuffer(this->GetBackLeftBuffer());
+    }
+
+
+  if (y1 < y2)
+    {
+    y_low = y1;
+    y_hi  = y2;
+    }
+  else
+    {
+    y_low = y2;
+    y_hi  = y1;
+    }
+
+
+  if (x1 < x2)
+    {
+    x_low = x1;
+    x_hi  = x2;
+    }
+  else
+    {
+    x_low = x2;
+    x_hi  = x1;
+    }
+
+
+  width  = abs(x_hi-x_low) + 1;
+  height = abs(y_hi-y_low) + 1;
+
+
+  /* write out a row of pixels */
+  glViewport(0, 0, this->Size[0], this->Size[1]);
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode( GL_PROJECTION );
+  glPushMatrix();
+  glLoadIdentity();
+  glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
+                 (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
+                 -1.0 );
+  glMatrixMode( GL_PROJECTION );
+  glPopMatrix();
+  glMatrixMode( GL_MODELVIEW );
+  glPopMatrix();
+
+  glDisable( GL_ALPHA_TEST );
+  glDisable( GL_SCISSOR_TEST );
+
+  // Disable writing on the z-buffer.
+  glDepthMask(GL_FALSE);
+  glDisable(GL_DEPTH_TEST);
+
+  // Turn of texturing in case it is on - some drivers have a problem
+  // getting / setting pixels with texturing enabled.
+  glDisable( GL_TEXTURE_2D );
+
+  if (!blend)
+    {
+    glDisable(GL_BLEND);
+    glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                  data);
+    glEnable(GL_BLEND);
+    }
+  else
+    {
+    glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                  data);
+    }
+
+  // Renenable writing on the z-buffer.
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
+
+  // This seems to be necessary for the image to show up
+  glFlush();
+
+  glDrawBuffer(buffer);
+
+  if (glGetError() != GL_NO_ERROR)
+    {
+    return VTK_ERROR;
+    }
+  else
+    {
+    return VTK_OK;
+    }
+}
+
+int vtkOSPRayRenderer::SetRGBACharPixelDataRight(int x1, int y1, int x2,
+                                                int y2, unsigned char *data,
+                                                int front, int blend)
+{
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
+
+
+  // set the current window
+  this->GetRenderWindow()->MakeCurrent();
+
+
+  // Error checking
+  // Must clear previous errors first.
+  while(glGetError() != GL_NO_ERROR)
+    {
+    ;
+    }
+
+  GLint buffer;
+  glGetIntegerv(GL_DRAW_BUFFER, &buffer);
+
+  if (front)
+    {
+    glDrawBuffer(this->GetFrontRightBuffer());
+    }
+  else
+    {
+    glDrawBuffer(this->GetBackRightBuffer());
+    }
+
+
+  if (y1 < y2)
+    {
+    y_low = y1;
+    y_hi  = y2;
+    }
+  else
+    {
+    y_low = y2;
+    y_hi  = y1;
+    }
+
+
+  if (x1 < x2)
+    {
+    x_low = x1;
+    x_hi  = x2;
+    }
+  else
+    {
+    x_low = x2;
+    x_hi  = x1;
+    }
+
+
+  width  = abs(x_hi-x_low) + 1;
+  height = abs(y_hi-y_low) + 1;
+
+
+  /* write out a row of pixels */
+  glViewport(0, 0, this->Size[0], this->Size[1]);
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode( GL_PROJECTION );
+  glPushMatrix();
+  glLoadIdentity();
+  glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
+                 (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
+                 -1.0 );
+  glMatrixMode( GL_PROJECTION );
+  glPopMatrix();
+  glMatrixMode( GL_MODELVIEW );
+  glPopMatrix();
+
+  glDisable( GL_ALPHA_TEST );
+  glDisable( GL_SCISSOR_TEST );
+
+  // Disable writing on the z-buffer.
+  glDepthMask(GL_FALSE);
+  glDisable(GL_DEPTH_TEST);
+
+  // Turn of texturing in case it is on - some drivers have a problem
+  // getting / setting pixels with texturing enabled.
+  glDisable( GL_TEXTURE_2D );
+
+  if (!blend)
+    {
+    glDisable(GL_BLEND);
+    glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                  data);
+    glEnable(GL_BLEND);
+    }
+  else
+    {
+    glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                  data);
+    }
+
+  // Renenable writing on the z-buffer.
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
+
+  // This seems to be necessary for the image to show up
+  glFlush();
+
+  glDrawBuffer(buffer);
+
+  if (glGetError() != GL_NO_ERROR)
+    {
+    return VTK_ERROR;
+    }
+  else
+    {
+    return VTK_OK;
+    }
 }

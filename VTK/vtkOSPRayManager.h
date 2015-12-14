@@ -33,6 +33,7 @@
 #include "vtkObject.h"
 #include "vtkOSPRayModule.h"
 #include <vector>
+#include "vtkOSPRayCamera.h"
 
 
 //BTX
@@ -97,6 +98,7 @@ osp::Model* OSPRayVolumeModel;
   
   vtkTimeStamp  VolumeModelBuildTime;
   int VolumeModelLastFrame;
+  vtkOSPRayCamera * stereoCamera;
 
 };
 

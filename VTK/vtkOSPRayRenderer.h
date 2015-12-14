@@ -185,6 +185,71 @@ private:
   void InitEngine();
   void LayerRender();
 
+  // Description:
+  // Return the OpenGL name of the back left buffer.
+  // It is GL_BACK_LEFT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetBackLeftBuffer();
+
+  // Description:
+  // Return the OpenGL name of the back right buffer.
+  // It is GL_BACK_RIGHT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT+1 if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetBackRightBuffer();
+
+  // Description:
+  // Return the OpenGL name of the front left buffer.
+  // It is GL_FRONT_LEFT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetFrontLeftBuffer();
+
+  // Description:
+  // Return the OpenGL name of the front right buffer.
+  // It is GL_FRONT_RIGHT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT+1 if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetFrontRightBuffer();
+
+  // Description:
+  // Return the OpenGL name of the back left buffer.
+  // It is GL_BACK if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetBackBuffer();
+
+  // Description:
+  // Return the OpenGL name of the front left buffer.
+  // It is GL_FRONT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetFrontBuffer();
+
+
+  unsigned char *GetRGBACharPixelData(int x,int y,int x2,int y2,
+                                              int front);
+  int SetRGBACharPixelData(int x, int y, int x2, int y2,
+                                   unsigned char *data, int front,
+                                   int blend=0);
+  unsigned char *GetRGBACharPixelDataRight(int x, int y, int x2, int y2,
+                                              int front);
+  int SetRGBACharPixelDataRight(int x,int y, int x2, int y2,
+                                   unsigned char *data, int front,
+                                   int blend=0);
+
+  int GetRGBACharPixelData(int x, int y, int x2, int y2, int front,
+                           unsigned char* data);
+  int GetRGBACharPixelDataRight(int x, int y, int x2, int y2, int front,
+                           unsigned char* data);
+
   //Description:
   // Overriden to help ensure that a OSPRay compatible class is created.
   vtkCamera * MakeCamera();
@@ -223,6 +288,12 @@ private:
 
   double backgroundRGB[3];
 
+  unsigned int BackLeftBuffer;
+  unsigned int BackRightBuffer;
+  unsigned int FrontLeftBuffer;
+  unsigned int FrontRightBuffer;
+  unsigned int FrontBuffer;
+  unsigned int BackBuffer;
 
 };
 

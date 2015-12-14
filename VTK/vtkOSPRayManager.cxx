@@ -36,6 +36,7 @@ vtkOSPRayManager::vtkOSPRayManager()
   VolumeModelLastFrame=-1;
   if (!initialized)
   {
+    stereoCamera = NULL;
     initialized=true;
   if (1)
   {
