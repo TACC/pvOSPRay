@@ -32,6 +32,7 @@
 
 class vtkDataRepresentation;
 class vtkQtProgressiveRenderer;
+class vtkPVSynchronizedRenderer;
 
 class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {
@@ -58,6 +59,8 @@ public:
   vtkGetMacro(EnableShadows, int);
   virtual void SetEnableAO(int val);
   vtkGetMacro(EnableAO, int);
+  virtual void SetEnablePathtracing(int val);
+  vtkGetMacro(EnablePathtracing, int);
   virtual void SetSamples(int val);
   vtkGetMacro(Samples, int);
   virtual void SetMaxDepth(int val);
@@ -74,8 +77,12 @@ public:
   // Overridden to ensure that we always use an vtkOpenGLCamera of the 2D
   // renderer.
   virtual void SetActiveCamera(vtkCamera*);
+  virtual void Render (bool interactive, bool skip_rendering);
 
   void RenderUpdate();
+
+virtual void Update();
+vtkPVSynchronizedRenderer* GetSynchronizedRenderers() { return this->SynchronizedRenderers; }
 
 //BTX
 protected:
@@ -84,6 +91,7 @@ protected:
 
   int EnableShadows;
   int EnableAO;
+  int EnablePathtracing;
   int EnableProgressiveRefinement;
   int EnableVolumeShading;
   int Threads;
@@ -93,6 +101,7 @@ protected:
 
 	vtkOSPRayRenderer *OSPRayRenderer;
   vtkQtProgressiveRenderer* ProgressiveRenderer;
+  void CreateProgressiveRenderer();
 
 private:
   vtkPVOSPRayView(const vtkPVOSPRayView&); // Not implemented

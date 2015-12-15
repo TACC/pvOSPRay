@@ -1,18 +1,18 @@
-/* ======================================================================================= 
-   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+/* =======================================================================================
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin
    All rights reserved.
-                                                                                           
-   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
-   except in compliance with the License.                                                  
-   A copy of the License is included with this software in the file LICENSE.               
-   If your copy does not contain the License, you may obtain a copy of the License at:     
-                                                                                           
-       http://opensource.org/licenses/BSD-3-Clause                                         
-                                                                                           
-   Unless required by applicable law or agreed to in writing, software distributed under   
-   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
-   KIND, either express or implied.                                                        
-   See the License for the specific language governing permissions and limitations under   
+
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file
+   except in compliance with the License.
+   A copy of the License is included with this software in the file LICENSE.
+   If your copy does not contain the License, you may obtain a copy of the License at:
+
+       http://opensource.org/licenses/BSD-3-Clause
+
+   Unless required by applicable law or agreed to in writing, software distributed under
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.
+   See the License for the specific language governing permissions and limitations under
    limitations under the License.
 
    pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
@@ -44,6 +44,7 @@
 vtkStandardNewMacro(vtkOSPRayCamera);
 
 //----------------------------------------------------------------------------
+
 vtkOSPRayCamera::vtkOSPRayCamera()
 {
   this->OSPRayManager = NULL;
@@ -51,26 +52,25 @@ vtkOSPRayCamera::vtkOSPRayCamera()
 }
 
 //----------------------------------------------------------------------------
-vtkOSPRayCamera::~vtkOSPRayCamera()
-{
-  if (this->OSPRayManager)
+  vtkOSPRayCamera::~vtkOSPRayCamera()
+  {
+    if (this->OSPRayManager)
     {
-    this->OSPRayManager->Delete();
+      this->OSPRayManager->Delete();
     }
-}
+  }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 {
-  if (this->debugFlag){ cout << " vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)" << endl; }
-  vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
-  if (!OSPRayRenderer)
+    vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
+    if (!OSPRayRenderer)
     {
-    return;
+      return;
     }
     OSPRayRenderer->ClearAccumulation();
 
-  if (!this->OSPRayManager)
+    if (!this->OSPRayManager)
     {
     this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
     this->OSPRayManager->Register(this);
@@ -80,15 +80,15 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
   this->ShiftCamera();
 
   // for figuring out aspect ratio
-  int lowerLeft[2];
-  int usize, vsize;
-  ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
+    int lowerLeft[2];
+    int usize, vsize;
+    ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
 
-  double *eye, *lookat, *up, vfov;
-  eye    = this->Position;
-  lookat = this->FocalPoint;
-  up     = this->ViewUp;
-  vfov   = this->ViewAngle;
+    double *eye, *lookat, *up, vfov;
+    eye    = this->Position;
+    lookat = this->FocalPoint;
+    up     = this->ViewUp;
+    vfov   = this->ViewAngle;
 
   if (this->debugFlag){ cout << "OrientOSPRayCamera(): eye( " << eye[0] << ", " << eye[1] << ", " << eye[2] << ")" << endl; }
 
@@ -114,8 +114,13 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
     if (vsize == 0)
       return;
   ospSetf(ospCamera,"aspect",float(usize)/float(vsize));
-  ospSetf(ospCamera,"fovy",vfov); 
+  ospSetf(ospCamera,"fovy",vfov);
   Assert(ospCamera != NULL && "could not create camera");
+  ospSet3f(ospCamera,"pos",eye[0], eye[1], eye[2]);
+  ospSet3f(ospCamera,"up",up[0], up[1], up[2]);
+  ospSet3f(ospCamera,"dir",lookat[0]-eye[0],lookat[1]-eye[1],lookat[2]-eye[2]);
+  ospCommit(ospCamera);
+
   double pos[3];
   pos[0] = eye[0];
   pos[1] = eye[1];
@@ -186,8 +191,7 @@ void vtkOSPRayCamera::SetupCameraShift(){
   ShiftedCameraPosition[1] = SavedCameraPosition[1];
   ShiftedCameraPosition[2] = SavedCameraPosition[2];
   if (this->debugFlag){ cout << "ShiftedCameraPosition set to ( " << ShiftedCameraPosition[0] << ", " << ShiftedCameraPosition[1] << ", " << ShiftedCameraPosition[2] << ")" << endl; }
-
-}
+  }
 
 void vtkOSPRayCamera::ShiftCamera(){
 	if (this->debugFlag){ cout << " vtkOSPRayCamera::ShiftCamera()" << endl; }
@@ -241,13 +245,18 @@ void vtkOSPRayCamera::UnShiftCamera(){
 
 //----------------------------------------------------------------------------
 // called by Renderer::UpdateCamera()
-void vtkOSPRayCamera::Render(vtkRenderer *ren)
-{
-  if (this->GetMTime() > this->LastRenderTime)
+  void vtkOSPRayCamera::Render(vtkRenderer *ren)
+  {
+    int lowerLeft[2];
+    int usize, vsize;
+    ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
+    double newAspect = float(usize)/float(vsize);
+    if (this->GetMTime() > this->LastRenderTime || (newAspect != this->Aspect) )
     {
-    this->OrientOSPRayCamera(ren);
+      this->Aspect = newAspect;
+      this->OrientOSPRayCamera(ren);
 
-    this->LastRenderTime.Modified();
+      this->LastRenderTime.Modified();
 
     }
 }

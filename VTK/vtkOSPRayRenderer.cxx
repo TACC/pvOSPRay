@@ -1,20 +1,20 @@
 /* =======================================================================================
  Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin
  All rights reserved.
- 
+
  Licensed under the BSD 3-Clause License, (the "License"); you may not use this file
  except in compliance with the License.
  A copy of the License is included with this software in the file LICENSE.
  If your copy does not contain the License, you may obtain a copy of the License at:
- 
+
  http://opensource.org/licenses/BSD-3-Clause
- 
+
  Unless required by applicable law or agreed to in writing, software distributed under
  the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  KIND, either express or implied.
  See the License for the specific language governing permissions and limitations under
  limitations under the License.
- 
+
  pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
  Copyright (c) 2007, Los Alamos National Security, LLC
  ======================================================================================= */
@@ -85,7 +85,7 @@ public:
     cb->TimerCount = 0;
     return cb;
   }
-  
+
   virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId,
                        void *vtkNotUsed(callData))
   {
@@ -93,12 +93,11 @@ public:
     {
       ++this->TimerCount;
     }
-    // std::cout << "timer " << this->TimerCount << std::endl;
   }
-  
+
 private:
   int TimerCount;
-  
+
 };
 
 //----------------------------------------------------------------------------
@@ -110,55 +109,49 @@ Accumulate(false)
   Frame=0;
   HasVolume= false;
   ClearAccumFlag=false;
-  ComputeDepth = vtkMultiProcessController::GetGlobalController()->GetNumberOfProcesses() > 1;
-  ComputeDepth = 1;//override ComputDepth
   
+  ComputeDepth = false;
+  FramebufferDirty = true;
+
   this->EngineInited=false;
   this->NumberOfWorkers = 1;
   this->EnableShadows = -1;
   this->Samples = 1;
   this->MaxDepth = 5;
   this->EnableVolumeShading = 0;
-  
+
   this->ImageX = -1;
   this->ImageY = -1;
-  
+
   this->backgroundRGB[0] = 0.0;
   this->backgroundRGB[1] = 0.0;
   this->backgroundRGB[2] = 0.0;
   AccumCounter=0;
   MaxAccum=1024;
   this->SetAmbient( 0.1, 0.1, 0.1 );
-  
-  this->OSPRayManager = vtkOSPRayManager::New();
-  
-  this->OSPRayManager->OSPRayModel = ospNewModel();
+
+  this->OSPRayManager = vtkOSPRayManager::Singleton();
+
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
-  this->OSPRayManager->OSPRayCamera = ospNewCamera("perspective");
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
-  this->OSPRayManager->OSPRayVolumeRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
-//  this->OSPRayManager->OSPRayDynamicModel = ospNewModel();
-  this->OSPRayManager->OSPRayVolumeModel = ospNewModel();
+  this->EnableAO=false;
   bool ao = EnableAO;
   EnableAO=-1;
   SetEnableAO(ao);
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
   ospSet3f(vRenderer, "bgColor", backgroundRGB[0], backgroundRGB[1], backgroundRGB[2]);
-//  OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
-//  ospCommit(vModel);
-//  ospSetObject(vRenderer, "dynamic_model", vModel);
   OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
   SetEnableShadows(0);
-  
+
   ospSetObject(vRenderer,"world",vModel);
   ospSetObject(vRenderer,"model",vModel);
   ospSetObject(vRenderer,"camera",oCamera);
   ospCommit(vRenderer);
-  
+
   Assert(oRenderer != NULL && "could not create renderer");
   Assert(vRenderer != NULL && "could not create renderer");
-  
+
   ospSetObject(oRenderer,"world",oModel);
   ospSetObject(oRenderer,"model",oModel);
   ospSetObject(oRenderer,"camera",oCamera);
@@ -167,7 +160,7 @@ Accumulate(false)
   ospCommit(oModel);
   ospCommit(oCamera);
   ospCommit(oRenderer);
-  
+
   this->ColorBuffer = NULL;
   this->DepthBuffer = NULL;
   this->osp_framebuffer = NULL;
@@ -179,6 +172,7 @@ Accumulate(false)
   this->BackBuffer = static_cast<unsigned int>(GL_BACK);
   this->FrontBuffer = static_cast<unsigned int>(GL_FRONT);
  
+  StatisticFramesPerOutput = 100;
 }
 
 //----------------------------------------------------------------------------
@@ -189,13 +183,13 @@ vtkOSPRayRenderer::~vtkOSPRayRenderer()
     ospFreeFrameBuffer(this->osp_framebuffer);
     this->osp_framebuffer = NULL;
   }
-  
+
   if (this->ColorBuffer)
   {
     delete[] this->ColorBuffer;
     this->ColorBuffer = NULL;
   }
-  
+
   if (this->DepthBuffer)
   {
     delete[] this->DepthBuffer;
@@ -224,7 +218,7 @@ void vtkOSPRayRenderer::SetBackground(double r, double g, double b)
   OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
   ospSet3f(oRenderer,"bgColor",r,g,b);
   ospSet3f(vRenderer,"bgColor",r,g,b);
-  
+
   backgroundRGB[0] = r;
   backgroundRGB[1] = g;
   backgroundRGB[2] = b;
@@ -243,9 +237,8 @@ void vtkOSPRayRenderer::Clear()
 void vtkOSPRayRenderer::ClearAccumulation()
 {
   if (osp_framebuffer)
-    ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
   AccumCounter=0;
-  
 }
 
 
@@ -253,16 +246,15 @@ void vtkOSPRayRenderer::ClearAccumulation()
 // Ask lights to load themselves into graphics pipeline.
 int vtkOSPRayRenderer::UpdateLights()
 {
-  
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
   OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
   std::vector<OSPLight> lights;
-  
-  
+
+
   // convert VTK lights into OSPRay lights
   vtkCollectionSimpleIterator sit;
   this->Lights->InitTraversal( sit );
-  
+
   vtkLight *vLight = NULL;
   bool noneOn = true;
   for ( this->Lights->InitTraversal( sit );
@@ -273,14 +265,14 @@ int vtkOSPRayRenderer::UpdateLights()
       noneOn = false;
     }
     vtkLight* light = vLight;
-    
+
     double *color, *position, *focal, direction[3];
-    
+
     // OSPRay Lights only have one "color"
     color    = light->GetDiffuseColor();
     position = light->GetTransformedPosition();
     focal    = light->GetTransformedFocalPoint();
-    
+
     if (light->GetPositional())
     {
       OSPLight ospLight = ospNewLight(renderer, "OBJPointLight");
@@ -305,7 +297,7 @@ int vtkOSPRayRenderer::UpdateLights()
       ospCommit(ospLight);
       lights.push_back(ospLight);
     }
-    
+
     if (noneOn)
     {
       {
@@ -318,18 +310,16 @@ int vtkOSPRayRenderer::UpdateLights()
     }
   }
   {
-    
+
   }
   {
   }
-  
+
   OSPData lightsArray = ospNewData(lights.size(), OSP_OBJECT, &lights[0], 0);
   ospSetData(renderer, "lights",lightsArray);
   ospSetData(vRenderer, "lights",lightsArray);
   ospCommit(renderer);
-  
-  
-  
+
   return 0;
 }
 
@@ -344,11 +334,9 @@ void vtkOSPRayRenderer::UpdateSize()
 {
 }
 
-//----------------------------------------------------------------------------
-void vtkOSPRayRenderer::DeviceRender()
+void vtkOSPRayRenderer::PreRender()
 {
-  renderables.clear();
-  if ((! prog_flag) || ClearAccumFlag)
+  if ((!prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer){
       //disable clearing the framebuffer for now
@@ -365,61 +353,72 @@ void vtkOSPRayRenderer::DeviceRender()
   {
     return;
   }
-  
+
   vtkTimerLog::MarkStartEvent("OSPRay Dev Render");
-  
+
   if (!this->EngineInited )
   {
     this->InitEngine();
   }
-  
+
   vtkTimerLog::MarkStartEvent("Geometry");
-  
+
   this->Clear();
-  
+
   this->UpdateSize();
-  
-  
+
+
   HasVolume = false;
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
   this->OSPRayManager->OSPRayModel = ospNewModel();
+  this->OSPRayManager->OSPRayVolumeModel = this->OSPRayManager->OSPRayModel;  //TODO: the volume and geometry are now managed in the same model object, can remove volumemodel entirely
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
   ospSetObject(oRenderer,"world",oModel);
   ospSetObject(oRenderer,"model",oModel);
   ospSetObject(oRenderer,"camera",oCamera);
-  
-  
+
+
   ospCommit(this->OSPRayManager->OSPRayModel);
   ospCommit(this->OSPRayManager->OSPRayRenderer);
-  
+
   this->UpdateCamera();
-  
-  
+
+
   this->UpdateLightGeometry();
   this->UpdateLights();
-  
-  //Clear all actors
-//  vtkActorCollection *actorList = this->GetActors();
-//  actorList->InitTraversal();
-//  for(int i=0; i<actorList->GetNumberOfItems(); i++) {
-//    vtkActor *a = actorList->GetNextActor();
-//    vtkOSPRayActor *OSPRayActor = vtkOSPRayActor::SafeDownCast(a);
-//    if (OSPRayActor)
-//      OSPRayActor->PreRender();
-//  }
-  
+}
+
+//----------------------------------------------------------------------------
+void vtkOSPRayRenderer::DeviceRender()
+{
+  static vtkTimerLog* timer = vtkTimerLog::New();
+  timer->StartTimer();
+  PreRender();
+
   this->UpdateGeometry();
-  
+
   vtkTimerLog::MarkEndEvent("Geometry");
-  
+
   vtkTimerLog::MarkStartEvent("Total LayerRender");
   this->LayerRender();
-  
+
   vtkTimerLog::MarkEndEvent("Total LayerRender");
-  
+
   vtkTimerLog::MarkEndEvent("OSPRay Dev Render");
   Frame++;
+  timer->StopTimer();
+  #if GATHER_STATS
+  Statistics.push(std::make_pair("DeviceRender", timer->GetElapsedTime()));
+  if ( (StatisticFramesPerOutput > 0) && ( (Frame % StatisticFramesPerOutput) == 0) )
+  {
+    while (!Statistics.empty())
+    {
+      std::cout << Statistics.front().first << " " << Statistics.front().second;
+      Statistics.pop();
+    }
+  }
+  #endif
 }
 
 //----------------------------------------------------------------------------
@@ -463,59 +462,52 @@ void vtkOSPRayRenderer::LayerRender()
   hRenderDiff = 0;
   // memory allocation and acess to the OSPRay image
   int size = renderSize[0]*renderSize[1];
-  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1])
+  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1] || FramebufferDirty )
   {
+    FramebufferDirty = false;
     this->ImageX = renderSize[0];
     this->ImageY = renderSize[1];
-    
+
     if (this->ColorBuffer) delete[] this->ColorBuffer;
     this->ColorBuffer = new float[ size ];
-    
+
     if (this->DepthBuffer) delete[] this->DepthBuffer;
     this->DepthBuffer = new float[ size ];
-    
+
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
     this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
-    ospFrameBufferClear(osp_framebuffer, OSP_FB_ACCUM);
+    ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
-    this->UpdateCamera();
   }
-  if (HasVolume)
+  if (HasVolume && !EnableAO)
   {
     OSPRenderer vRenderer = (OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer;
-//    OSPModel vdModel = (OSPModel)this->OSPRayManager->OSPRayDynamicModel;
-//    ospSetObject(vRenderer, "dynamic_model", vdModel);
     OSPModel vModel = (OSPModel)this->OSPRayManager->OSPRayVolumeModel;
     OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
 
-    for(int i=0;i<renderables.size();i++)
-      ospAddGeometry((OSPModel)this->OSPRayManager->OSPRayVolumeModel,renderables[i]->instance);
-    
     ospSetObject(vRenderer,"world",vModel);
-//    ospSetObject(vRenderer,"dynamic_model",vdModel);
     ospSetObject(vRenderer,"model",vModel);
     ospSetObject(vRenderer,"camera",oCamera);
-    
+
     ospCommit(vModel);
-//    ospCommit(vdModel);
     ospCommit(vRenderer);
-    
-    
-    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+
+
+    ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
   }
   else
   {
     OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
     OSPModel ospModel = ((OSPModel)this->OSPRayManager->OSPRayModel);
-    
+
     ospCommit(renderer);
     ospCommit(ospModel);
-    
-    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM);
+
+    ospRenderFrame(this->osp_framebuffer,renderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
   }
-  
+
   //
   // Copy Depth Buffer
   //
@@ -533,13 +525,13 @@ void vtkOSPRayRenderer::LayerRender()
      //printf("LR:UnShifting Camera\n");
      this->OSPRayManager->stereoCamera->UnShiftCamera();
     }
-    
+
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
     double clipMin = clipValues[0];
     double clipMax = clipValues[1] / pow(cos(viewAngle / 2.0), 2.0);
     double clipDiv = 1.0 / (clipMax - clipMin);
-    
+
     const void *b = ospMapFrameBuffer(this->osp_framebuffer, OSP_FB_DEPTH);
     
     float *s = (float *)b;
@@ -555,18 +547,38 @@ void vtkOSPRayRenderer::LayerRender()
     //disable setting the Zbuffer for now
     //this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
     //                                        renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+    if (!b)
+      std::cerr << "ERROR: no depth from ospray\n";
+    else 
+    {
+      float *s = (float *)b;
+      float *d = this->DepthBuffer;
+      for (int i = 0; i < size; i++, s++, d++)
+        *d = std::isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
+      ospUnmapFrameBuffer(b, this->osp_framebuffer);
+
+      this->GetRenderWindow()->MakeCurrent();
+      int gldepth;
+      glGetIntegerv(GL_DEPTH_FUNC, &gldepth);
+      glDepthFunc(GL_ALWAYS);
+
+      this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
+                                              renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+      glDepthFunc(gldepth);
+    }
   }
   //
   // Copy RGBA Buffer
   //
-  
+
   const void* rgba = ospMapFrameBuffer(this->osp_framebuffer);
   memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));
-  ospUnmapFrameBuffer(rgba, this->osp_framebuffer);
-  
-  
+  // glDrawPixels(renderSize[0],renderSize[1],GL_RGBA,GL_UNSIGNED_BYTE,rgba);
+  // ospUnmapFrameBuffer(rgba, this->osp_framebuffer);
+  // return;
+
   vtkTimerLog::MarkStartEvent("Image Conversion");
-  
+
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
@@ -604,6 +616,10 @@ void vtkOSPRayRenderer::LayerRender()
                             renderPos[0] + renderSize[0] - 1,
                             renderPos[1] + renderSize[1] - 1, 0 );
     }
+    GLbakBuffer = this->GetRenderWindow()->
+    GetRGBACharPixelData( renderPos[0],  renderPos[1],
+                         renderPos[0] + renderSize[0] - 1,
+                         renderPos[1] + renderSize[1] - 1, 0 );
     bool anyhit = false;
     unsigned char *optr = GLbakBuffer;
     unsigned char *iptr = (unsigned char*)this->ColorBuffer;
@@ -626,7 +642,7 @@ void vtkOSPRayRenderer::LayerRender()
         zptr++;
       }
     }
-    
+
     if (anyhit)
     {
       // submit the modified RGB colors to GL BACK bufferEyeTransformMatrix
@@ -646,10 +662,10 @@ void vtkOSPRayRenderer::LayerRender()
                             GLbakBuffer, 0, 0 );
       }
     }
-    
+
     delete [] GLbakBuffer;
   }
-  
+
   vtkTimerLog::MarkEndEvent("Image Conversion");
 }
 
@@ -682,7 +698,7 @@ void vtkOSPRayRenderer::SetEnableShadows( int newval )
     return;
   }
   this->EnableShadows = newval;
-  
+
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
   ospSet1i(renderer,"shadowsEnabled", this->EnableShadows);
   ospCommit(renderer);
@@ -695,24 +711,24 @@ void vtkOSPRayRenderer::SetSamples( int newval )
   {
     return;
   }
-  
+
   this->Samples = newval;
-  
-  
+
+
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
-  
+
   Assert(renderer);
-  
+
   ospSet1i(renderer,"spp",Samples);
   ospCommit(renderer);
-  
+
   OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
-  
+
   Assert(vRenderer);
-  
+
   ospSet1i(vRenderer,"spp",Samples);
   ospCommit(vRenderer);
-  
+
 }
 
 //----------------------------------------------------------------------------
@@ -722,12 +738,27 @@ void vtkOSPRayRenderer::SetEnableAO( int newval )
   {
     return;
   }
-  
+
   this->EnableAO = newval;
-  
+
   UpdateOSPRayRenderer();
-  
+
 }
+
+//----------------------------------------------------------------------------
+void vtkOSPRayRenderer::SetEnablePathtracing( int newval )
+{
+  if (this->EnablePathtracing == newval)
+  {
+    return;
+  }
+
+  this->EnablePathtracing = newval;
+
+  UpdateOSPRayRenderer();
+
+}
+
 
 void vtkOSPRayRenderer::SetEnableVolumeShading( int newval )
 {
@@ -738,37 +769,43 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
 {
   OSPModel oModel = (OSPModel)this->OSPRayManager->OSPRayModel;
   OSPCamera oCamera = (OSPCamera)this->OSPRayManager->OSPRayCamera;
-  
+
   if (EnableAO != 0)
   {
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("ao4");
   }
+  else if (EnablePathtracing != 0)
+  {
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("pathtracer");
+  }
   else
   {
-    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
     // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
     //this->OSPRayManager->OSPRayRenderer = this->OSPRayManager->OSPRayVolumeRenderer;
+    this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
+    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
-  
+
   Assert(oRenderer != NULL && "could not create renderer");
-  
+
   ospSetObject(oRenderer,"dynamic_model",ospNewModel());
   ospSetObject(oRenderer,"world",oModel);
   ospSetObject(oRenderer,"model",oModel);
   ospSetObject(oRenderer,"camera",oCamera);
   ospCommit(oRenderer);
-  
+
   ospSet1i(oRenderer,"spp",Samples);
   ospSet1f(oRenderer,"epsilon", 10e-2);
   ospSet1i(oRenderer,"shadowsEnabled", this->EnableShadows);
-  
+
   ospCommit(oRenderer);
   SetBackground(backgroundRGB[0],backgroundRGB[1],backgroundRGB[2]);
-  
+
   vtkActorCollection *actorList = this->GetActors();
   actorList->InitTraversal();
-  
+
   int numActors = actorList->GetNumberOfItems();
   for(int i=0; i<numActors; i++) {
     vtkActor *a = actorList->GetNextActor();
@@ -783,7 +820,7 @@ void vtkOSPRayRenderer::SetMaxDepth( int newval )
   {
     return;
   }
-  
+
   this->MaxDepth = newval;
 }
 

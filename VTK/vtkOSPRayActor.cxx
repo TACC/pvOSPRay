@@ -1,18 +1,18 @@
-/* ======================================================================================= 
-   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin  
+/* =======================================================================================
+   Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin
    All rights reserved.
-                                                                                           
-   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file     
-   except in compliance with the License.                                                  
-   A copy of the License is included with this software in the file LICENSE.               
-   If your copy does not contain the License, you may obtain a copy of the License at:     
-                                                                                           
-       http://opensource.org/licenses/BSD-3-Clause                                         
-                                                                                           
-   Unless required by applicable law or agreed to in writing, software distributed under   
-   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY 
-   KIND, either express or implied.                                                        
-   See the License for the specific language governing permissions and limitations under   
+
+   Licensed under the BSD 3-Clause License, (the "License"); you may not use this file
+   except in compliance with the License.
+   A copy of the License is included with this software in the file LICENSE.
+   If your copy does not contain the License, you may obtain a copy of the License at:
+
+       http://opensource.org/licenses/BSD-3-Clause
+
+   Unless required by applicable law or agreed to in writing, software distributed under
+   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+   KIND, either express or implied.
+   See the License for the specific language governing permissions and limitations under
    limitations under the License.
 
    pvOSPRay is derived from VTK/ParaView Los Alamos National Laboratory Modules (PVLANL)
@@ -35,21 +35,6 @@
 #include "vtkRendererCollection.h"
 #include "vtkTimerLog.h"
 
-//VBO includes
-//#include <X11/Xlib.h>
-//#include <X11/Xutil.h>
-//#include <X11/Xatom.h>
-//#include <GL/glx.h>
-#ifndef __APPLE__
-#include <GL/glu.h>
-#else
-#include <OpenGL/glu.h>
-#endif
-
-
-//#include <GL/glext.h>
-#include "vtkOpenGL.h"
-#include "vtkOpenGLError.h"
 #include <map>
 #include <algorithm>
 
@@ -171,28 +156,10 @@ void vtkOSPRayActor::UpdateObjects( vtkRenderer * ren )
   if (!this->OSPRayModel)
     return;
 
-  //TODO:
-  //We are using OSPRay's DynBVH, but we never use it Dyn-amically.
-  //Instead we delete the old and rebuild a new AS every time something changes,
-  //We should either ask the DynBVH to update itself,
-  //or try different acceleration structures. Those might be faster - either
-  //during sort or during search.
-
-  //Remove what was shown.
-  // this->RemoveObjects();
-
   if (!this->GetVisibility())
     return;
+  
+  Renderable = new vtkOSPRayRenderable(this->OSPRayModel);
+  OSPRayRenderer->AddOSPRayRenderable(Renderable);
 
-  //Add what we are now supposed to show.
-  {
-    vtkTimerLog::MarkStartEvent("Execute AccelStructBuild ");
-    
-//    if (Renderable)
-//      delete Renderable;
-    Renderable = new vtkOSPRayRenderable(this->OSPRayModel);
-    OSPRayRenderer->AddOSPRayRenderable(Renderable);
-
-    vtkTimerLog::MarkEndEvent("Execute AccelStructBuild ");
-  }
 }

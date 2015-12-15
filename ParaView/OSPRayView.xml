@@ -35,19 +35,7 @@
        </ExposedProperties>
      </SubProxy>
 
-      <IntVectorProperty name="Threads"
-        command="SetThreads"
-        immediate_update="1"
-        number_of_elements="1"
-        panel_visibility="default"
-        default_values="1">
-        <IntRangeDomain name="range" min="1" />
-        <Documentation>
-          Controls number of render threads.
-        </Documentation>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="EnableShadows"
+<!--       <IntVectorProperty name="EnableShadows"
         command="SetEnableShadows"
         immediate_update="1"
         number_of_elements="1"
@@ -57,7 +45,7 @@
         <Documentation>
           Turns on shadow.
         </Documentation>
-      </IntVectorProperty>
+      </IntVectorProperty> -->
 
       <IntVectorProperty name="EnableAO"
         command="SetEnableAO"
@@ -67,6 +55,17 @@
         <BooleanDomain name="bool" />
         <Documentation>
           Turns on AO.
+        </Documentation>
+      </IntVectorProperty>
+
+      <IntVectorProperty name="EnablePathtracing"
+        command="SetEnablePathtracing"
+        immediate_update="1"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Turns on pathtracing.
         </Documentation>
       </IntVectorProperty>
 
@@ -81,17 +80,6 @@
         </Documentation>
       </IntVectorProperty>
       
-      <IntVectorProperty name="EnableVolumeShading"
-        command="SetEnableVolumeShading"
-        immediate_update="1"
-        number_of_elements="1"
-        default_values="0">
-        <BooleanDomain name="bool" />
-        <Documentation>
-          Turns on Volume Gradient Shading.
-        </Documentation>
-      </IntVectorProperty>
-      
       <IntVectorProperty name="Samples"
         command="SetSamples"
         immediate_update="1"
@@ -101,18 +89,6 @@
         <IntRangeDomain name="range" min="1" />
         <Documentation>
           Controls multisampling.
-        </Documentation>
-      </IntVectorProperty>
-
-      <IntVectorProperty name="MaxDepth"
-        command="SetMaxDepth"
-        immediate_update="1"
-        number_of_elements="1"
-        panel_visibility="advanced"
-        default_values="5">
-        <IntRangeDomain name="range" min="1" />
-        <Documentation>
-          Controls maximum number of ray bounces.
         </Documentation>
       </IntVectorProperty>
 
@@ -200,8 +176,7 @@
 
 <RepresentationProxy name="OSPRayVolumeRepresentation"
                          class="vtkPVOSPRayImageVolumeRepresentation"
-                         processes="client|renderserver|dataserver"
-                         si_class="vtkSIUniformGridVolumeRepresentationProxy">
+                         processes="client|renderserver|dataserver">
     <!-- proxy that sets up ospray display pipeline at vtk level -->
        <InputProperty command="SetInputConnection"
                      name="Input">
