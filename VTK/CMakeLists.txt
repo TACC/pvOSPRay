@@ -78,6 +78,10 @@ add_definitions(
 
 set (${vtk-module}_NO_HeaderTest 1)
 
+set(OSPRAY_SRCS
+ ${OSPRAY_CLASSES}
+ )
+
 vtk_module_library(${vtk-module} ${OSPRAY_SRCS} ${MOCSrcs} ${UISrcs})
 find_package(OSPRay)
 
