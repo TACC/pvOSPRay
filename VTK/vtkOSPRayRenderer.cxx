@@ -392,7 +392,7 @@ void vtkOSPRayRenderer::PreRender()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
-  SetComputeDepth(true);
+  // SetComputeDepth(true);
   static vtkTimerLog* timer = vtkTimerLog::New();
   timer->StartTimer();
   PreRender();
