@@ -236,7 +236,6 @@ void vtkPVOSPRayImageVolumeRepresentation::MarkModified()
 //----------------------------------------------------------------------------
 bool vtkPVOSPRayImageVolumeRepresentation::AddToView(vtkView* view)
 {
-  this->Superclass::AddToView(view);
   vtkPVRenderView* rview = vtkPVRenderView::SafeDownCast(view);
   if (rview)
   {
