@@ -130,6 +130,8 @@ void vtkPVOSPRayView::Update() {
       SetEnableProgressiveRefinement(enabledProg);
     }
   }
+  if (OSPRayRenderer)
+    OSPRayRenderer->ClearAccumulation();
   this->Superclass::Update();
 }
 

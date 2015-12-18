@@ -583,25 +583,14 @@ void vtkOSPRayRenderer::LayerRender()
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
-    if (myLeftEye==1){
-        //this->GetRenderWindow()->
-        this->
-        SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                             renderPos[0] + renderSize[0] - 1,
-                             renderPos[1] + renderSize[1] - 1,
-                            (unsigned char*)this->ColorBuffer, 0, 0,true );
-    } else {
-        //this->GetRenderWindow()->
-        this->
-        SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                             renderPos[0] + renderSize[0] - 1,
-                             renderPos[1] + renderSize[1] - 1,
-                            (unsigned char*)this->ColorBuffer, 0, 0,false );
-    }
-    glFinish();
+      SetRGBACharPixelData( renderPos[0],  renderPos[1],
+                           renderPos[0] + renderSize[0] - 1,
+                           renderPos[1] + renderSize[1] - 1,
+                          (unsigned char*)this->ColorBuffer, 0, 0,myLeftEye==1 );
   }
   else
   {
+    std::cout << "layer not 0\n";
     //layers on top add the colors of their non background pixels
     unsigned char*  GLbakBuffer = NULL;
     if (myLeftEye==1){
@@ -1128,7 +1117,6 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
   // set the current window
   this->GetRenderWindow()->MakeCurrent();
 
-
   // Error checking
   // Must clear previous errors first.
   while(glGetError() != GL_NO_ERROR)
@@ -1153,9 +1141,6 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
       else 
         glDrawBuffer(this->GetBackRightBuffer());
     }
-
-
-
 
   // Disable writing on the z-buffer.
   glDepthMask(GL_FALSE);
@@ -1224,8 +1209,11 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
     #ifdef VTK_OPENGL2
       ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
     #else
-           glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                   data);
+           // glDrawPixels( x2, y2, GL_RGBA, GL_UNSIGNED_BYTE,
+           //         data);
+     ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->SetRGBACharPixelData(x1,y1,x2,
+                                      y2, data,
+                                      front, blend);
     #endif
     glEnable(GL_BLEND);
     }
@@ -1234,8 +1222,11 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
       #ifdef VTK_OPENGL2
         ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
       #else
-           glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                   data);
+           // glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+           //         data);
+       ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->SetRGBACharPixelData(x1,y1,x2,
+                                              y2, data,
+                                              front, blend);
       #endif
     }
 
