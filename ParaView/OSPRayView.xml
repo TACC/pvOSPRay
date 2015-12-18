@@ -28,7 +28,7 @@
          <Property name="CameraClippingRange" panel_visibility="never"/>
          <Property name="CameraParallelScale" panel_visibility="never"/>
          <Property name="CameraParallelScaleInfo" panel_visibility="never"/>
-         <!--<Property name="CameraParallelProjection" panel_visibility="advanced"/>-->
+         <!-- <Property name="CameraParallelProjection" panel_visibility="advanced"/> -->
          <Property name="EyeAngle" panel_visibility="never"/>
          <Property name="EyeTransformMatrix" />
          <Property name="ModelTransformMatrix" />
@@ -339,12 +339,13 @@
         <Documentation>Enable/Disable shading.</Documentation>
       </IntVectorProperty>
       <DoubleVectorProperty command="SetSamplingRate"
-                            default_values="0.25"
+                            default_values="0"
                             name="SamplingRate"
                             number_of_elements="1">
         <DoubleRangeDomain max="2"
-                           min="0.01"
+                           min="0"
                            name="range" />
+        <Documentation>Rate of sampling per voxel.  1 Samples roughly once every voxel along each ray.  0 is automatic.</Documentation>
       </DoubleVectorProperty>
       <IntVectorProperty command="SetIndependantComponents"
                          default_values="1"

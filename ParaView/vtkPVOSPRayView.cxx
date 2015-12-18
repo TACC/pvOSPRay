@@ -57,6 +57,7 @@ vtkPVOSPRayView::vtkPVOSPRayView()
   EnableShadows=-1;
   EnableVolumeShading=-1;
   Samples=-1;
+  ParallelProjection=0;
   OSPRayRenderer = vtkOSPRayRenderer::New();
   this->RenderView->SetRenderer(OSPRayRenderer);
 

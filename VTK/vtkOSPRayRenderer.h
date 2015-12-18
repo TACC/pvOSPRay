@@ -256,12 +256,12 @@ private:
                                               int front);
   int SetRGBACharPixelData(int x, int y, int x2, int y2,
                                    unsigned char *data, int front,
-                                   int blend=0);
+                                   int blend=0,bool left=true);
   unsigned char *GetRGBACharPixelDataRight(int x, int y, int x2, int y2,
                                               int front);
-  int SetRGBACharPixelDataRight(int x,int y, int x2, int y2,
-                                   unsigned char *data, int front,
-                                   int blend=0);
+  // int SetRGBACharPixelDataRight(int x,int y, int x2, int y2,
+  //                                  unsigned char *data, int front,
+  //                                  int blend=0);
 
   int GetRGBACharPixelData(int x, int y, int x2, int y2, int front,
                            unsigned char* data);

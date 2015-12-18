@@ -51,7 +51,6 @@ public:
   //Controls number of render threads.
   virtual void SetThreads(int val);
   vtkGetMacro(Threads, int);
-
   // Description:
   // Parameters that controls ray tracing quality
   // Defaults are for minimal quality and maximal speed.
@@ -97,6 +96,7 @@ protected:
   int Threads;
   int Samples;
   int MaxDepth;
+  int ParallelProjection;
 //  int OSPSuppressLOD;
 
 	vtkOSPRayRenderer *OSPRayRenderer;

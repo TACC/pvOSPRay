@@ -19,8 +19,11 @@
  Copyright (c) 2007, Los Alamos National Security, LLC
  ======================================================================================= */
 
+#ifdef VTK_OPENGL2
+  #include "vtk_glew.h"
+#endif 
 
-#include "vtk_glew.h"
+#include "vtkRenderingOpenGLConfigure.h"
 #include "ospray/ospray.h"
 #include "ospray/common/OSPCommon.h"
 
@@ -586,14 +589,14 @@ void vtkOSPRayRenderer::LayerRender()
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
                              renderPos[0] + renderSize[0] - 1,
                              renderPos[1] + renderSize[1] - 1,
-                            (unsigned char*)this->ColorBuffer, 0, 0 );
+                            (unsigned char*)this->ColorBuffer, 0, 0,true );
     } else {
         //this->GetRenderWindow()->
         this->
-        SetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
+        SetRGBACharPixelData( renderPos[0],  renderPos[1],
                              renderPos[0] + renderSize[0] - 1,
                              renderPos[1] + renderSize[1] - 1,
-                            (unsigned char*)this->ColorBuffer, 0, 0 );
+                            (unsigned char*)this->ColorBuffer, 0, 0,false );
     }
     glFinish();
   }
@@ -650,14 +653,14 @@ void vtkOSPRayRenderer::LayerRender()
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
                             renderPos[0] + renderSize[0] - 1,
                             renderPos[1] + renderSize[1] - 1,
-                            GLbakBuffer, 0, 0 );
+                            GLbakBuffer, 0, 0,true );
       } else {
         //this->GetRenderWindow()->
         this->
-        SetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
+        SetRGBACharPixelData( renderPos[0],  renderPos[1],
                             renderPos[0] + renderSize[0] - 1,
                             renderPos[1] + renderSize[1] - 1,
-                            GLbakBuffer, 0, 0 );
+                            GLbakBuffer, 0, 0,false );
       }
     }
 
@@ -1120,13 +1123,8 @@ unsigned char *vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
 
 int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
                                                 int y2, unsigned char *data,
-                                                int front, int blend)
+                                                int front, int blend, bool left)
 {
-  // int     y_low, y_hi;
-  // int     x_low, x_hi;
-  // int     width, height;
-
-
   // set the current window
   this->GetRenderWindow()->MakeCurrent();
 
@@ -1143,202 +1141,102 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
 
   if (front)
     {
-    glDrawBuffer(this->GetFrontLeftBuffer());
+      if (left)
+        glDrawBuffer(this->GetFrontLeftBuffer());
+      else
+        glDrawBuffer(this->GetFrontRightBuffer());
     }
   else
     {
-    glDrawBuffer(this->GetBackLeftBuffer());
+      if (left)
+        glDrawBuffer(this->GetBackLeftBuffer());
+      else 
+        glDrawBuffer(this->GetBackRightBuffer());
     }
 
 
-  // if (y1 < y2)
-  //   {
-  //   y_low = y1;
-  //   y_hi  = y2;
-  //   }
-  // else
-  //   {
-  //   y_low = y2;
-  //   y_hi  = y1;
-  //   }
 
-
-  // if (x1 < x2)
-  //   {
-  //   x_low = x1;
-  //   x_hi  = x2;
-  //   }
-  // else
-  //   {
-  //   x_low = x2;
-  //   x_hi  = x1;
-  //   }
-
-
-  // width  = abs(x_hi-x_low);
-  // height = abs(y_hi-y_low);
-
-
-   // write out a row of pixels 
-  // glViewport(0, 0, this->Size[0], this->Size[1]);
-  // glMatrixMode( GL_MODELVIEW );
-  // glPushMatrix();
-  // glLoadIdentity();
-  // glMatrixMode( GL_PROJECTION );
-  // glPushMatrix();
-  // glLoadIdentity();
-  // glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
-  //                (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
-  //                -1.0 );
-  // glMatrixMode( GL_PROJECTION );
-  // glPopMatrix();
-  // glMatrixMode( GL_MODELVIEW );
-  // glPopMatrix();
-
-  // glDisable( GL_ALPHA_TEST );
-  // glDisable( GL_SCISSOR_TEST );
 
   // Disable writing on the z-buffer.
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
 
-  // // Turn of texturing in case it is on - some drivers have a problem
-  // // getting / setting pixels with texturing enabled.
-  // glDisable( GL_TEXTURE_2D );
+  #ifndef VTK_OPENGL2
+    int     y_low, y_hi;
+    int     x_low, x_hi;
+    int     width, height;
+
+     // write out a row of pixels 
+    glViewport(0, 0, this->Size[0], this->Size[1]);
+    glMatrixMode( GL_MODELVIEW );
+    glPushMatrix();
+    glLoadIdentity();
+    glMatrixMode( GL_PROJECTION );
+    glPushMatrix();
+    glLoadIdentity();
+    glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
+                   (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
+                   -1.0 );
+    glMatrixMode( GL_PROJECTION );
+    glPopMatrix();
+    glMatrixMode( GL_MODELVIEW );
+    glPopMatrix();
+
+    glDisable( GL_ALPHA_TEST );
+    glDisable( GL_SCISSOR_TEST );
+
+    // Turn of texturing in case it is on - some drivers have a problem
+    // getting / setting pixels with texturing enabled.
+    glDisable( GL_TEXTURE_2D );
+
+    if (y1 < y2)
+      {
+      y_low = y1;
+      y_hi  = y2;
+      }
+    else
+      {
+      y_low = y2;
+      y_hi  = y1;
+      }
+
+
+    if (x1 < x2)
+      {
+      x_low = x1;
+      x_hi  = x2;
+      }
+    else
+      {
+      x_low = x2;
+      x_hi  = x1;
+      }
+
+
+    width  = abs(x_hi-x_low);
+    height = abs(y_hi-y_low);
+  #endif
 
   if (!blend)
     {
     glDisable(GL_BLEND);
-    // glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-    //               data);
+
+    #ifdef VTK_OPENGL2
       ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
+    #else
+           glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                   data);
+    #endif
     glEnable(GL_BLEND);
     }
   else
     {
-    // glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                  // data);
-      ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
-    }
-
-  // Renenable writing on the z-buffer.
-  glDepthMask(GL_TRUE);
-  glEnable(GL_DEPTH_TEST);
-
-  // This seems to be necessary for the image to show up
-  glFlush();
-
-  glDrawBuffer(buffer);
-
-  if (glGetError() != GL_NO_ERROR)
-    {
-    return VTK_ERROR;
-    }
-  else
-    {
-    return VTK_OK;
-    }
-}
-
-int vtkOSPRayRenderer::SetRGBACharPixelDataRight(int x1, int y1, int x2,
-                                                int y2, unsigned char *data,
-                                                int front, int blend)
-{
-  int     y_low, y_hi;
-  int     x_low, x_hi;
-  int     width, height;
-
-
-  // set the current window
-  this->GetRenderWindow()->MakeCurrent();
-
-
-  // Error checking
-  // Must clear previous errors first.
-  while(glGetError() != GL_NO_ERROR)
-    {
-    ;
-    }
-
-  GLint buffer;
-  glGetIntegerv(GL_DRAW_BUFFER, &buffer);
-
-  if (front)
-    {
-    glDrawBuffer(this->GetFrontRightBuffer());
-    }
-  else
-    {
-    glDrawBuffer(this->GetBackRightBuffer());
-    }
-
-
-  if (y1 < y2)
-    {
-    y_low = y1;
-    y_hi  = y2;
-    }
-  else
-    {
-    y_low = y2;
-    y_hi  = y1;
-    }
-
-
-  if (x1 < x2)
-    {
-    x_low = x1;
-    x_hi  = x2;
-    }
-  else
-    {
-    x_low = x2;
-    x_hi  = x1;
-    }
-
-
-  width  = abs(x_hi-x_low) + 1;
-  height = abs(y_hi-y_low) + 1;
-
-
-  /* write out a row of pixels */
-  glViewport(0, 0, this->Size[0], this->Size[1]);
-  glMatrixMode( GL_MODELVIEW );
-  glPushMatrix();
-  glLoadIdentity();
-  glMatrixMode( GL_PROJECTION );
-  glPushMatrix();
-  glLoadIdentity();
-  glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
-                 (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
-                 -1.0 );
-  glMatrixMode( GL_PROJECTION );
-  glPopMatrix();
-  glMatrixMode( GL_MODELVIEW );
-  glPopMatrix();
-
-  glDisable( GL_ALPHA_TEST );
-  glDisable( GL_SCISSOR_TEST );
-
-  // Disable writing on the z-buffer.
-  glDepthMask(GL_FALSE);
-  glDisable(GL_DEPTH_TEST);
-
-  // Turn of texturing in case it is on - some drivers have a problem
-  // getting / setting pixels with texturing enabled.
-  glDisable( GL_TEXTURE_2D );
-
-  if (!blend)
-    {
-    glDisable(GL_BLEND);
-    glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                  data);
-    glEnable(GL_BLEND);
-    }
-  else
-    {
-    glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                  data);
+      #ifdef VTK_OPENGL2
+        ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
+      #else
+           glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+                   data);
+      #endif
     }
 
   // Renenable writing on the z-buffer.
