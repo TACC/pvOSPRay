@@ -397,7 +397,8 @@ void vtkOSPRayRenderer::PreRender()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
-  // SetComputeDepth(true);
+  // std::cerr << "vtkOSPRayRenderer(" << this << ")::DeviceRender\n";
+  SetComputeDepth(true);
   static vtkTimerLog* timer = vtkTimerLog::New();
   timer->StartTimer();
   PreRender();
@@ -562,6 +563,7 @@ void vtkOSPRayRenderer::LayerRender()
       int gldepth;
       glGetIntegerv(GL_DEPTH_FUNC, &gldepth);
       glDepthFunc(GL_ALWAYS);
+      std::cerr << "setting zbuffer data\n";
 
       this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
                                               renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
