@@ -31,7 +31,8 @@ public:
 vtkOSPRayRenderable(OSPModel model)
 : model(model)
 {
-instance = ospNewInstance(model, osp::affine3f(embree::one));
+// instance = ospNewInstance(model, osp::affine3f(embree::one));
+instance = ospNewInstance(model, osp::affine3f{1.0F});
 }
 OSPGeometry instance;
 OSPModel model;

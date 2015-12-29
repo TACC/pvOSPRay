@@ -20,7 +20,6 @@
    ======================================================================================= */
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayManager.h"
@@ -123,7 +122,11 @@ void vtkOSPRayProperty::CreateOSPRayProperty()
 
           this->OSPRayMaterial = ospNewMaterial(renderer,"OBJMaterial");
           OSPMaterial oMaterial = (OSPMaterial)this->OSPRayMaterial;
-          Assert(oMaterial);
+					if (! oMaterial)
+					{			
+						std::cerr << "Unable to create material\n";
+						exit(1);
+					}
           float diffusef[] = {(float)diffuse[0], (float)diffuse[1], (float)diffuse[2]};
           float specularf[] = {(float)specular[0],(float)specular[1],(float)specular[2]};
           ospSet3fv(oMaterial,"Kd",diffusef);

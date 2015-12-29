@@ -25,7 +25,6 @@
 
 #include "vtkRenderingOpenGLConfigure.h"
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayCamera.h"
@@ -154,6 +153,10 @@ Accumulate(false)
   ospSetObject(vRenderer,"camera",oCamera);
   ospCommit(vRenderer);
 
+#if !defined(Assert) 
+#define Assert if (0)
+#endif
+
   Assert(oRenderer != NULL && "could not create renderer");
   Assert(vRenderer != NULL && "could not create renderer");
 
@@ -271,7 +274,7 @@ int vtkOSPRayRenderer::UpdateLights()
     }
     vtkLight* light = vLight;
 
-    double *color, *position, *focal, direction[3];
+    double *color, *position, *focal;
 
     // OSPRay Lights only have one "color"
     color    = light->GetDiffuseColor();
@@ -289,16 +292,20 @@ int vtkOSPRayRenderer::UpdateLights()
     }
     else
     {
-      direction[0] = position[0] - focal[0];
-      direction[1] = position[1] - focal[1];
-      direction[2] = position[2] - focal[2];
       OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
       ospSetString(ospLight, "name", "directional" );
       float scale = 0.8;
       ospSet3f(ospLight, "color", color[0]*scale,color[1]*scale,color[2]*scale);
-      osp::vec3f dir(-direction[0],-direction[1],-direction[2]);
-      dir = normalize(dir);
-      ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
+
+      float x = position[0] - focal[0];
+      float y = position[1] - focal[1];
+      float z = position[2] - focal[2];
+			float d = x*x + y*y + z*z;
+
+			if (d != 0.0) 
+				d = 1.0 / d;
+
+      ospSet3f(ospLight, "direction", x*d, y*d, z*d);
       ospCommit(ospLight);
       lights.push_back(ospLight);
     }
@@ -481,7 +488,7 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i{renderSize[0], renderSize[1]}, OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
   }
