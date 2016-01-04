@@ -20,7 +20,6 @@
    ======================================================================================= */
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayCamera.h"
@@ -115,7 +114,6 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
       return;
   ospSetf(ospCamera,"aspect",float(usize)/float(vsize));
   ospSetf(ospCamera,"fovy",vfov);
-  Assert(ospCamera != NULL && "could not create camera");
   ospSet3f(ospCamera,"pos",eye[0], eye[1], eye[2]);
   ospSet3f(ospCamera,"up",up[0], up[1], up[2]);
   ospSet3f(ospCamera,"dir",lookat[0]-eye[0],lookat[1]-eye[1],lookat[2]-eye[2]);

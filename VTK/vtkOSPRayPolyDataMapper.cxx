@@ -28,7 +28,6 @@
    */
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayActor.h"
@@ -124,9 +123,9 @@ class Mesh {
   std::vector<size_t> texture_indices;
   std::vector<size_t> normal_indices;
   std::vector<Vec4> colors;
-  std::vector<ospray::vec3fa> wireframe_vertex;
+  std::vector<osp::vec3fa> wireframe_vertex;
   std::vector<int> wireframe_index;
-  std::vector<ospray::vec3f> points_vertex;
+  std::vector<osp::vec3f> points_vertex;
 };
 }
 
@@ -275,13 +274,13 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
       double coord[3];
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         ptarray->GetPoint(index[0], coord);
-         mesh->points_vertex.push_back
-           (ospray::vec3f(coord[0], coord[1], coord[2]));
+				osp::vec3f v;
+			  v.x = coord[0], v.y = coord[1], v.y = coord[2];
+        mesh->points_vertex.push_back((const osp::vec3f)v);
         for (vtkIdType i = 1; i < npts; i++) {
-
           ptarray->GetPoint(index[i], coord);
-                   mesh->points_vertex.push_back
-           (ospray::vec3f(coord[0], coord[1], coord[2]));
+					v.x = coord[0], v.y = coord[1], v.y = coord[2];
+					mesh->points_vertex.push_back((const osp::vec3f)v);
         }
       }
     }  // VTK_POINTS;
@@ -290,14 +289,15 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
       double coord0[3];
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         ptarray->GetPoint(index[0], coord0);
-        mesh->wireframe_vertex.push_back(
-            ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+				osp::vec3fa v;
+				v.x = coord0[0], v.y = coord0[1], v.z = coord0[2];
+        mesh->wireframe_vertex.push_back((const osp::vec3fa)v);
         for (vtkIdType i = 1; i < npts; i++) {
 
           mesh->wireframe_index.push_back(mesh->wireframe_vertex.size() - 1);
           ptarray->GetPoint(index[i], coord0);
-          mesh->wireframe_vertex.push_back(
-              ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+					v.x = coord0[0], v.y = coord0[1], v.z = coord0[2];
+					mesh->wireframe_vertex.push_back((const osp::vec3fa)v);
         }
       }
     }  // VTK_WIREFRAME:
@@ -373,13 +373,14 @@ void vtkOSPRayPolyDataMapper::DrawPolygons(vtkPolyData *polys,
            this->Edges && cells->GetNextCell(npts, index); cellNum++) {
         double coord0[3];
         ptarray->GetPoint(index[0], coord0);
-        mesh->wireframe_vertex.push_back(
-            ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+				osp::vec3fa v;
+				v.x = coord0[0], v.y = coord0[1], v.z = coord0[2];
+        mesh->wireframe_vertex.push_back((const osp::vec3fa)v);
         for (vtkIdType i = 1; i < npts; i++) {
           mesh->wireframe_index.push_back(mesh->wireframe_vertex.size() - 1);
           ptarray->GetPoint(index[i], coord0);
-          mesh->wireframe_vertex.push_back(
-              ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+					v.x = coord0[0], v.y = coord0[1], v.z = coord0[2];
+					mesh->wireframe_vertex.push_back((const osp::vec3fa)v);
         }
       }
 
@@ -422,13 +423,14 @@ void vtkOSPRayPolyDataMapper::DrawTStrips(vtkPolyData *polys,
       double coord2[3];
       for (cells->InitTraversal(); cells->GetNextCell(npts, index); cellNum++) {
         ptarray->GetPoint(index[0], coord0);
-        mesh->wireframe_vertex.push_back(
-            ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+				osp::vec3fa v;
+				v.x = coord0[0], v.y = coord0[1], v.z = coord0[2];
+        mesh->wireframe_vertex.push_back((const osp::vec3fa)v);
         for (vtkIdType i = 2; i < npts; i++) {
           mesh->wireframe_index.push_back(mesh->wireframe_vertex.size() - 1);
           ptarray->GetPoint(index[0], coord0);
-          mesh->wireframe_vertex.push_back(
-              ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+					v.x = coord0[0], v.y = coord0[1], v.z = coord0[2];
+					mesh->wireframe_vertex.push_back((const osp::vec3fa)v);
         }
       }
     }  // VTK_WIREFRAME:
@@ -649,7 +651,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
   } else if (this->ColorCoordinates) {
     osp::Texture2D *texture = this->InternalColorTexture->GetOSPRayTexture();
-    Assert(texture);
+		if (! texture)
+		{
+			std::cerr << "bad return from this->InternalColorTexture->GetOSPRayTexture()\n";
+			exit(1);
+		}
     ospSetObject(ospMaterial, "map_Kd", ((OSPTexture2D)(texture)));
     ospCommit(ospMaterial);
 
@@ -711,14 +717,15 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
          {
          point = pts[p];
          ptarray->GetPoint(point, coord);
-         mesh->points_vertex.push_back
-           (ospray::vec3f(coord[0], coord[1], coord[2]));
+				 osp::vec3f v;
+				 v.x = coord[0], v.y = coord[1], v.y = coord[2];
+				 mesh->points_vertex.push_back(v);
          }
       }
   }
 
-  std::vector<ospray::vec3fa> slVertex;
-  std::vector<ospray::vec3fa> slColors;
+  std::vector<osp::vec3fa> slVertex;
+  std::vector<osp::vec3fa> slColors;
   std::vector<int> slIndex;
   float slRadius;
 
@@ -729,7 +736,7 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     vtkIdType npts;
     vtkIdType *pts;
     vtkPoints *ptarray = points;
-    std::vector<ospray::vec3fa> tmpColors;
+    std::vector<osp::vec3fa> tmpColors;
     int scalarSize = ptarray->GetNumberOfPoints();
     double coord0[3];
     vtkIdType cell;
@@ -748,7 +755,9 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         for (int jj = 0; jj < 3; jj++) {
           color[jj] = float(output[ii * 4 + jj]) / 255.0;
         }
-        tmpColors.push_back(ospray::vec3fa(color[0], color[1], color[2]));
+				osp::vec3fa v;
+				v.x = color[0], v.y = color[1], v.z = color[2];
+        tmpColors.push_back((const osp::vec3fa)v);
       }
     } else if (vstc) {
       std::cout << "I have a lookup table" << std::endl;
@@ -763,23 +772,28 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         for (int i = 0; i < scalarSize; i++) {
           double *tcoord = this->ColorCoordinates->GetTuple(i);
           double *color = vstc->GetColor((tcoord[0] * scale) + minmax[0]);
-          tmpColors.push_back(ospray::vec3fa(color[0], color[1], color[2]));
+					osp::vec3fa v;
+					v.x = color[0], v.y = color[1], v.z = color[2];
+					tmpColors.push_back((const osp::vec3fa)v);
         }
 
       } else {
         double solidColor[3];
         OSPRayProperty->GetDiffuseColor(solidColor);
         for (int i = 0; i < scalarSize; i++) {
-          tmpColors.push_back(
-              ospray::vec3fa(solidColor[0], solidColor[1], solidColor[2]));
+					osp::vec3fa v;
+					v.x = solidColor[0], v.y = solidColor[1], v.z = solidColor[2];
+					tmpColors.push_back((const osp::vec3fa)v);
         }
       }
     }
 
-    std::vector<ospray::vec3fa> tmpPoints;
+    std::vector<osp::vec3fa> tmpPoints;
     for (int ii = 0; ii < ptarray->GetNumberOfPoints(); ii++) {
       ptarray->GetPoint(ii, coord0);
-      tmpPoints.push_back(ospray::vec3fa(coord0[0], coord0[1], coord0[2]));
+			osp::vec3fa p;
+			p.x = coord0[0], p.y = coord0[1], p.z = coord0[2];
+      tmpPoints.push_back((const osp::vec3fa)p);
     }
 
     slRadius = this->LineWidth / 0.005;
@@ -872,32 +886,31 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
       // printf("building mesh with numTriangles %d\n", numTriangles);
 
-
-      ospray::vec3fa *vertices = (ospray::vec3fa *)alignedMalloc(
-          sizeof(ospray::vec3fa) * numPositions);
-      ospray::vec3i *triangles = (ospray::vec3i *)alignedMalloc(
-          sizeof(ospray::vec3i) * numTriangles);
-      ospray::vec3fa *normals = (ospray::vec3fa *)alignedMalloc(
-          sizeof(ospray::vec3fa) * numNormals);
+      osp::vec3fa *vertices = (osp::vec3fa *)alignedMalloc(
+          sizeof(osp::vec3fa) * numPositions);
+      osp::vec3i *triangles = (osp::vec3i *)alignedMalloc(
+          sizeof(osp::vec3i) * numTriangles);
+      osp::vec3fa *normals = (osp::vec3fa *)alignedMalloc(
+          sizeof(osp::vec3fa) * numNormals);
 
       for (size_t i = 0; i < numPositions; i++) {
-        vertices[i] =
-            ospray::vec3fa(mesh->vertices[i].x(), mesh->vertices[i].y(),
-                           mesh->vertices[i].z());
+        vertices[i].x = mesh->vertices[i].x();
+        vertices[i].y = mesh->vertices[i].y();
+        vertices[i].z = mesh->vertices[i].z();
       }
       for (size_t i = 0, mi = 0; i < numTriangles; i++, mi += 3) {
-        triangles[i] = embree::Vec3i(mesh->vertex_indices[mi + 0],
-                                     mesh->vertex_indices[mi + 1],
-                                     mesh->vertex_indices[mi + 2]);
+        triangles[i].x = mesh->vertex_indices[mi + 0];
+        triangles[i].y = mesh->vertex_indices[mi + 1];
+        triangles[i].z = mesh->vertex_indices[mi + 2];
       }
 
       for (size_t i = 0; i < numNormals; i++) {
-        normals[i] = ospray::vec3fa(mesh->vertexNormals[i].x(),
-                                    mesh->vertexNormals[i].y(),
-                                    mesh->vertexNormals[i].z());
+        normals[i].x = mesh->vertexNormals[i].x();
+        normals[i].y = mesh->vertexNormals[i].y();
+        normals[i].z = mesh->vertexNormals[i].z();
       }
 
-      OSPGeometry ospMesh = ospNewTriangleMesh();
+      OSPGeometry ospMesh = ospNewGeometry("triangles");
       OSPData position = ospNewData(numPositions, OSP_FLOAT3A, &vertices[0]);
       ospSetData(ospMesh, "position", position);
 
@@ -932,6 +945,10 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
       ospCommit(ospMesh);
 
       ospAddGeometry(OSPRayActor->OSPRayModel, ospMesh);
+
+			alignedFree(vertices);
+			alignedFree(triangles);
+			alignedFree(normals);
 
     }
 
@@ -973,7 +990,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
         ospCommit(wireMat);
       }
       OSPGeometry wireGeometry = ospNewGeometry("streamlines");
-      Assert(wireGeometry);
+			if (! wireGeometry)
+			{
+				std::cerr << "bad streamlines geometry 0\n";
+				exit(0);
+			}
       OSPData vertex = ospNewData(mesh->wireframe_vertex.size(), OSP_FLOAT3A,
                                   &mesh->wireframe_vertex[0]);
       OSPData index = ospNewData(mesh->wireframe_index.size(), OSP_INT,
@@ -991,7 +1012,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
     if (slVertex.size()) {
       double solidColor[3];
       OSPGeometry slGeometry = ospNewGeometry("streamlines");
-      Assert(slGeometry);
+			if (! slGeometry)
+			{
+				std::cerr << "bad streamlines geometry 1\n";
+				exit(0);
+			}
       OSPData vertex = ospNewData(slVertex.size(), OSP_FLOAT3A, &slVertex[0]);
       OSPData color = ospNewData(slColors.size(), OSP_FLOAT3A, &slColors[0]);
       OSPData index = ospNewData(slIndex.size(), OSP_INT, &slIndex[0]);

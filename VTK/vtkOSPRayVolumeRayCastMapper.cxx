@@ -15,8 +15,6 @@ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
 #include "vtkOSPRayVolumeRayCastMapper.h"
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
-#include "ospray/volume/BlockBrickedVolume.h"
 
 #include "vtkCamera.h"
 #include "vtkDataArray.h"
@@ -428,7 +426,10 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     }
     else
     {
-      ospSetRegion(OSPRayVolume, ScalarDataPointer, osp::vec3i(0,0,0), osp::vec3i(dim[0],dim[1],dim[2]));
+			osp::vec3i ll, uu;
+			ll.x = 0, ll.y = 0, ll.z = 0;
+			uu.x = dim[0], uu.y = dim[1], uu.z = dim[2];
+      ospSetRegion(OSPRayVolume, ScalarDataPointer, ll, uu);
     }
   }
   OSPRayVolume = cacheEntry->Volume;
@@ -485,16 +486,14 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
 
       std::cout << "clipValue: " << clipValue << std::endl;
       std::cout << "clipAxis: " << clipAxis << std::endl;
-      osp::vec3f upper(dim[0],dim[1],dim[2]);
-      if (clipAxis == 0)
-        upper.x = clipValue;
-      else if (clipAxis == 1)
-        upper.y = clipValue;
-      else if (clipAxis == 2)
-        upper.z = clipValue;
-      osp::box3f value(osp::vec3f(0,0,0), upper);
-      ospSet3fv(OSPRayVolume, "volumeClippingBoxLower", &value.lower.x);
-      ospSet3fv(OSPRayVolume, "volumeClippingBoxUpper", &value.upper.x);
+
+      float uu[3], ll[3];
+			uu[0] = dim[0], uu[1] = dim[1], uu[2] = dim[2];
+			ll[0] = 0, ll[0] = 0, ll[0] = 0;
+			if (clipAxis >= 0 && clipAxis <= 2)
+        uu[clipAxis] = clipValue;
+      ospSet3fv(OSPRayVolume, "volumeClippingBoxLower", ll);
+      ospSet3fv(OSPRayVolume, "volumeClippingBoxUpper", uu);
     }
 
     ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
