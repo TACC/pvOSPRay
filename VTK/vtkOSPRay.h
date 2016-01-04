@@ -40,15 +40,4 @@
 #define USE_OSPRAY 1
 #define USE_VBOS 0
 
-inline osp::affine3f
-Affine3fIdentity()
-{
-  osp::affine3f  x;
-  x.l.vx.x = 1.0; x.l.vx.y = 0.0; x.l.vx.z = 0.0;
-  x.l.vy.x = 0.0; x.l.vy.y = 1.0; x.l.vy.z = 0.0;
-  x.l.vz.x = 0.0; x.l.vz.y = 0.0; x.l.vz.z = 1.0;
-  x.p.x = 0.0; x.p.y = 0.0; x.p.z = 0.0;
-  return x;
-}         
- 
 #endif
