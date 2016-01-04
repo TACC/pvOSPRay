@@ -28,7 +28,7 @@
          <Property name="CameraClippingRange" panel_visibility="never"/>
          <Property name="CameraParallelScale" panel_visibility="never"/>
          <Property name="CameraParallelScaleInfo" panel_visibility="never"/>
-         <!-- <Property name="CameraParallelProjection" panel_visibility="advanced"/> -->
+         <!-- <Property name="CameraParallelProjection" panel_visibility="advanced"/>  -->
          <Property name="EyeAngle" panel_visibility="never"/>
          <Property name="EyeTransformMatrix" />
          <Property name="ModelTransformMatrix" />
@@ -857,11 +857,11 @@
         </ShareProperties>
       </SubProxy> -->
 
+<!--
       <SubProxy>
         <Proxy name="Glyph3DRepresentation"
           proxygroup="representations" proxyname="Glyph3DRepresentation">
         </Proxy>
-        <!--
         <ExposedProperties>
           <Property name="Masking" />
           <Property name="MeshVisibility" />
@@ -875,12 +875,12 @@
           <Property name="SelectScaleArray" />
           <Property name="Source" />
         </ExposedProperties>
-        -->
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy>
+-->
 
         <SubProxy>
         <Proxy name="VolumeRepresentation"
@@ -1133,9 +1133,11 @@
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Surface With Edges"
                           text="Surface With Edges" />
+<!--
       <RepresentationType subproxy="Glyph3DRepresentation"
                           subtype="Surface"
                           text="3D Glyphs" />
+-->
       <StringVectorProperty command="GetRepresentationTypes"
                             information_only="1"
                             name="RepresentationTypesInfo"
@@ -1294,6 +1296,7 @@
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy> -->
+<!--
       <SubProxy>
         <Proxy name="Glyph3DRepresentation"
                proxygroup="representations"
@@ -1327,6 +1330,7 @@
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy>
+-->
       <SubProxy>
         <Proxy name="CubeAxesRepresentation"
                proxygroup="representations"
