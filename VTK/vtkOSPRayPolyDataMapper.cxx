@@ -946,7 +946,9 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
       ospAddGeometry(OSPRayActor->OSPRayModel, ospMesh);
 
-			delete[] vertices, triangles, normals;
+			alignedFree(vertices);
+			alignedFree(triangles);
+			alignedFree(normals);
 
     }
 
