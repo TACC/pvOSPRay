@@ -36,9 +36,6 @@ if (BUILD_AGAINST_PARAVIEW)
   add_definitions(-DVTKOSPRAY_FOR_PARAVIEW)
 endif(BUILD_AGAINST_PARAVIEW)
 
-
-
-
 # Set vtkOSPRay source files.
 SET ( OSPRAY_CLASSES
   vtkOSPRayActor.cxx
@@ -85,7 +82,6 @@ set(OSPRAY_SRCS
 vtk_module_library(${vtk-module} ${OSPRAY_SRCS} ${MOCSrcs} ${UISrcs})
 find_package(OSPRay)
 
-
 # setup include paths
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR})
@@ -99,8 +95,8 @@ if(VTK_USE_X)
  vtk_module_link_libraries(${vtk-module}
    LINK_PRIVATE ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} ${X11_LIBRARIES} ${X11_Xt_LIB})
 elseif(VTK_USE_COCOA)
-  vtk_module_link_libraries(${vtk-module} ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} "-framework OpenGL -framework Cocoa")
-  target_link_libraries(${vtk-module} ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} ${VTK_LIBRARIES})
+  vtk_module_link_libraries(${vtk-module} LINK_PRIVATE ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} "-framework OpenGL -framework Cocoa")
+  target_link_libraries(${vtk-module} LINK_PRIVATE ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} ${VTK_LIBRARIES})
 endif()
 
 # OSPRay_Core uses MMTime which is in it's own special library.
