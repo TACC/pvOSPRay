@@ -582,6 +582,7 @@ void vtkOSPRayRenderer::LayerRender()
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
+    DEBUG1("layer 0\n");
       SetRGBACharPixelData( renderPos[0],  renderPos[1],
                            renderPos[0] + renderSize[0] - 1,
                            renderPos[1] + renderSize[1] - 1,
@@ -589,7 +590,7 @@ void vtkOSPRayRenderer::LayerRender()
   }
   else
   {
-    std::cout << "layer not 0\n";
+    DEBUG1("layer not 0\n");
     //layers on top add the colors of their non background pixels
     unsigned char*  GLbakBuffer = NULL;
     if (myLeftEye==1){
