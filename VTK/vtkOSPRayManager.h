@@ -90,7 +90,6 @@ public:
   osp::Model* OSPRayVolumeModel;
   vtkTimeStamp  VolumeModelBuildTime;
   int VolumeModelLastFrame;
-  vtkOSPRayCamera * stereoCamera;
 };
 
 #endif

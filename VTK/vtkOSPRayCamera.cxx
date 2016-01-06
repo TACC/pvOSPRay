@@ -73,7 +73,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
     {
     this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
     this->OSPRayManager->Register(this);
-    this->OSPRayManager->stereoCamera = this;
+    // this->OSPRayManager->stereoCamera = this;
     }
   this->SetupCameraShift();
   this->ShiftCamera();

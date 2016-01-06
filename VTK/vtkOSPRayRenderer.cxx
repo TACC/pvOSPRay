@@ -449,11 +449,12 @@ void vtkOSPRayRenderer::LayerRender()
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
 
-  vtkCamera * myActiveCamera = this->GetActiveCamera();
+  vtkCamera * activeCamera = this->GetActiveCamera();
+  if (!activeCamera)
+    return;
+
   int myLeftEye = 0;
-  if (myActiveCamera != NULL){
-      myLeftEye = myActiveCamera->GetLeftEye();
-  }
+  myLeftEye = activeCamera->GetLeftEye();
   //printf("LR:myLeftEye=%d\n", myLeftEye);
   int myStereoCapableWindow = this->GetRenderWindow()->GetStereoCapableWindow();
   //printf("LR:myStereoCapableWindow=%d\n", myStereoCapableWindow);
@@ -526,18 +527,18 @@ void vtkOSPRayRenderer::LayerRender()
   //
   if (ComputeDepth)
   {
-    if (this->OSPRayManager->stereoCamera!=NULL){
-     //printf("LR:Shifting Camera\n");
-     this->OSPRayManager->stereoCamera->ShiftCamera();
-    }
-    myActiveCamera = this->GetActiveCamera();
-    double *clipValues = myActiveCamera->GetClippingRange();
-    double viewAngle = myActiveCamera->GetViewAngle();
+    // if (this->OSPRayManager->stereoCamera!=NULL){
+    //  //printf("LR:Shifting Camera\n");
+    //  this->OSPRayManager->stereoCamera->ShiftCamera();
+    // }
 
-    if (this->OSPRayManager->stereoCamera!=NULL){
-     //printf("LR:UnShifting Camera\n");
-     this->OSPRayManager->stereoCamera->UnShiftCamera();
-    }
+    double *clipValues = activeCamera->GetClippingRange();
+    double viewAngle = activeCamera->GetViewAngle();
+
+    // if (this->OSPRayManager->stereoCamera!=NULL){
+    //  //printf("LR:UnShifting Camera\n");
+    //  this->OSPRayManager->stereoCamera->UnShiftCamera();
+    // }
 
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
