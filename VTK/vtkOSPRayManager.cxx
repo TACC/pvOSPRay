@@ -38,7 +38,6 @@ vtkOSPRayManager* vtkOSPRayManager::New()
 vtkOSPRayManager::vtkOSPRayManager()
 {
   VolumeModelLastFrame=-1;
-    stereoCamera = NULL;
   if (1)
   {
     int ac =1;

@@ -450,11 +450,12 @@ void vtkOSPRayRenderer::LayerRender()
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
 
-  vtkCamera * myActiveCamera = this->GetActiveCamera();
-  int myLeftEye = 0;
-  if (myActiveCamera != NULL){
-      myLeftEye = myActiveCamera->GetLeftEye();
-  }
+	vtkCamera * activeCamera = this->GetActiveCamera();
+	if (!activeCamera)
+		return;
+
+  int myLeftEye = activeCamera->GetLeftEye();
+
   //printf("LR:myLeftEye=%d\n", myLeftEye);
   int myStereoCapableWindow = this->GetRenderWindow()->GetStereoCapableWindow();
   //printf("LR:myStereoCapableWindow=%d\n", myStereoCapableWindow);
@@ -475,12 +476,12 @@ void vtkOSPRayRenderer::LayerRender()
   hOSPRayDiff = 0;
   hRenderDiff = 0;
   // memory allocation and acess to the OSPRay image
-  int size = renderSize[0]*renderSize[1];
-  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1] || FramebufferDirty )
+  int size = renWinSize[0]*renWinSize[1];
+  if (this->ImageX != renWinSize[0] || this->ImageY != renWinSize[1] || FramebufferDirty )
   {
     FramebufferDirty = false;
-    this->ImageX = renderSize[0];
-    this->ImageY = renderSize[1];
+    this->ImageX = renWinSize[0];
+    this->ImageY = renWinSize[1];
 
     if (this->ColorBuffer) delete[] this->ColorBuffer;
     this->ColorBuffer = new float[ size ];
@@ -489,7 +490,7 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i{renderSize[0], renderSize[1]}, OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i{renWinSize[0], renWinSize[1]}, OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
   }
@@ -505,7 +506,6 @@ void vtkOSPRayRenderer::LayerRender()
 
     ospCommit(vModel);
     ospCommit(vRenderer);
-
 
     ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
@@ -527,18 +527,8 @@ void vtkOSPRayRenderer::LayerRender()
   //
   if (ComputeDepth)
   {
-    if (this->OSPRayManager->stereoCamera!=NULL){
-     //printf("LR:Shifting Camera\n");
-     this->OSPRayManager->stereoCamera->ShiftCamera();
-    }
-    myActiveCamera = this->GetActiveCamera();
-    double *clipValues = myActiveCamera->GetClippingRange();
-    double viewAngle = myActiveCamera->GetViewAngle();
-
-    if (this->OSPRayManager->stereoCamera!=NULL){
-     //printf("LR:UnShifting Camera\n");
-     this->OSPRayManager->stereoCamera->UnShiftCamera();
-    }
+    double *clipValues = activeCamera->GetClippingRange();
+    double viewAngle = activeCamera->GetViewAngle();
 
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
@@ -570,10 +560,9 @@ void vtkOSPRayRenderer::LayerRender()
       int gldepth;
       glGetIntegerv(GL_DEPTH_FUNC, &gldepth);
       glDepthFunc(GL_ALWAYS);
-      std::cerr << "setting zbuffer data\n";
 
       this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
-                                              renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+                                              renderPos[0] + renWinSize[0] - 1, renderPos[1] + renWinSize[1] - 1, this->DepthBuffer);
       glDepthFunc(gldepth);
     }
   }
@@ -590,8 +579,8 @@ void vtkOSPRayRenderer::LayerRender()
   if ( this->GetLayer() == 0 )
   {
       SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                           renderPos[0] + renderSize[0] - 1,
-                           renderPos[1] + renderSize[1] - 1,
+                           renderPos[0] + renWinSize[0] - 1,
+                           renderPos[1] + renWinSize[1] - 1,
                           (unsigned char*)this->ColorBuffer, 0, 0,myLeftEye==1 );
   }
   else
@@ -603,26 +592,26 @@ void vtkOSPRayRenderer::LayerRender()
         //GLbakBuffer = this->GetRenderWindow()->
         GLbakBuffer = this->
         GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1, 0 );
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1, 0 );
     } else {
         //GLbakBuffer = this->GetRenderWindow()->
         GLbakBuffer = this->
         GetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1, 0 );
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1, 0 );
     }
     GLbakBuffer = this->GetRenderWindow()->
     GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                         renderPos[0] + renderSize[0] - 1,
-                         renderPos[1] + renderSize[1] - 1, 0 );
+                         renderPos[0] + renWinSize[0] - 1,
+                         renderPos[1] + renWinSize[1] - 1, 0 );
     bool anyhit = false;
     unsigned char *optr = GLbakBuffer;
     unsigned char *iptr = (unsigned char*)this->ColorBuffer;
     float *zptr = this->DepthBuffer;
-    for ( j = 0; j < renderSize[1]; j++)
+    for ( j = 0; j < renWinSize[1]; j++)
     {
-      for ( i = 0; i < renderSize[0]; i++)
+      for ( i = 0; i < renWinSize[0]; i++)
       {
         const float z = *zptr;
         if (z > 0 && z < 1.0)
@@ -646,15 +635,15 @@ void vtkOSPRayRenderer::LayerRender()
         //this->GetRenderWindow()->
         this->
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1,
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1,
                             GLbakBuffer, 0, 0,true );
       } else {
         //this->GetRenderWindow()->
         this->
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1,
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1,
                             GLbakBuffer, 0, 0,false );
       }
     }
