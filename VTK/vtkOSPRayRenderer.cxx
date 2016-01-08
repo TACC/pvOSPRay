@@ -441,11 +441,9 @@ void vtkOSPRayRenderer::LayerRender()
 {
   int     i, j;
   int     rowLength,  OSPRaySize[2];
-  int     minWidth,   minHeight;
-  int     hOSPRayDiff, hRenderDiff;
   int     renderPos[2];
   int*    renderSize  = NULL;
-  int*    renWinSize  = NULL;
+  int     renWinSize[2];
   bool    stereoDumy;
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
@@ -464,19 +462,25 @@ void vtkOSPRayRenderer::LayerRender()
 
   // collect some useful info
   renderSize = this->GetSize();
-  renWinSize = this->GetRenderWindow()->GetActualSize();
+
   renViewport= this->GetViewport();
   float renderPosFloat[2];
   renderPosFloat[0] = renViewport[0] * renWinSize[0] + 0.5f;
   renderPosFloat[1] = renViewport[1] * renWinSize[1] + 0.5f;
   renderPos[0] = int( renderPosFloat[0] );
   renderPos[1] = int( renderPosFloat[1] );
-  minWidth = renderSize[0];
-  minHeight =renderSize[1];
-  hOSPRayDiff = 0;
-  hRenderDiff = 0;
-  // memory allocation and acess to the OSPRay image
+
+	renWinSize[0] = this->GetRenderWindow()->GetActualSize()[0] * (renViewport[2] - renViewport[0]);
+	renWinSize[1] = this->GetRenderWindow()->GetActualSize()[1] * (renViewport[3] - renViewport[1]);
+ 
   int size = renWinSize[0]*renWinSize[1];
+	
+#if 0
+	std::cerr << "vp: " << renViewport[0] << " " << renViewport[1] << " " << renViewport[2] << " " << renViewport[3] << "\n";
+	std::cerr << "renderSize: " << renderSize[0] << " " << renderSize[1] << "\n";
+	std::cerr << "renWinSize: " << renWinSize[0] << " " << renWinSize[1] << "\n";
+#endif
+
   if (this->ImageX != renWinSize[0] || this->ImageY != renWinSize[1] || FramebufferDirty )
   {
     FramebufferDirty = false;

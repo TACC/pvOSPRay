@@ -83,8 +83,8 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 			this->OSPRayManager->Register(this);
     }
 
-		// this->SetupCameraShift();
-		// this->ShiftCamera();
+		this->SetupCameraShift();
+		this->ShiftCamera();
 
     double *eye, *lookat, *up, vfov;
     eye    = this->Position;
@@ -125,6 +125,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 		maxx = (maxx < 0.0) ? 0 : (maxx > 1.0) ? 1.0 : maxx;
 		maxy = (maxy < 0.0) ? 0 : (maxy > 1.0) ? 1.0 : maxy;
 
+#if 0
 		static int dbg = 0;
 		if (dbg)
 		{
@@ -135,6 +136,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 			std::cerr << "dir " << dir[0] << " " << dir[1] << " " << dir[2] << "\n";
 			std::cerr << "up " << up[0] << " " << up[1] << " " << up[2] << "\n";
 		}
+#endif
 
 		OSPCamera ospCamera = ((OSPCamera)this->OSPRayManager->OSPRayCamera);
 		ospSetf(ospCamera,"aspect", float(usize)/float(vsize));
@@ -147,7 +149,7 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 
 		ospCommit(ospCamera);
 
-    // this->UnShiftCamera();
+    this->UnShiftCamera();
 }
 
 void vtkOSPRayCamera::SetupCameraShift(){
