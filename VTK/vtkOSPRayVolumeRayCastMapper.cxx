@@ -283,7 +283,11 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     int maxBound = std::max(dim[0],dim[1]);
     maxBound = std::max(maxBound,dim[2]);
     if (maxBound < 1000)
-      ospSet1f(OSPRayVolume, "samplingRate", 1.0f);
+    {
+      float s = 1000.0f - maxBound;
+      s = (s/1000.0f*4.0f + 0.25f);
+      ospSet1f(OSPRayVolume, "samplingRate", s);
+    }
     else
       ospSet1f(OSPRayVolume, "samplingRate", 0.25f);
   }

@@ -533,23 +533,17 @@ void vtkOSPRayRenderer::LayerRender()
   //
   if (ComputeDepth)
   {
-<<<<<<< HEAD
     // if (this->OSPRayManager->stereoCamera!=NULL){
     //  //printf("LR:Shifting Camera\n");
     //  this->OSPRayManager->stereoCamera->ShiftCamera();
     // }
-    myActiveCamera = this->GetActiveCamera();
-    double *clipValues = myActiveCamera->GetClippingRange();
-    double viewAngle = myActiveCamera->GetViewAngle();
 
     // if (this->OSPRayManager->stereoCamera!=NULL){
     //  //printf("LR:UnShifting Camera\n");
     //  this->OSPRayManager->stereoCamera->UnShiftCamera();
     // }
-=======
     double *clipValues = activeCamera->GetClippingRange();
     double viewAngle = activeCamera->GetViewAngle();
->>>>>>> 5a2e57f28a20be7e708ecc0235739311a60e38df
 
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
@@ -604,15 +598,9 @@ void vtkOSPRayRenderer::LayerRender()
       //                      renderPos[1] + renderSize[1] - 1,
       //                     (unsigned char*)this->ColorBuffer, 0, 1);
       SetRGBACharPixelData( renderPos[0],  renderPos[1],
-<<<<<<< HEAD
                            renderPos[0] + renderSize[0] - 1,
                            renderPos[1] + renderSize[1] - 1,
                           (unsigned char*)this->ColorBuffer, 0, ComputeDepth,myLeftEye==1 );
-=======
-                           renderPos[0] + renWinSize[0] - 1,
-                           renderPos[1] + renWinSize[1] - 1,
-                          (unsigned char*)this->ColorBuffer, 0, 0,myLeftEye==1 );
->>>>>>> 5a2e57f28a20be7e708ecc0235739311a60e38df
   }
   else
   {
