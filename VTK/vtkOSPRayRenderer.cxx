@@ -404,6 +404,7 @@ void vtkOSPRayRenderer::PreRender()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  //DEBUG: OPENGL2 backend needs buffers cleared
   // std::cerr << "vtkOSPRayRenderer(" << this << ")::DeviceRender\n";
   static vtkTimerLog* timer = vtkTimerLog::New();
   timer->StartTimer();
