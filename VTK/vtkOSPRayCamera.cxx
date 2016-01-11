@@ -1,3 +1,4 @@
+#include <unistd.h>
 /* =======================================================================================
    Copyright 2014-2015 Texas Advanced Computing Center, The University of Texas at Austin
    All rights reserved.
@@ -20,12 +21,12 @@
    ======================================================================================= */
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayCamera.h"
 #include "vtkOSPRayManager.h"
 #include "vtkOSPRayRenderer.h"
+#include "vtkWindow.h"
 
 #include "vtkObjectFactory.h"
 
@@ -63,26 +64,27 @@ vtkOSPRayCamera::vtkOSPRayCamera()
 //----------------------------------------------------------------------------
 void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
 {
-    vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
-    if (!OSPRayRenderer)
-    {
-      return;
-    }
-    OSPRayRenderer->ClearAccumulation();
-
-    if (!this->OSPRayManager)
-    {
-    this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
-    this->OSPRayManager->Register(this);
-    this->OSPRayManager->stereoCamera = this;
-    }
-  this->SetupCameraShift();
-  this->ShiftCamera();
-
   // for figuring out aspect ratio
     int lowerLeft[2];
     int usize, vsize;
     ren->GetTiledSizeAndOrigin(&usize, &vsize, lowerLeft, lowerLeft + 1);
+		if (vsize == 0)
+			return;
+
+    vtkOSPRayRenderer * OSPRayRenderer = vtkOSPRayRenderer::SafeDownCast(ren);
+    if (!OSPRayRenderer)
+      return;
+
+    OSPRayRenderer->ClearAccumulation();
+
+    if (!this->OSPRayManager)
+    {
+			this->OSPRayManager = OSPRayRenderer->GetOSPRayManager();
+			this->OSPRayManager->Register(this);
+    }
+
+		this->SetupCameraShift();
+		this->ShiftCamera();
 
     double *eye, *lookat, *up, vfov;
     eye    = this->Position;
@@ -90,55 +92,64 @@ void vtkOSPRayCamera::OrientOSPRayCamera(vtkRenderer *ren)
     up     = this->ViewUp;
     vfov   = this->ViewAngle;
 
-  if (this->debugFlag){ cout << "OrientOSPRayCamera(): eye( " << eye[0] << ", " << eye[1] << ", " << eye[2] << ")" << endl; }
+		double pos[4] = { eye[0], eye[1], eye[2], 1.0 };
+		this->EyeTransformMatrix->MultiplyPoint(pos, pos);
+		
+		double center[4] = { lookat[0], lookat[1], lookat[2], 1.0 };
+		this->EyeTransformMatrix->MultiplyPoint(center, center);
 
-  double E[4] = { 0.0, 0.0, 0.0, 1.0 };
+		double dir[3] = {center[0] - pos[0], center[1] - pos[1], center[2] - pos[2]};
 
-  E[0] = eye[0];
-  E[1] = eye[1];
-  E[2] = eye[2];
+		int *ts = ren->GetVTKWindow()->GetTileScale();
+		vfov = vfov * ts[0];
 
-  if (this->debugFlag){ cout << "OrientOSPRayCamera(): E1( " << E[0] << ", " << E[1] << ", " << E[2] << ", " << E[3] << ")" << endl; }
+		double width = this->ParallelScale * ren->GetTiledAspectRatio();
+		double height = this->ParallelScale;
 
-  // First transform the eye to new position.
-  this->EyeTransformMatrix->MultiplyPoint(E, E);
+		double tw = ts[0] * width;
+		double th = ts[1] * height;
 
-  if (this->debugFlag){ cout << "OrientOSPRayCamera(): E2( " << E[0] << ", " << E[1] << ", " << E[2] << ", " << E[3] << ")" << endl; }
+		float minx = (((this->WindowCenter[0] - 1)*width) + tw) / (2.0 * tw);
+		float miny = (((this->WindowCenter[1] - 1)*height) + th) / (2.0 * th);
+		float maxx = (((this->WindowCenter[0] + 1)*width) + tw) / (2.0 * tw);
+		float maxy = (((this->WindowCenter[1] + 1)*height) + th) / (2.0 * th);
 
-  // Now transform the eye into the screen coordinate system.
-  //this->WorldToScreenMatrix->MultiplyPoint(E, E);
+		if (minx < -0.01 || miny < -0.01 || maxx > 1.01 || maxy > 1.01)
+		{
+			std::cerr << "Tiling bounds error\n";
+			return;
+		}
 
-  //cout << "OrientOSPRayCamera(): E3( " << E[0] << ", " << E[1] << ", " << E[2] << ", " << E[3] << ")" << endl;
+		minx = (minx < 0.0) ? 0 : (minx > 1.0) ? 1.0 : minx;
+		miny = (miny < 0.0) ? 0 : (miny > 1.0) ? 1.0 : miny;
+		maxx = (maxx < 0.0) ? 0 : (maxx > 1.0) ? 1.0 : maxx;
+		maxy = (maxy < 0.0) ? 0 : (maxy > 1.0) ? 1.0 : maxy;
 
-  OSPCamera ospCamera = ((OSPCamera)this->OSPRayManager->OSPRayCamera);
-    if (vsize == 0)
-      return;
-  ospSetf(ospCamera,"aspect",float(usize)/float(vsize));
-  ospSetf(ospCamera,"fovy",vfov);
-  Assert(ospCamera != NULL && "could not create camera");
-  ospSet3f(ospCamera,"pos",eye[0], eye[1], eye[2]);
-  ospSet3f(ospCamera,"up",up[0], up[1], up[2]);
-  ospSet3f(ospCamera,"dir",lookat[0]-eye[0],lookat[1]-eye[1],lookat[2]-eye[2]);
-  ospCommit(ospCamera);
+#if 0
+		static int dbg = 0;
+		if (dbg)
+		{
+			std::cerr << "WC: " << this->WindowCenter[0] << " " << this->WindowCenter[1] << "\n";
+			std::cerr << "PATCH " << minx << " " << miny << " " << maxx << " " << maxy << "\n";
+			std::cerr << "aspect: " << (float(usize)/float(vsize)) << " fovy: " << vfov << "\n";
+			std::cerr << "pos " << pos[0] << " " << pos[1] << " " << pos[2] << "\n";
+			std::cerr << "dir " << dir[0] << " " << dir[1] << " " << dir[2] << "\n";
+			std::cerr << "up " << up[0] << " " << up[1] << " " << up[2] << "\n";
+		}
+#endif
 
-  double pos[3];
-  pos[0] = eye[0];
-  pos[1] = eye[1];
-  pos[2] = eye[2];
-  pos[0] = E[0];
-  pos[1] = E[1];
-  pos[2] = E[2];
-  if (this->debugFlag){ cout << "OrientOSPRayCamera(): pos( " << pos[0] << ", " << pos[1] << ", " << pos[2] << ")" << endl; }
+		OSPCamera ospCamera = ((OSPCamera)this->OSPRayManager->OSPRayCamera);
+		ospSetf(ospCamera,"aspect", float(usize)/float(vsize));
+		ospSetf(ospCamera,"fovy", vfov);
+		ospSet2f(ospCamera, "imageStart", minx, miny);
+		ospSet2f(ospCamera, "imageEnd", maxx, maxy);
+		ospSet3f(ospCamera, "pos", pos[0], pos[1], pos[2]);
+		ospSet3f(ospCamera,"dir", dir[0], dir[1], dir[2]);
+		ospSet3f(ospCamera,"up", up[0], up[1], up[2]);
 
-  ospSet3f(ospCamera, "pos", pos[0], pos[1], pos[2]);
-  ospSet3f(ospCamera,"up",up[0], up[1], up[2]);
-  double dir[3];
-  dir[0] = lookat[0]-pos[0];
-  dir[1] = lookat[1]-pos[1];
-  dir[2] = lookat[2]-pos[2];
-  ospSet3f(ospCamera,"dir",dir[0],dir[1],dir[2]);
-  ospCommit(ospCamera);
-  this->UnShiftCamera();
+		ospCommit(ospCamera);
+
+    this->UnShiftCamera();
 }
 
 void vtkOSPRayCamera::SetupCameraShift(){
@@ -148,6 +159,10 @@ void vtkOSPRayCamera::SetupCameraShift(){
   int stereoFlag = 1;//this flag turns stereo on or off
 
   /*
+ * #endif
+ * #endif
+ * #endif
+ * #endif
   double myEyePosition[3];
   this->GetEyePosition(myEyePosition);
   cout << "vtkOSPRayCamera::SetEyeTransformMatrix(): myEyePosition set to ( " << myEyePosition[0] << ", " << myEyePosition[1] << ", " << myEyePosition[2] << ")" << endl;

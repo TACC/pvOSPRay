@@ -25,7 +25,6 @@
 
 #include "vtkRenderingOpenGLConfigure.h"
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayCamera.h"
@@ -154,6 +153,10 @@ Accumulate(false)
   ospSetObject(vRenderer,"camera",oCamera);
   ospCommit(vRenderer);
 
+#if !defined(Assert) 
+#define Assert if (0)
+#endif
+
   Assert(oRenderer != NULL && "could not create renderer");
   Assert(vRenderer != NULL && "could not create renderer");
 
@@ -271,7 +274,7 @@ int vtkOSPRayRenderer::UpdateLights()
     }
     vtkLight* light = vLight;
 
-    double *color, *position, *focal, direction[3];
+    double *color, *position, *focal;
 
     // OSPRay Lights only have one "color"
     color    = light->GetDiffuseColor();
@@ -289,16 +292,20 @@ int vtkOSPRayRenderer::UpdateLights()
     }
     else
     {
-      direction[0] = position[0] - focal[0];
-      direction[1] = position[1] - focal[1];
-      direction[2] = position[2] - focal[2];
       OSPLight ospLight = ospNewLight(renderer, "DirectionalLight");
       ospSetString(ospLight, "name", "directional" );
       float scale = 0.8;
       ospSet3f(ospLight, "color", color[0]*scale,color[1]*scale,color[2]*scale);
-      osp::vec3f dir(-direction[0],-direction[1],-direction[2]);
-      dir = normalize(dir);
-      ospSet3f(ospLight, "direction", dir.x,dir.y,dir.z);
+
+      float x = position[0] - focal[0];
+      float y = position[1] - focal[1];
+      float z = position[2] - focal[2];
+			float d = x*x + y*y + z*z;
+
+			if (d != 0.0) 
+				d = 1.0 / d;
+
+      ospSet3f(ospLight, "direction", x*d, y*d, z*d);
       ospCommit(ospLight);
       lights.push_back(ospLight);
     }
@@ -433,20 +440,19 @@ void vtkOSPRayRenderer::LayerRender()
 {
   int     i, j;
   int     rowLength,  OSPRaySize[2];
-  int     minWidth,   minHeight;
-  int     hOSPRayDiff, hRenderDiff;
   int     renderPos[2];
   int*    renderSize  = NULL;
-  int*    renWinSize  = NULL;
+  int     renWinSize[2];
   bool    stereoDumy;
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
 
-  vtkCamera * myActiveCamera = this->GetActiveCamera();
-  int myLeftEye = 0;
-  if (myActiveCamera != NULL){
-      myLeftEye = myActiveCamera->GetLeftEye();
-  }
+	vtkCamera * activeCamera = this->GetActiveCamera();
+	if (!activeCamera)
+		return;
+
+  int myLeftEye = activeCamera->GetLeftEye();
+
   //printf("LR:myLeftEye=%d\n", myLeftEye);
   int myStereoCapableWindow = this->GetRenderWindow()->GetStereoCapableWindow();
   //printf("LR:myStereoCapableWindow=%d\n", myStereoCapableWindow);
@@ -455,24 +461,30 @@ void vtkOSPRayRenderer::LayerRender()
 
   // collect some useful info
   renderSize = this->GetSize();
-  renWinSize = this->GetRenderWindow()->GetActualSize();
+
   renViewport= this->GetViewport();
   float renderPosFloat[2];
   renderPosFloat[0] = renViewport[0] * renWinSize[0] + 0.5f;
   renderPosFloat[1] = renViewport[1] * renWinSize[1] + 0.5f;
   renderPos[0] = int( renderPosFloat[0] );
   renderPos[1] = int( renderPosFloat[1] );
-  minWidth = renderSize[0];
-  minHeight =renderSize[1];
-  hOSPRayDiff = 0;
-  hRenderDiff = 0;
-  // memory allocation and acess to the OSPRay image
-  int size = renderSize[0]*renderSize[1];
-  if (this->ImageX != renderSize[0] || this->ImageY != renderSize[1] || FramebufferDirty )
+
+	renWinSize[0] = this->GetRenderWindow()->GetActualSize()[0] * (renViewport[2] - renViewport[0]);
+	renWinSize[1] = this->GetRenderWindow()->GetActualSize()[1] * (renViewport[3] - renViewport[1]);
+ 
+  int size = renWinSize[0]*renWinSize[1];
+	
+#if 0
+	std::cerr << "vp: " << renViewport[0] << " " << renViewport[1] << " " << renViewport[2] << " " << renViewport[3] << "\n";
+	std::cerr << "renderSize: " << renderSize[0] << " " << renderSize[1] << "\n";
+	std::cerr << "renWinSize: " << renWinSize[0] << " " << renWinSize[1] << "\n";
+#endif
+
+  if (this->ImageX != renWinSize[0] || this->ImageY != renWinSize[1] || FramebufferDirty )
   {
     FramebufferDirty = false;
-    this->ImageX = renderSize[0];
-    this->ImageY = renderSize[1];
+    this->ImageX = renWinSize[0];
+    this->ImageY = renWinSize[1];
 
     if (this->ColorBuffer) delete[] this->ColorBuffer;
     this->ColorBuffer = new float[ size ];
@@ -481,7 +493,7 @@ void vtkOSPRayRenderer::LayerRender()
     this->DepthBuffer = new float[ size ];
 
     if (this->osp_framebuffer) ospFreeFrameBuffer(this->osp_framebuffer);
-    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i(renderSize[0], renderSize[1]), OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+    this->osp_framebuffer = ospNewFrameBuffer(osp::vec2i{renWinSize[0], renWinSize[1]}, OSP_RGBA_I8, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     AccumCounter=0;
   }
@@ -499,7 +511,6 @@ void vtkOSPRayRenderer::LayerRender()
 
     ospCommit(vModel);
     ospCommit(vRenderer);
-
 
     ospRenderFrame(this->osp_framebuffer,vRenderer,OSP_FB_COLOR|OSP_FB_ACCUM|(ComputeDepth?OSP_FB_DEPTH:0));
     AccumCounter++;
@@ -522,6 +533,7 @@ void vtkOSPRayRenderer::LayerRender()
   //
   if (ComputeDepth)
   {
+<<<<<<< HEAD
     // if (this->OSPRayManager->stereoCamera!=NULL){
     //  //printf("LR:Shifting Camera\n");
     //  this->OSPRayManager->stereoCamera->ShiftCamera();
@@ -534,6 +546,10 @@ void vtkOSPRayRenderer::LayerRender()
     //  //printf("LR:UnShifting Camera\n");
     //  this->OSPRayManager->stereoCamera->UnShiftCamera();
     // }
+=======
+    double *clipValues = activeCamera->GetClippingRange();
+    double viewAngle = activeCamera->GetViewAngle();
+>>>>>>> 5a2e57f28a20be7e708ecc0235739311a60e38df
 
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
@@ -568,7 +584,7 @@ void vtkOSPRayRenderer::LayerRender()
 
       //Carson: TODO: use drawpixels if we can, setting it through the renderwindow seems to be quite slow
       this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
-                                              renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
+                                              renderPos[0] + renWinSize[0] - 1, renderPos[1] + renWinSize[1] - 1, this->DepthBuffer);
       glDepthFunc(gldepth);
     }
   }
@@ -588,9 +604,15 @@ void vtkOSPRayRenderer::LayerRender()
       //                      renderPos[1] + renderSize[1] - 1,
       //                     (unsigned char*)this->ColorBuffer, 0, 1);
       SetRGBACharPixelData( renderPos[0],  renderPos[1],
+<<<<<<< HEAD
                            renderPos[0] + renderSize[0] - 1,
                            renderPos[1] + renderSize[1] - 1,
                           (unsigned char*)this->ColorBuffer, 0, ComputeDepth,myLeftEye==1 );
+=======
+                           renderPos[0] + renWinSize[0] - 1,
+                           renderPos[1] + renWinSize[1] - 1,
+                          (unsigned char*)this->ColorBuffer, 0, 0,myLeftEye==1 );
+>>>>>>> 5a2e57f28a20be7e708ecc0235739311a60e38df
   }
   else
   {
@@ -600,26 +622,26 @@ void vtkOSPRayRenderer::LayerRender()
         //GLbakBuffer = this->GetRenderWindow()->
         GLbakBuffer = this->
         GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1, 0 );
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1, 0 );
     } else {
         //GLbakBuffer = this->GetRenderWindow()->
         GLbakBuffer = this->
         GetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1, 0 );
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1, 0 );
     }
     GLbakBuffer = this->GetRenderWindow()->
     GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                         renderPos[0] + renderSize[0] - 1,
-                         renderPos[1] + renderSize[1] - 1, 0 );
+                         renderPos[0] + renWinSize[0] - 1,
+                         renderPos[1] + renWinSize[1] - 1, 0 );
     bool anyhit = false;
     unsigned char *optr = GLbakBuffer;
     unsigned char *iptr = (unsigned char*)this->ColorBuffer;
     float *zptr = this->DepthBuffer;
-    for ( j = 0; j < renderSize[1]; j++)
+    for ( j = 0; j < renWinSize[1]; j++)
     {
-      for ( i = 0; i < renderSize[0]; i++)
+      for ( i = 0; i < renWinSize[0]; i++)
       {
         const float z = *zptr;
         if (z > 0 && z < 1.0)
@@ -643,15 +665,15 @@ void vtkOSPRayRenderer::LayerRender()
         //this->GetRenderWindow()->
         this->
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1,
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1,
                             GLbakBuffer, 0, 0,true );
       } else {
         //this->GetRenderWindow()->
         this->
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renderSize[0] - 1,
-                            renderPos[1] + renderSize[1] - 1,
+                            renderPos[0] + renWinSize[0] - 1,
+                            renderPos[1] + renWinSize[1] - 1,
                             GLbakBuffer, 0, 0,false );
       }
     }
