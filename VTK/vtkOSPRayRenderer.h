@@ -22,7 +22,10 @@
 // .NAME vtkOSPRayRenderer - Renderer that uses OSPRay ray tracer instead of GL.
 // .SECTION Description
 // vtkOSPRayRenderer is a concrete implementation of the abstract class
-// vtkRenderer. vtkOSPRayRenderer interfaces to the OSPRay graphics library.
+// vtkRenderer. The renderer uses the Intel OSPRay ray tracing framework
+// to render geometry.  Corresponding OSPRay classes for mappers, actors, etc.
+// are required for the renderer to display the correct representations.
+//
 
 #ifndef __vtkOSPRayRenderer_h
 #define __vtkOSPRayRenderer_h
@@ -74,24 +77,24 @@ public:
   vtkGetMacro(NumberOfWorkers, int);
 
   //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off shadows.  This only applies when the obj renderer is used in OSPRay
   //Default is off.
   void SetEnableShadows(int);
   vtkGetMacro(EnableShadows, int);
 
     //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off Ambient Occlusion.
   //Default is off.
   void SetEnableAO(int);
   vtkGetMacro(EnableAO, int);
 
   //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off to use the path tracer.
   //Default is off.
   void SetEnablePathtracing(int);
   vtkGetMacro(EnablePathtracing, int);
   //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off gradient shading in volumes.
   //Default is off.
   void SetEnableVolumeShading(int);
   vtkGetMacro(EnableVolumeShading, int);
@@ -126,6 +129,9 @@ public:
 
 
   void Clear();
+  // The accumulation buffer is used to accumulate multiple renders for 
+  // progressive rendering.  It should be cleared when the frame needs a refresh,
+  // such as camera updates.
   void ClearAccumulation();
 
   //Description:
@@ -146,7 +152,7 @@ public:
   // Concrete render method. Do not call this directly. The pipeline calls
   // it during Renderwindow::Render()
   void DeviceRender();
-
+  //Display a rendered OSPRay framebuffer to the VTK framebuffer for display.
   void LayerRender();
 
   //Description:

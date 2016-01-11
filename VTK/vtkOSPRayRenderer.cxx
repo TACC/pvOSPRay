@@ -398,7 +398,6 @@ void vtkOSPRayRenderer::PreRender()
 void vtkOSPRayRenderer::DeviceRender()
 {
   // std::cerr << "vtkOSPRayRenderer(" << this << ")::DeviceRender\n";
-  SetComputeDepth(true);
   static vtkTimerLog* timer = vtkTimerLog::New();
   timer->StartTimer();
   PreRender();
@@ -495,6 +494,8 @@ void vtkOSPRayRenderer::LayerRender()
     ospSetObject(vRenderer,"world",vModel);
     ospSetObject(vRenderer,"model",vModel);
     ospSetObject(vRenderer,"camera",oCamera);
+    if (ComputeDepth)
+      ospSet1i(vRenderer, "backgroundEnabled",0);
 
     ospCommit(vModel);
     ospCommit(vRenderer);
@@ -507,7 +508,8 @@ void vtkOSPRayRenderer::LayerRender()
   {
     OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
     OSPModel ospModel = ((OSPModel)this->OSPRayManager->OSPRayModel);
-
+    if (ComputeDepth)
+      ospSet1i(renderer, "backgroundEnabled",0);
     ospCommit(renderer);
     ospCommit(ospModel);
 
@@ -520,18 +522,18 @@ void vtkOSPRayRenderer::LayerRender()
   //
   if (ComputeDepth)
   {
-    if (this->OSPRayManager->stereoCamera!=NULL){
-     //printf("LR:Shifting Camera\n");
-     this->OSPRayManager->stereoCamera->ShiftCamera();
-    }
+    // if (this->OSPRayManager->stereoCamera!=NULL){
+    //  //printf("LR:Shifting Camera\n");
+    //  this->OSPRayManager->stereoCamera->ShiftCamera();
+    // }
     myActiveCamera = this->GetActiveCamera();
     double *clipValues = myActiveCamera->GetClippingRange();
     double viewAngle = myActiveCamera->GetViewAngle();
 
-    if (this->OSPRayManager->stereoCamera!=NULL){
-     //printf("LR:UnShifting Camera\n");
-     this->OSPRayManager->stereoCamera->UnShiftCamera();
-    }
+    // if (this->OSPRayManager->stereoCamera!=NULL){
+    //  //printf("LR:UnShifting Camera\n");
+    //  this->OSPRayManager->stereoCamera->UnShiftCamera();
+    // }
 
     // Closest point is center of near clipping plane - farthest is
     // corner of far clipping plane
@@ -563,8 +565,8 @@ void vtkOSPRayRenderer::LayerRender()
       int gldepth;
       glGetIntegerv(GL_DEPTH_FUNC, &gldepth);
       glDepthFunc(GL_ALWAYS);
-      std::cerr << "setting zbuffer data\n";
 
+      //Carson: TODO: use drawpixels if we can, setting it through the renderwindow seems to be quite slow
       this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
                                               renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
       glDepthFunc(gldepth);
@@ -575,22 +577,23 @@ void vtkOSPRayRenderer::LayerRender()
   //
 
   const void* rgba = ospMapFrameBuffer(this->osp_framebuffer);
-  memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));
-
+  memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));  //Carson - this copy is unecessary for layer0
   vtkTimerLog::MarkStartEvent("Image Conversion");
 
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
-    DEBUG1("layer 0\n");
+      // this->GetRenderWindow()->SetRGBACharPixelData( renderPos[0],  renderPos[1],
+      //                      renderPos[0] + renderSize[0] - 1,
+      //                      renderPos[1] + renderSize[1] - 1,
+      //                     (unsigned char*)this->ColorBuffer, 0, 1);
       SetRGBACharPixelData( renderPos[0],  renderPos[1],
                            renderPos[0] + renderSize[0] - 1,
                            renderPos[1] + renderSize[1] - 1,
-                          (unsigned char*)this->ColorBuffer, 0, 0,myLeftEye==1 );
+                          (unsigned char*)this->ColorBuffer, 0, ComputeDepth,myLeftEye==1 );
   }
   else
   {
-    DEBUG1("layer not 0\n");
     //layers on top add the colors of their non background pixels
     unsigned char*  GLbakBuffer = NULL;
     if (myLeftEye==1){
