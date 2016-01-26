@@ -115,7 +115,7 @@ pvOSPRay currently supports both Linux and Mac OSX (a Windows version will soon 
 In addition, before you can build pvOSPRay you need the following prerequisites:
 <ul>
 <!--   <li>You can clone the latest vtkOSPRay sources via: <code>git clone https://github.com/TACC/vtkOSPRay.git</code></li> -->
-  <li>Install OSPRay, following <a href="http://ospray.github.io/getting_ospray.html">these instructions</a>.  Checkout the branch "release-0.8" and 
+  <li>Install OSPRay, following <a href="http://ospray.github.io/getting_ospray.html">these instructions</a>.  Checkout the branch "release-0.9" and 
   enable the cmake flag OSPRAY_MODULE_OPENGL_UTIL</li>
   <li>OSPRay (and thus pvOSPRay) also heavily
   uses <a href="http://embree.github.io">Embree</a>; however, OSPRay
@@ -133,7 +133,7 @@ Note: the instructions below build pvOSPRay as part of a ParaView source build. 
 Note: <a href="http://tacc.github.io/vtkOSPRay/">vtkOSPRay</a> is currently contained within pvOSPRay and will be built along with pvOSPRay as part of the ParaView build.
 </p>
 <ol>
-  <li>Download ParaView 5.0 source from <a href="http://www.paraview.org/download/">www.paraview.org</a> (<a href="http://www.paraview.org/paraview-downloads/download.php?submit=Download&version=v4.3&type=source&os=all&downloadFile=ParaView-v4.3.1-source.tar.gz">click here to download</a>). Untar the source tree into a local directory. 
+  <li>Download ParaView 5.0 source from <a href="http://www.paraview.org/download/">www.paraview.org</a> Untar the source tree into a local directory. 
   We recommend putting the source tree in the same directory as OSPRay (i.e., ~/Projects/OSPRay and ~/Projects/ParaView).</li>
 <li>Change to the ParaView Plugins directory: <br>
     <code>
