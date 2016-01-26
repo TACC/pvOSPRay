@@ -32,6 +32,7 @@
 
 class vtkDataRepresentation;
 class vtkQtProgressiveRenderer;
+class vtkPVSynchronizedRenderer;
 
 class VTK_EXPORT vtkPVOSPRayView : public vtkPVRenderView
 {
@@ -50,7 +51,6 @@ public:
   //Controls number of render threads.
   virtual void SetThreads(int val);
   vtkGetMacro(Threads, int);
-
   // Description:
   // Parameters that controls ray tracing quality
   // Defaults are for minimal quality and maximal speed.
@@ -76,10 +76,12 @@ public:
   // Overridden to ensure that we always use an vtkOpenGLCamera of the 2D
   // renderer.
   virtual void SetActiveCamera(vtkCamera*);
+  virtual void Render (bool interactive, bool skip_rendering);
 
   void RenderUpdate();
 
 virtual void Update();
+vtkPVSynchronizedRenderer* GetSynchronizedRenderers() { return this->SynchronizedRenderers; }
 
 //BTX
 protected:
@@ -94,6 +96,7 @@ protected:
   int Threads;
   int Samples;
   int MaxDepth;
+  int ParallelProjection;
 //  int OSPSuppressLOD;
 
 	vtkOSPRayRenderer *OSPRayRenderer;

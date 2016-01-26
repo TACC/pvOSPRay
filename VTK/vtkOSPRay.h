@@ -36,7 +36,10 @@
 #include "vtkOpenGL.h"
 #endif
 
-#define DEBUG(x) {   std::cout << __PRETTY_FUNCTION__ << ":" << __LINE__ << " " << x << std::endl; }
+#define DEBUG_LEVEL = 5;
+#define DEBUG(x) {   std::cout << __PRETTY_FUNCTION__ << ":" << __LINE__ << " (" << this << ") " << x << std::endl; }
+#define DEBUG1(x) {   DEBUG(x); }
+#define DEBUG2(x) {   if (DEBUG_LEVEL > 1) DEBUG(x); }
 #define USE_OSPRAY 1
 #define USE_VBOS 0
 

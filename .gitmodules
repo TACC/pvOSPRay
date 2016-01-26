@@ -1,3 +1,0 @@
-[submodule "VTK/vtkOSPRay"]
-	path = VTK/vtkOSPRay
-	url = git@github.com:TACC/vtkOSPRay.git

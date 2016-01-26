@@ -22,7 +22,10 @@
 // .NAME vtkOSPRayRenderer - Renderer that uses OSPRay ray tracer instead of GL.
 // .SECTION Description
 // vtkOSPRayRenderer is a concrete implementation of the abstract class
-// vtkRenderer. vtkOSPRayRenderer interfaces to the OSPRay graphics library.
+// vtkRenderer. The renderer uses the Intel OSPRay ray tracing framework
+// to render geometry.  Corresponding OSPRay classes for mappers, actors, etc.
+// are required for the renderer to display the correct representations.
+//
 
 #ifndef __vtkOSPRayRenderer_h
 #define __vtkOSPRayRenderer_h
@@ -74,24 +77,24 @@ public:
   vtkGetMacro(NumberOfWorkers, int);
 
   //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off shadows.  This only applies when the obj renderer is used in OSPRay
   //Default is off.
   void SetEnableShadows(int);
   vtkGetMacro(EnableShadows, int);
 
     //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off Ambient Occlusion.
   //Default is off.
   void SetEnableAO(int);
   vtkGetMacro(EnableAO, int);
 
   //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off to use the path tracer.
   //Default is off.
   void SetEnablePathtracing(int);
   vtkGetMacro(EnablePathtracing, int);
   //Description:
-  //Turns on or off shadow rendering.
+  //Turns on or off gradient shading in volumes.
   //Default is off.
   void SetEnableVolumeShading(int);
   vtkGetMacro(EnableVolumeShading, int);
@@ -126,6 +129,9 @@ public:
 
 
   void Clear();
+  // The accumulation buffer is used to accumulate multiple renders for 
+  // progressive rendering.  It should be cleared when the frame needs a refresh,
+  // such as camera updates.
   void ClearAccumulation();
 
   //Description:
@@ -146,7 +152,7 @@ public:
   // Concrete render method. Do not call this directly. The pipeline calls
   // it during Renderwindow::Render()
   void DeviceRender();
-
+  //Display a rendered OSPRay framebuffer to the VTK framebuffer for display.
   void LayerRender();
 
   //Description:
@@ -165,7 +171,12 @@ public:
   int GetAccumCounter() { return AccumCounter; }
   int GetMaxAccumulation() { return MaxAccum; }
   int GetFrame() { return Frame; }
-  vtkSetMacro(ComputeDepth, bool);
+  void SetComputeDepth(bool use_depth) { 
+    if (use_depth == ComputeDepth)
+      return;
+    ComputeDepth= use_depth;
+    FramebufferDirty=true;
+  }
 
   void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
 
@@ -197,6 +208,71 @@ private:
   void operator=(const vtkOSPRayRenderer&); // Not implemented.
 
   void InitEngine();
+
+  // Description:
+  // Return the OpenGL name of the back left buffer.
+  // It is GL_BACK_LEFT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetBackLeftBuffer();
+
+  // Description:
+  // Return the OpenGL name of the back right buffer.
+  // It is GL_BACK_RIGHT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT+1 if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetBackRightBuffer();
+
+  // Description:
+  // Return the OpenGL name of the front left buffer.
+  // It is GL_FRONT_LEFT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetFrontLeftBuffer();
+
+  // Description:
+  // Return the OpenGL name of the front right buffer.
+  // It is GL_FRONT_RIGHT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT+1 if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetFrontRightBuffer();
+
+  // Description:
+  // Return the OpenGL name of the back left buffer.
+  // It is GL_BACK if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetBackBuffer();
+
+  // Description:
+  // Return the OpenGL name of the front left buffer.
+  // It is GL_FRONT if GL is bound to the window-system-provided
+  // framebuffer. It is vtkgl::COLOR_ATTACHMENT0_EXT if GL is bound to an
+  // application-created framebuffer object (GPU-based offscreen rendering)
+  // It is used by vtkOpenGLCamera.
+  unsigned int GetFrontBuffer();
+
+
+  unsigned char *GetRGBACharPixelData(int x,int y,int x2,int y2,
+                                              int front);
+  int SetRGBACharPixelData(int x, int y, int x2, int y2,
+                                   unsigned char *data, int front,
+                                   int blend=0,bool left=true);
+  unsigned char *GetRGBACharPixelDataRight(int x, int y, int x2, int y2,
+                                              int front);
+  // int SetRGBACharPixelDataRight(int x,int y, int x2, int y2,
+  //                                  unsigned char *data, int front,
+  //                                  int blend=0);
+
+  int GetRGBACharPixelData(int x, int y, int x2, int y2, int front,
+                           unsigned char* data);
+  int GetRGBACharPixelDataRight(int x, int y, int x2, int y2, int front,
+                           unsigned char* data);
 
   //Description:
   // Overriden to help ensure that a OSPRay compatible class is created.
@@ -232,10 +308,19 @@ private:
   bool prog_flag;
   int Frame;
   bool ComputeDepth;
+  bool FramebufferDirty;
   bool HasVolume;
   bool ClearAccumFlag;
 
   double backgroundRGB[3];
+
+  unsigned int BackLeftBuffer;
+  unsigned int BackRightBuffer;
+  unsigned int FrontLeftBuffer;
+  unsigned int FrontRightBuffer;
+  unsigned int FrontBuffer;
+  unsigned int BackBuffer;
+
   std::queue<std::pair<std::string, double> > Statistics;
   int StatisticFramesPerOutput;
 };

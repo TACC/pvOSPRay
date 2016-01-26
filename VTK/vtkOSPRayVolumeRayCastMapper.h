@@ -13,18 +13,24 @@
 
 =========================================================================*/
 
-// .NAME vtkOSPRayVolumeRayCastMapper - A slow but accurate mapper for rendering volumes
+// .NAME vtkOSPRayVolumeRayCastMapper - A volume renderer based on the OSPRay ray tracer
 // .SECTION Description
 // This is a software ray caster for rendering volumes in vtkImageData.
 
 // .SECTION see also
 // vtkVolumeMapper
+//
+//  The OSPRayVolumeRayCastMapper creates an OSPRay model and sets a flag for the 
+//  active renderer.  When the active OSPRayRenderer renders, it uses the set flag
+//  and provided model to render into the scene.
+//
 
- //
- // Carson: 6/18/2015: note that for Paraview 4.3 I had to modify
- //   ParaViewCore/VTKExtensions/Rendering/vtkPVLODVolume.h to not check
- //  for valid scalars before rendering volumetric data.
- //
+//
+//  modified 1/11/2016 Carson Brownlee - cleanup of unused functions.
+//  modified 12/29/2015 by Carson Brownlee
+//
+//
+//
 
 #ifndef __vtkOSPRayVolumeRayCastMapper_h
 #define __vtkOSPRayVolumeRayCastMapper_h
@@ -36,7 +42,6 @@
 #include "vtkOSPRayModule.h"
 #include <vector>
 #include <map>
-
 
 
 namespace osp
@@ -58,8 +63,6 @@ class vtkVolumeRayCastFunction;
 class vtkVolumeTransform;
 class vtkTransform;
 class vtkRayCastImageDisplayHelper;
-
-
 class vtkOSPRayManager;
 
 struct vtkOSPRayVolumeCacheEntry
@@ -68,18 +71,6 @@ struct vtkOSPRayVolumeCacheEntry
   vtkTimeStamp BuildTime;
 };
 
-
-// Macro for tri-linear interpolation - do four linear interpolations on
-// edges, two linear interpolations between pairs of edges, then a final
-// interpolation between faces
-#define vtkTrilinFuncMacro(v,x,y,z,a,b,c,d,e,f,g,h)         \
-        t00 =   a + (x)*(b-a);      \
-        t01 =   c + (x)*(d-c);      \
-        t10 =   e + (x)*(f-e);      \
-        t11 =   g + (x)*(h-g);      \
-        t0  = t00 + (y)*(t01-t00);  \
-        t1  = t10 + (y)*(t11-t10);  \
-        v   =  t0 + (z)*(t1-t0);
 
 // Forward declaration needed for use by friend declaration below.
 VTK_THREAD_RETURN_TYPE OSPRayVolumeRayCastMapper_CastRays( void *arg );
@@ -102,17 +93,17 @@ public:
   // Description:
   // Get / Set the volume ray cast function. This is used to process
   // values found along the ray to compute a final pixel value.
-  virtual void SetVolumeRayCastFunction(vtkVolumeRayCastFunction*);
-  vtkGetObjectMacro( VolumeRayCastFunction, vtkVolumeRayCastFunction );
+  // virtual void SetVolumeRayCastFunction(vtkVolumeRayCastFunction*);
+  // vtkGetObjectMacro( VolumeRayCastFunction, vtkVolumeRayCastFunction );
 
-  // Description:
-  // Set / Get the gradient estimator used to estimate normals
-  virtual void SetGradientEstimator(vtkEncodedGradientEstimator *gradest);
-  vtkGetObjectMacro( GradientEstimator, vtkEncodedGradientEstimator );
+  // // Description:
+  // // Set / Get the gradient estimator used to estimate normals
+  // virtual void SetGradientEstimator(vtkEncodedGradientEstimator *gradest);
+  // vtkGetObjectMacro( GradientEstimator, vtkEncodedGradientEstimator );
 
-  // Description:
-  // Get the gradient shader.
-  vtkGetObjectMacro( GradientShader, vtkEncodedGradientShader );
+  // // Description:
+  // // Get the gradient shader.
+  // vtkGetObjectMacro( GradientShader, vtkEncodedGradientShader );
 
   // Description:
   // Sampling distance in the XY image dimensions. Default value of 1 meaning
@@ -170,21 +161,6 @@ public:
   // resources to release.
   void ReleaseGraphicsResources(vtkWindow *);
 
-  // Description:
-  // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
-  // Return the scalar value below which all opacities are zero
-  float GetZeroOpacityThreshold( vtkVolume *vol );
-
-  // Description:
-  // WARNING: INTERNAL METHOD - NOT INTENDED FOR GENERAL USE
-  // Values needed by the volume
-  virtual float GetGradientMagnitudeScale();
-  virtual float GetGradientMagnitudeBias();
-  virtual float GetGradientMagnitudeScale(int)
-    {return this->GetGradientMagnitudeScale();};
-  virtual float GetGradientMagnitudeBias(int)
-    {return this->GetGradientMagnitudeBias();};
-
 //ETX
 
 protected:
@@ -206,94 +182,18 @@ protected:
   double                       MaximumImageSampleDistance;
   int                          AutoAdjustSampleDistances;
 
-  double                       WorldSampleDistance;
   int                          ScalarDataType;
   void                         *ScalarDataPointer;
-
-  void                         UpdateShadingTables( vtkRenderer *ren,
-                                                    vtkVolume *vol );
-
-  void ComputeMatrices( vtkImageData *data, vtkVolume *vol );
-  int ComputeRowBounds( vtkVolume *vol, vtkRenderer *ren );
-
-  friend VTK_THREAD_RETURN_TYPE OSPRayVolumeRayCastMapper_CastRays( void *arg );
-
-  vtkMultiThreader  *Threader;
-
-  vtkMatrix4x4 *PerspectiveMatrix;
-  vtkMatrix4x4 *ViewToWorldMatrix;
-  vtkMatrix4x4 *ViewToVoxelsMatrix;
-  vtkMatrix4x4 *VoxelsToViewMatrix;
-  vtkMatrix4x4 *WorldToVoxelsMatrix;
-  vtkMatrix4x4 *VoxelsToWorldMatrix;
-
-  vtkMatrix4x4 *VolumeMatrix;
-
-  vtkTransform *PerspectiveTransform;
-  vtkTransform *VoxelsTransform;
-  vtkTransform *VoxelsToViewTransform;
-
-  // This is how big the image would be if it covered the entire viewport
-  int            ImageViewportSize[2];
-
-  // This is how big the allocated memory for image is. This may be bigger
-  // or smaller than ImageFullSize - it will be bigger if necessary to
-  // ensure a power of 2, it will be smaller if the volume only covers a
-  // small region of the viewport
-  int            ImageMemorySize[2];
-
-  // This is the size of subregion in ImageSize image that we are using for
-  // the current image. Since ImageSize is a power of 2, there is likely
-  // wasted space in it. This number will be used for things such as clearing
-  // the image if necessary.
-  int            ImageInUseSize[2];
-
-  // This is the location in ImageFullSize image where our ImageSize image
-  // is located.
-  int            ImageOrigin[2];
-
-  // This is the allocated image
-  unsigned char *Image;
-
-  int  *RowBounds;
-  int  *OldRowBounds;
-
-  float        *RenderTimeTable;
-  vtkVolume   **RenderVolumeTable;
-  vtkRenderer **RenderRendererTable;
-  int           RenderTableSize;
-  int           RenderTableEntries;
-
-  void StoreRenderTime( vtkRenderer *ren, vtkVolume *vol, float t );
-  float RetrieveRenderTime( vtkRenderer *ren, vtkVolume *vol );
 
   int           IntermixIntersectingGeometry;
 
   float        *ZBuffer;
-  int           ZBufferSize[2];
-  int           ZBufferOrigin[2];
-
-  float         MinimumViewDistance;
-
-  int           ClipRayAgainstVolume( vtkVolumeRayCastDynamicInfo *dynamicInfo,
-                                      float bounds[6] );
-
-  void          InitializeClippingPlanes( vtkVolumeRayCastStaticInfo *staticInfo,
-                                          vtkPlaneCollection *planes );
-
-  int           ClipRayAgainstClippingPlanes( vtkVolumeRayCastDynamicInfo *dynamicInfo,
-                                              vtkVolumeRayCastStaticInfo *staticInfo);
-
-  // Get the ZBuffer value corresponding to location (x,y) where (x,y)
-  // are indexing into the ImageInUse image. This must be converted to
-  // the zbuffer image coordinates. Nearest neighbor value is returned.
-  double         GetZBufferValue( int x, int y );
 
 //
 //OSPRay
 //
 
-
+  int NumberOfThreads;
   vtkOSPRayManager *OSPRayManager;
   osp::Volume* OSPRayVolume;
   osp::Model* OSPRayModel;

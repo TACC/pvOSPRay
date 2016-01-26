@@ -23,7 +23,7 @@
 #ifndef __vtkOSPRayIsosurfaceFilter_h
 #define __vtkOSPRayIsosurfaceFilter_h
 
-#include "vtkFiltersCoreModule.h"
+//#include "vtkFiltersCoreModule.h"
 #include "vtkDataSetAlgorithm.h"
 #include "vtkElevationFilter.h"
 

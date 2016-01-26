@@ -38,6 +38,8 @@ class Camera;
 
 class vtkTimeStamp;
 class vtkOSPRayManager;
+class vtkHomogeneousTransform;
+class vtkMatrix4x4;
 
 class VTKOSPRAY_EXPORT vtkOSPRayCamera : public vtkCamera
 {
@@ -46,6 +48,28 @@ public:
   vtkTypeMacro(vtkOSPRayCamera,vtkCamera);
 
   void Render(vtkRenderer *ren);
+
+  void SetupCameraShift();
+  void ShiftCamera();
+  void UnShiftCamera();
+  
+  void SetPosition(double x, double y, double z);
+  void SetFocalPoint(double x, double y, double z);
+  void SetViewUp(double vx, double vy, double vz);
+  void SetViewAngle(double angle);
+  void SetParallelScale(double scale);
+  void SetClippingRange(double dNear, double dFar);
+  void SetThickness(double);
+  void SetWindowCenter(double x, double y);
+  void SetObliqueAngles(double alpha, double beta);
+  void SetViewShear(double dxdz, double dydz, double center);
+  void SetEyePosition(double eyePosition[3]);
+  void SetEyeTransformMatrix(vtkMatrix4x4* matrix);
+  void SetEyeTransformMatrix(const double elements[16]);
+  void SetModelTransformMatrix(vtkMatrix4x4 *matrix);
+  void SetModelTransformMatrix(const double elements[16]);
+  void SetUserViewTransform(vtkHomogeneousTransform *transform);
+  void SetUserTransform(vtkHomogeneousTransform *transform);
 
 protected:
    vtkOSPRayCamera();
@@ -60,6 +84,10 @@ private:
   vtkTimeStamp LastRenderTime;
 
   vtkOSPRayManager *OSPRayManager;
+  bool debugFlag;
+
+  double SavedCameraPosition[3];
+  double ShiftedCameraPosition[3];
   double Aspect;
 };
 

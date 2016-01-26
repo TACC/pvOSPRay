@@ -20,7 +20,6 @@
    ======================================================================================= */
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayLight.h"

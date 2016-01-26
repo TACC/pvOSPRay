@@ -20,7 +20,6 @@
    ======================================================================================= */
 
 #include "ospray/ospray.h"
-#include "ospray/common/OSPCommon.h"
 
 #include "vtkOSPRay.h"
 #include "vtkOSPRayManager.h"
@@ -196,6 +195,10 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
         else
         {
           printf("error! bytesperpixel !=4\n");
+#if !defined(Assert) 
+#define Assert if (0)
+#endif
+
           Assert(0);
           type = OSP_UCHAR3;
         }

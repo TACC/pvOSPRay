@@ -28,7 +28,7 @@
          <Property name="CameraClippingRange" panel_visibility="never"/>
          <Property name="CameraParallelScale" panel_visibility="never"/>
          <Property name="CameraParallelScaleInfo" panel_visibility="never"/>
-         <Property name="CameraParallelProjection" panel_visibility="advanced"/>
+         <!-- <Property name="CameraParallelProjection" panel_visibility="advanced"/>  -->
          <Property name="EyeAngle" panel_visibility="never"/>
          <Property name="EyeTransformMatrix" />
          <Property name="ModelTransformMatrix" />
@@ -79,7 +79,7 @@
           Turns on Progressive Refinement.
         </Documentation>
       </IntVectorProperty>
-      
+
       <IntVectorProperty name="Samples"
         command="SetSamples"
         immediate_update="1"
@@ -163,7 +163,7 @@
         number_of_elements="1"
         default_values="1.2">
       </DoubleVectorProperty>
-      
+
       <IntVectorProperty name="OSuppressLOD"
         command="SetOSPSuppressLOD"
         immediate_update="1"
@@ -339,12 +339,13 @@
         <Documentation>Enable/Disable shading.</Documentation>
       </IntVectorProperty>
       <DoubleVectorProperty command="SetSamplingRate"
-                            default_values="0.25"
+                            default_values="0"
                             name="SamplingRate"
                             number_of_elements="1">
         <DoubleRangeDomain max="2"
-                           min="0.01"
+                           min="0"
                            name="range" />
+        <Documentation>Rate of sampling per voxel.  1 Samples roughly once every voxel along each ray.  0 is automatic.</Documentation>
       </DoubleVectorProperty>
       <IntVectorProperty command="SetIndependantComponents"
                          default_values="1"
@@ -391,7 +392,7 @@
       </DoubleVectorProperty>
     </RepresentationProxy>
 
-<RepresentationProxy 
+<RepresentationProxy
                          name="OSPRayUniformGridVolumeRepresentation"
                          class="vtkPVOSPRayImageVolumeRepresentation"
                          processes="client|renderserver|dataserver"
@@ -739,7 +740,7 @@
                proxyname="OSPRaySurfaceRepresentation"> <!-- this is the only thing different -->
         </Proxy>
 
-    
+
         <ExposedProperties>
           <PropertyGroup panel_visibility="default"
                          panel_widget="ColorEditor"
@@ -856,11 +857,11 @@
         </ShareProperties>
       </SubProxy> -->
 
+<!--
       <SubProxy>
         <Proxy name="Glyph3DRepresentation"
           proxygroup="representations" proxyname="Glyph3DRepresentation">
         </Proxy>
-        <!--
         <ExposedProperties>
           <Property name="Masking" />
           <Property name="MeshVisibility" />
@@ -874,12 +875,12 @@
           <Property name="SelectScaleArray" />
           <Property name="Source" />
         </ExposedProperties>
-        -->
         <ShareProperties subproxy="SurfaceRepresentation">
           <Exception name="Input" />
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy>
+-->
 
         <SubProxy>
         <Proxy name="VolumeRepresentation"
@@ -1057,7 +1058,7 @@
 
     <!-- base_proxygroup="internal_representations"
                            base_proxyname="PVRepresentationBase" -->
-    <PVRepresentationProxy 
+    <PVRepresentationProxy
                            class="vtkPVCompositeRepresentation"
                            name="OSPRayUniformGridRepresentation"
                            processes="client|renderserver|dataserver">
@@ -1118,7 +1119,7 @@
       </IntVectorProperty>
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Surface"
-                          text="Outline" /> 
+                          text="Outline" />
       <!-- TODO: Carson: This should be changed to an actual Outline -->
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Points"
@@ -1132,9 +1133,11 @@
       <RepresentationType subproxy="SurfaceRepresentation"
                           subtype="Surface With Edges"
                           text="Surface With Edges" />
+<!--
       <RepresentationType subproxy="Glyph3DRepresentation"
                           subtype="Surface"
                           text="3D Glyphs" />
+-->
       <StringVectorProperty command="GetRepresentationTypes"
                             information_only="1"
                             name="RepresentationTypesInfo"
@@ -1283,7 +1286,7 @@
                       panel_visibility="never" />
           </PropertyGroup>
         </ExposedProperties>
-      </SubProxy> 
+      </SubProxy>
       <!-- <SubProxy>
         <Proxy name="OutlineRepresentation"
                proxygroup="representations"
@@ -1293,6 +1296,7 @@
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy> -->
+<!--
       <SubProxy>
         <Proxy name="Glyph3DRepresentation"
                proxygroup="representations"
@@ -1326,6 +1330,7 @@
           <Exception name="Visibility" />
         </ShareProperties>
       </SubProxy>
+-->
       <SubProxy>
         <Proxy name="CubeAxesRepresentation"
                proxygroup="representations"

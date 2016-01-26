@@ -77,9 +77,8 @@ add_paraview_plugin(
     OSPRayView.cxx
     vtkQtProgressiveRenderer.cxx
     OSPRayDisplay.cxx
-    # OSPRayViewOptions.cxx
 )
-target_link_libraries(pvOSPRay ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${PARAVIEW_LIBRARIES})
+target_link_libraries(pvOSPRay LINK_PRIVATE ${OSPRAY_LIBRARIES} ${QT_LIBRARIES} ${VTK_LIBRARIES} ${PARAVIEW_LIBRARIES})
 
 # if (BUILD_TESTING)
   # add_subdirectory(Testing)
