@@ -404,6 +404,7 @@ void vtkOSPRayRenderer::PreRender()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
+  // glClearColor(0,0,0,0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  //DEBUG: OPENGL2 backend needs buffers cleared
   // std::cerr << "vtkOSPRayRenderer(" << this << ")::DeviceRender\n";
   static vtkTimerLog* timer = vtkTimerLog::New();
@@ -591,13 +592,22 @@ void vtkOSPRayRenderer::LayerRender()
   memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));  //Carson - this copy is unecessary for layer0
   vtkTimerLog::MarkStartEvent("Image Conversion");
 
+  // float* d = (float*)ColorBuffer;
+  // for(size_t i=0;i<size;i++)
+  // {
+  //   unsigned char* c = (unsigned char*)(&d[i]);
+  //   c[0]=c[3];
+  //   c[1]=c[3];
+  //   c[2]=c[3];
+  // }
+
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
       // this->GetRenderWindow()->SetRGBACharPixelData( renderPos[0],  renderPos[1],
       //                      renderPos[0] + renderSize[0] - 1,
       //                      renderPos[1] + renderSize[1] - 1,
-      //                     (unsigned char*)this->ColorBuffer, 0, 1);
+      //                     (unsigned char*)this->ColorBuffer, 0, ComputeDepth);
       SetRGBACharPixelData( renderPos[0],  renderPos[1],
                            renderPos[0] + renderSize[0] - 1,
                            renderPos[1] + renderSize[1] - 1,
@@ -1233,6 +1243,10 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
     }
   else
     {
+      // glEnable( GL_ALPHA_TEST );
+      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      // glBlendEquation(GL_FUNC_ADD);
+      // glDisable(GL_DEPTH_TEST);
       #ifdef VTK_OPENGL2
         ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
       #else
