@@ -21,7 +21,7 @@
 
 #ifdef VTK_OPENGL2
   #include "vtk_glew.h"
-#endif 
+#endif
 
 #include "vtkRenderingOpenGLConfigure.h"
 #include "ospray/ospray.h"
@@ -113,7 +113,7 @@ Accumulate(false)
   Frame=0;
   HasVolume= false;
   ClearAccumFlag=false;
-  
+
   ComputeDepth = false;
   FramebufferDirty = true;
 
@@ -153,7 +153,7 @@ Accumulate(false)
   ospSetObject(vRenderer,"camera",oCamera);
   ospCommit(vRenderer);
 
-#if !defined(Assert) 
+#if !defined(Assert)
 #define Assert if (0)
 #endif
 
@@ -179,7 +179,7 @@ Accumulate(false)
   this->FrontRightBuffer = static_cast<unsigned int>(GL_FRONT_RIGHT);
   this->BackBuffer = static_cast<unsigned int>(GL_BACK);
   this->FrontBuffer = static_cast<unsigned int>(GL_FRONT);
- 
+
   StatisticFramesPerOutput = 100;
 }
 
@@ -302,7 +302,7 @@ int vtkOSPRayRenderer::UpdateLights()
       float z = position[2] - focal[2];
 			float d = x*x + y*y + z*z;
 
-			if (d != 0.0) 
+			if (d != 0.0)
 				d = 1.0 / d;
 
       ospSet3f(ospLight, "direction", x*d, y*d, z*d);
@@ -360,7 +360,7 @@ void vtkOSPRayRenderer::PreRender()
   else {
     prog_flag = false;
   }
-  
+
   if (this->GetLayer() != 0 && this->GetActors()->GetNumberOfItems() == 0)
   {
     return;
@@ -473,9 +473,9 @@ void vtkOSPRayRenderer::LayerRender()
 
 	renWinSize[0] = this->GetRenderWindow()->GetActualSize()[0] * (renViewport[2] - renViewport[0]);
 	renWinSize[1] = this->GetRenderWindow()->GetActualSize()[1] * (renViewport[3] - renViewport[1]);
- 
+
   int size = renWinSize[0]*renWinSize[1];
-	
+
 #if 0
 	std::cerr << "vp: " << renViewport[0] << " " << renViewport[1] << " " << renViewport[2] << " " << renViewport[3] << "\n";
 	std::cerr << "renderSize: " << renderSize[0] << " " << renderSize[1] << "\n";
@@ -554,18 +554,18 @@ void vtkOSPRayRenderer::LayerRender()
     double clipDiv = 1.0 / (clipMax - clipMin);
 
     const void *b = ospMapFrameBuffer(this->osp_framebuffer, OSP_FB_DEPTH);
-    
+
     float *s = (float *)b;
     float *d = this->DepthBuffer;
     for (int i = 0; i < size; i++, s++, d++)
       *d = isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
-    
+
     //disable setting the Zbuffer for now
     //this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
     //                                        renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
     if (!b)
       std::cerr << "ERROR: no depth from ospray\n";
-    else 
+    else
     {
       float *s = (float *)b;
       float *d = this->DepthBuffer;
@@ -592,6 +592,7 @@ void vtkOSPRayRenderer::LayerRender()
   memcpy((void *)this->ColorBuffer, rgba, size*sizeof(float));  //Carson - this copy is unecessary for layer0
   vtkTimerLog::MarkStartEvent("Image Conversion");
 
+  //debug: color by opacity
   // float* d = (float*)ColorBuffer;
   // for(size_t i=0;i<size;i++)
   // {
@@ -798,6 +799,7 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
     // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
     //this->OSPRayManager->OSPRayRenderer = this->OSPRayManager->OSPRayVolumeRenderer;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
+    //this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("scivis");
     // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
@@ -1162,7 +1164,7 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
     {
       if (left)
         glDrawBuffer(this->GetBackLeftBuffer());
-      else 
+      else
         glDrawBuffer(this->GetBackRightBuffer());
     }
 
@@ -1175,7 +1177,7 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
     int     x_low, x_hi;
     int     width, height;
 
-     // write out a row of pixels 
+     // write out a row of pixels
     glViewport(0, 0, this->Size[0], this->Size[1]);
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix();

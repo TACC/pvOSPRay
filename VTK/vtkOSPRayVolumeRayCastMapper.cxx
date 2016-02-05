@@ -144,6 +144,30 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   int dim[3];
   data->GetDimensions(dim);
 
+  size_t typeSize = 0;
+  std::string voxelType;
+  if (ScalarDataType == VTK_FLOAT)
+  {
+    typeSize = sizeof(float);
+    voxelType = "float";
+  }
+  else if (ScalarDataType == VTK_UNSIGNED_CHAR)
+  {
+    typeSize = sizeof(unsigned char);
+    voxelType = "uchar";
+  }
+  else if (ScalarDataType == VTK_DOUBLE)
+  {
+    typeSize = sizeof(double);
+    voxelType = "double";
+  }
+  else
+  {
+    std::cerr << "ERROR: Unsupported data type for ospray volumes, current supported data types are: " 
+     << " float, uchar, double\n";
+     return;
+  }
+
   //
   // Cache timesteps
   //
@@ -173,7 +197,7 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     //
 
     char* buffer = NULL;
-    size_t sizeBytes =  (ScalarDataType == VTK_FLOAT) ? dim[0]*dim[1]*dim[2] *sizeof(float) : dim[0]*dim[1]*dim[2] *sizeof(char);
+    size_t sizeBytes = dim[0]*dim[1]*dim[2] *typeSize;
 
     buffer = (char*)ScalarDataPointer;
 
@@ -189,7 +213,7 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     data->GetSpacing(spacing);
     ospSet3f(OSPRayVolume, "gridOrigin", origin[0], origin[1], origin[2]);
     ospSet3f(OSPRayVolume, "gridSpacing", spacing[0],spacing[1],spacing[2]);
-    ospSetString(OSPRayVolume, "voxelType", (ScalarDataType == VTK_FLOAT) ? "float" : "uchar");
+    ospSetString(OSPRayVolume, "voxelType", voxelType.c_str());
     if (SharedData)
     {
       OSPData voxelData = ospNewData(sizeBytes, OSP_UCHAR, ScalarDataPointer, OSP_DATA_SHARED_BUFFER);
