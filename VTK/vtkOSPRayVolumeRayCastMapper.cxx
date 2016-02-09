@@ -76,8 +76,8 @@ vtkStandardNewMacro(vtkOSPRayVolumeRayCastMapper);
     OSPRayVolume = ospNewVolume("shared_structured_volume");
   else
     OSPRayVolume = ospNewVolume("block_bricked_volume");
-  transferFunction = ospNewTransferFunction("piecewise_linear");
-  ospCommit(transferFunction);
+  TransferFunction = ospNewTransferFunction("piecewise_linear");
+  ospCommit(TransferFunction);
   SamplingRate=0.25;
 }
 
@@ -173,13 +173,9 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
   //
   double timestep=-1;
   vtkInformation *inputInfo = this->GetInput()->GetInformation();
-  // // std::cout << __PRETTY_FUNCTION__ << " (" << this << ") " << "actor: (" <<
-  // // OSPRayActor << ") mode: (" << OSPRayActor->OSPRayModel << ") " << std::endl;
   if (inputInfo && inputInfo->Has(vtkDataObject::DATA_TIME_STEP()))
   {
-    //std::cerr << "has timestep\n";
     timestep = inputInfo->Get(vtkDataObject::DATA_TIME_STEP());
-    //std::cerr << "timestep time: " << timestep << std::endl;
   }
   vtkOSPRayVolumeCacheEntry* cacheEntry = Cache[vol][timestep];
   if (!cacheEntry)
@@ -195,7 +191,6 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     //
     // Send Volumetric data to OSPRay
     //
-
     char* buffer = NULL;
     size_t sizeBytes = dim[0]*dim[1]*dim[2] *typeSize;
 
@@ -245,10 +240,10 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     colorTF->GetTable(data->GetScalarRange()[0],data->GetScalarRange()[1], NumColors, &TFVals[0]);
 
     OSPData colorData = ospNewData(NumColors, OSP_FLOAT3, &TFVals[0]);// TODO: memory leak?  does ospray manage this>
-    ospSetData(transferFunction, "colors", colorData);
+    ospSetData(TransferFunction, "colors", colorData);
     OSPData tfAlphaData = ospNewData(NumColors, OSP_FLOAT, &TFOVals[0]);
-    ospSetData(transferFunction, "opacities", tfAlphaData);
-    ospCommit(transferFunction);
+    ospSetData(TransferFunction, "opacities", tfAlphaData);
+    ospCommit(TransferFunction);
     ospSet1i(OSPRayVolume, "gradientShadingEnabled", volProperty->GetShade());
     PropertyTime.Modified();
   }
@@ -291,14 +286,14 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
       ospSet3fv(OSPRayVolume, "volumeClippingBoxUpper", uu);
     }
 
-    ospSet2f(transferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
+    ospSet2f(TransferFunction, "valueRange", data->GetScalarRange()[0], data->GetScalarRange()[1]);
 
     //! Commit the transfer function only after the initial colors and alphas have been set (workaround for Qt signalling issue).
-    ospCommit(transferFunction);
+    ospCommit(TransferFunction);
 
     //TODO: manage memory
 
-    ospSetObject((OSPObject)OSPRayVolume, "transferFunction", transferFunction);
+    ospSetObject((OSPObject)OSPRayVolume, "transferFunction", TransferFunction);
     this->BuildTime.Modified();
   }
   if (SamplingRate == 0.0f)
@@ -319,8 +314,6 @@ void vtkOSPRayVolumeRayCastMapper::Render( vtkRenderer *ren, vtkVolume *vol )
     ospSet1f(OSPRayVolume, "samplingRate", SamplingRate);
   ospCommit(OSPRayVolume);
   ospAddVolume(OSPRayModel,(OSPVolume)OSPRayVolume);
-  // if (!VolumeAdded)
-    // VolumeAdded = true;
   ospCommit(OSPRayModel);
   ospSetObject(renderer, "model", OSPRayModel);
   ospCommit(renderer);

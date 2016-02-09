@@ -39,151 +39,151 @@
 #include <math.h>
 
 
-vtkStandardNewMacro(vtkOSPRayTexture);
+   vtkStandardNewMacro(vtkOSPRayTexture);
 
 //----------------------------------------------------------------------------
 // Initializes an instance, generates a unique index.
-vtkOSPRayTexture::vtkOSPRayTexture()
-: OSPRayTexture(NULL)
-{
-  this->OSPRayManager = NULL;
-  this->OSPRayTexture = NULL;
-}
+   vtkOSPRayTexture::vtkOSPRayTexture()
+   : OSPRayTexture(NULL)
+   {
+    this->OSPRayManager = NULL;
+    this->OSPRayTexture = NULL;
+  }
 
 //----------------------------------------------------------------------------
-vtkOSPRayTexture::~vtkOSPRayTexture()
-{
-  if (this->OSPRayManager)
+  vtkOSPRayTexture::~vtkOSPRayTexture()
   {
-    this->DeleteOSPRayTexture();
+    if (this->OSPRayManager)
+    {
+      this->DeleteOSPRayTexture();
 
-    this->OSPRayManager->Delete();
+      this->OSPRayManager->Delete();
+    }
   }
-}
 
 //-----------------------------------------------------------------------------
-void vtkOSPRayTexture::DeleteOSPRayTexture()
-{
-  if (!this->OSPRayTexture)
+  void vtkOSPRayTexture::DeleteOSPRayTexture()
   {
-    return;
+    if (!this->OSPRayTexture)
+    {
+      return;
+    }
+
+    this->OSPRayTexture = NULL;
+
   }
-
-  this->OSPRayTexture = NULL;
-
-}
 
 //-----------------------------------------------------------------------------
 // Release the graphics resources used by this texture.
-void vtkOSPRayTexture::ReleaseGraphicsResources(vtkWindow *win)
-{
-  this->Superclass::ReleaseGraphicsResources( win );
-  if (!this->OSPRayManager)
+  void vtkOSPRayTexture::ReleaseGraphicsResources(vtkWindow *win)
   {
-    return;
-  }
+    this->Superclass::ReleaseGraphicsResources( win );
+    if (!this->OSPRayManager)
+    {
+      return;
+    }
 
-  this->DeleteOSPRayTexture();
-}
+    this->DeleteOSPRayTexture();
+  }
 
 //----------------------------------------------------------------------------
-void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
-{
-  vtkImageData *input = this->GetInput();
-
-  vtkOSPRayRenderer* renderer =
-  vtkOSPRayRenderer::SafeDownCast(ren);
-  if (!renderer)
+  void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
   {
-    return;
-  }
-  if (!this->OSPRayManager)
-  {
-    this->OSPRayManager = renderer->GetOSPRayManager();
-    this->OSPRayManager->Register(this);
-  }
+    vtkImageData *input = this->GetInput();
 
-  if (this->GetMTime() > this->LoadTime.GetMTime() ||
-    input->GetMTime()> this->LoadTime.GetMTime() ||
+    vtkOSPRayRenderer* renderer =
+    vtkOSPRayRenderer::SafeDownCast(ren);
+    if (!renderer)
+    {
+      return;
+    }
+    if (!this->OSPRayManager)
+    {
+      this->OSPRayManager = renderer->GetOSPRayManager();
+      this->OSPRayManager->Register(this);
+    }
+
+    if (this->GetMTime() > this->LoadTime.GetMTime() ||
+      input->GetMTime()> this->LoadTime.GetMTime() ||
       (this->GetLookupTable() && this->GetLookupTable()->GetMTime() > this->LoadTime.GetMTime())
       )
-      {
-        int bytesPerPixel=4;
-        int size[3];
-        vtkDataArray *scalars;
-        unsigned char *dataPtr;
-        int xsize, ysize;
+    {
+      int bytesPerPixel=4;
+      int size[3];
+      vtkDataArray *scalars;
+      unsigned char *dataPtr;
+      int xsize, ysize;
 
     // Get the scalars the user choose to color with.
-        scalars = this->GetInputArrayToProcess(0, input);
+      scalars = this->GetInputArrayToProcess(0, input);
     // make sure scalars are non null
-        if (!scalars)
-        {
-          vtkErrorMacro(<< "No scalar values found for texture input!");
-          return;
-        }
+      if (!scalars)
+      {
+        vtkErrorMacro(<< "No scalar values found for texture input!");
+        return;
+      }
 
     // get some info
-        input->GetDimensions(size);
+      input->GetDimensions(size);
 
-        if (input->GetNumberOfCells() == scalars->GetNumberOfTuples())
-        {
+      if (input->GetNumberOfCells() == scalars->GetNumberOfTuples())
+      {
       // we are using cell scalars. Adjust image size for cells.
-          for (int kk = 0; kk < 3; kk++)
+        for (int kk = 0; kk < 3; kk++)
+        {
+          if (size[kk] > 1)
           {
-            if (size[kk] > 1)
-            {
-              size[kk]--;
-            }
+            size[kk]--;
           }
         }
+      }
 
-        bytesPerPixel = scalars->GetNumberOfComponents();
+      bytesPerPixel = scalars->GetNumberOfComponents();
 
     // make sure using unsigned char data of color scalars type
-        if (this->MapColorScalarsThroughLookupTable ||
-          scalars->GetDataType() != VTK_UNSIGNED_CHAR)
-        {
-          dataPtr = this->MapScalarsToColors(scalars);
-          bytesPerPixel = 4;
-        }
-        else
-        {
-          dataPtr = static_cast<vtkUnsignedCharArray *> (scalars)->GetPointer(0);
-        }
+      if (this->MapColorScalarsThroughLookupTable ||
+        scalars->GetDataType() != VTK_UNSIGNED_CHAR)
+      {
+        dataPtr = this->MapScalarsToColors(scalars);
+        bytesPerPixel = 4;
+      }
+      else
+      {
+        dataPtr = static_cast<vtkUnsignedCharArray *> (scalars)->GetPointer(0);
+      }
 
     // we only support 2d texture maps right now
     // so one of the three sizes must be 1, but it
     // could be any of them, so lets find it
-        if (size[0] == 1)
+      if (size[0] == 1)
+      {
+        xsize = size[1];
+        ysize = size[2];
+      }
+      else
+      {
+        xsize = size[0];
+        if (size[1] == 1)
         {
-          xsize = size[1];
           ysize = size[2];
         }
         else
         {
-          xsize = size[0];
-          if (size[1] == 1)
+          ysize = size[1];
+          if (size[2] != 1)
           {
-            ysize = size[2];
-          }
-          else
-          {
-            ysize = size[1];
-            if (size[2] != 1)
-            {
-              vtkErrorMacro(<< "3D texture maps currently are not supported!");
-              return;
-            }
+            vtkErrorMacro(<< "3D texture maps currently are not supported!");
+            return;
           }
         }
+      }
         pixels.resize(xsize*ysize*3);  //TODO: Carson: memory leak
         for (int i=0; i < xsize*ysize; i++)
         {
-            unsigned char *color = &dataPtr[(i)*bytesPerPixel];
-            pixels[i*3+0] = color[0];
-            pixels[i*3+1] = color[1];
-            pixels[i*3+2] = color[2];
+          unsigned char *color = &dataPtr[(i)*bytesPerPixel];
+          pixels[i*3+0] = color[0];
+          pixels[i*3+1] = color[1];
+          pixels[i*3+2] = color[2];
         }
 
         OSPDataType type = OSP_VOID_PTR;
@@ -195,10 +195,6 @@ void vtkOSPRayTexture::Load(vtkRenderer *ren, bool nearest)
         else
         {
           printf("error! bytesperpixel !=4\n");
-#if !defined(Assert) 
-#define Assert if (0)
-#endif
-
           Assert(0);
           type = OSP_UCHAR3;
         }

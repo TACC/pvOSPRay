@@ -16,10 +16,7 @@
 // datasets as a volume.
 // .SECTION Description
 // vtkPVOSPRayImageVolumeRepresentation is a representation for volume rendering
-// vtkImageData. Unlike other data-representations used by ParaView, this
-// representation does not support delivery to client (or render server) nodes.
-// In those configurations, it merely delivers a outline for the image to the
-// client and render-server and those nodes simply render the outline.
+// vtkImageData with the OSPRay ray tracer.
 
 #ifndef __vtkPVOSPRayImageVolumeRepresentation_h
 #define __vtkPVOSPRayImageVolumeRepresentation_h

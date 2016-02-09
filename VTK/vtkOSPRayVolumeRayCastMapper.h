@@ -13,10 +13,17 @@
 
 =========================================================================*/
 
-// .NAME vtkOSPRayVolumeRayCastMapper - A volume renderer based on the OSPRay ray tracer
+// .NAME vtkOSPRayVolumeRayCastMapper - A volume renderer based on the OSPRay CPU ray tracer
 // .SECTION Description
 // This is a software ray caster for rendering volumes in vtkImageData.
-
+//
+// Supported Formats:
+//  Image Data
+// Supported Data types:
+//  unsigned char
+//  float
+//  double    
+//
 // .SECTION see also
 // vtkVolumeMapper
 //
@@ -24,8 +31,9 @@
 //  active renderer.  When the active OSPRayRenderer renders, it uses the set flag
 //  and provided model to render into the scene.
 //
-
 //
+//  modified 2/9/2016 Carson Brownlee - adding additional documentation
+//    updated for ospray 0.9
 //  modified 1/11/2016 Carson Brownlee - cleanup of unused functions.
 //  modified 12/29/2015 by Carson Brownlee
 //
@@ -89,17 +97,6 @@ public:
   // value.
   vtkSetMacro( SampleDistance, double );
   vtkGetMacro( SampleDistance, double );
-
-  // Description:
-  // Get / Set the volume ray cast function. This is used to process
-  // values found along the ray to compute a final pixel value.
-  // virtual void SetVolumeRayCastFunction(vtkVolumeRayCastFunction*);
-  // vtkGetObjectMacro( VolumeRayCastFunction, vtkVolumeRayCastFunction );
-
-  // // Description:
-  // // Set / Get the gradient estimator used to estimate normals
-  // virtual void SetGradientEstimator(vtkEncodedGradientEstimator *gradest);
-  // vtkGetObjectMacro( GradientEstimator, vtkEncodedGradientEstimator );
 
   // // Description:
   // // Get the gradient shader.
@@ -198,7 +195,7 @@ protected:
   osp::Volume* OSPRayVolume;
   osp::Model* OSPRayModel;
   vtkTimeStamp  BuildTime,PropertyTime;
-  osp::TransferFunction* transferFunction;
+  osp::TransferFunction* TransferFunction;
   int NumColors;
   std::vector<float> TFVals, TFOVals;
   bool SharedData;

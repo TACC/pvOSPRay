@@ -54,15 +54,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 
-
 #include "vtkOSPRayActor.h"
 
-//  VBOs
-//
-// #if USE_VBOS
-// #include <GL/glu.h>
-// #include <assert.h>
-// #endif
 
 /* DrawBufferMode */
 #define GL_NONE                           0
@@ -78,11 +71,11 @@
 
 #include <string>
 
-vtkStandardNewMacro(vtkOSPRayRenderer);
+ vtkStandardNewMacro(vtkOSPRayRenderer);
 
-class vtkTimerCallback : public vtkCommand
-{
-public:
+ class vtkTimerCallback : public vtkCommand
+ {
+ public:
   static vtkTimerCallback *New()
   {
     vtkTimerCallback *cb = new vtkTimerCallback;
@@ -91,7 +84,7 @@ public:
   }
 
   virtual void Execute(vtkObject *vtkNotUsed(caller), unsigned long eventId,
-                       void *vtkNotUsed(callData))
+   void *vtkNotUsed(callData))
   {
     if (vtkCommand::TimerEvent == eventId)
     {
@@ -152,10 +145,6 @@ Accumulate(false)
   ospSetObject(vRenderer,"model",vModel);
   ospSetObject(vRenderer,"camera",oCamera);
   ospCommit(vRenderer);
-
-#if !defined(Assert)
-#define Assert if (0)
-#endif
 
   Assert(oRenderer != NULL && "could not create renderer");
   Assert(vRenderer != NULL && "could not create renderer");
@@ -266,7 +255,7 @@ int vtkOSPRayRenderer::UpdateLights()
   vtkLight *vLight = NULL;
   bool noneOn = true;
   for ( this->Lights->InitTraversal( sit );
-       ( vLight = this->Lights->GetNextLight( sit ) ) ; )
+   ( vLight = this->Lights->GetNextLight( sit ) ) ; )
   {
     if ( vLight->GetSwitch() )
     {
@@ -300,10 +289,10 @@ int vtkOSPRayRenderer::UpdateLights()
       float x = position[0] - focal[0];
       float y = position[1] - focal[1];
       float z = position[2] - focal[2];
-			float d = x*x + y*y + z*z;
+      float d = x*x + y*y + z*z;
 
-			if (d != 0.0)
-				d = 1.0 / d;
+      if (d != 0.0)
+        d = 1.0 / d;
 
       ospSet3f(ospLight, "direction", x*d, y*d, z*d);
       ospCommit(ospLight);
@@ -351,8 +340,7 @@ void vtkOSPRayRenderer::PreRender()
   if ((!prog_flag) || ClearAccumFlag)
   {
     if (osp_framebuffer){
-      //disable clearing the framebuffer for now
-      ;//ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
+      ospFrameBufferClear(osp_framebuffer, OSP_FB_COLOR | (ComputeDepth ? OSP_FB_DEPTH : 0) | OSP_FB_ACCUM);
     }
     AccumCounter=0;
     ClearAccumFlag=false;
@@ -404,9 +392,7 @@ void vtkOSPRayRenderer::PreRender()
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::DeviceRender()
 {
-  // glClearColor(0,0,0,0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  //DEBUG: OPENGL2 backend needs buffers cleared
-  // std::cerr << "vtkOSPRayRenderer(" << this << ")::DeviceRender\n";
   static vtkTimerLog* timer = vtkTimerLog::New();
   timer->StartTimer();
   PreRender();
@@ -449,17 +435,14 @@ void vtkOSPRayRenderer::LayerRender()
   float*  OSPRayBuffer = NULL;
   double* renViewport = NULL;
 
-	vtkCamera * activeCamera = this->GetActiveCamera();
-	if (!activeCamera)
-		return;
+  vtkCamera * activeCamera = this->GetActiveCamera();
+  if (!activeCamera)
+    return;
 
   int myLeftEye = activeCamera->GetLeftEye();
 
-  //printf("LR:myLeftEye=%d\n", myLeftEye);
   int myStereoCapableWindow = this->GetRenderWindow()->GetStereoCapableWindow();
-  //printf("LR:myStereoCapableWindow=%d\n", myStereoCapableWindow);
   int myStereoMode = this->GetRenderWindow()->GetStereoRender();
-  //printf("LR:myStereoMode=%d\n", myStereoMode);
 
   // collect some useful info
   renderSize = this->GetSize();
@@ -471,16 +454,10 @@ void vtkOSPRayRenderer::LayerRender()
   renderPos[0] = int( renderPosFloat[0] );
   renderPos[1] = int( renderPosFloat[1] );
 
-	renWinSize[0] = this->GetRenderWindow()->GetActualSize()[0] * (renViewport[2] - renViewport[0]);
-	renWinSize[1] = this->GetRenderWindow()->GetActualSize()[1] * (renViewport[3] - renViewport[1]);
+  renWinSize[0] = this->GetRenderWindow()->GetActualSize()[0] * (renViewport[2] - renViewport[0]);
+  renWinSize[1] = this->GetRenderWindow()->GetActualSize()[1] * (renViewport[3] - renViewport[1]);
 
   int size = renWinSize[0]*renWinSize[1];
-
-#if 0
-	std::cerr << "vp: " << renViewport[0] << " " << renViewport[1] << " " << renViewport[2] << " " << renViewport[3] << "\n";
-	std::cerr << "renderSize: " << renderSize[0] << " " << renderSize[1] << "\n";
-	std::cerr << "renWinSize: " << renWinSize[0] << " " << renWinSize[1] << "\n";
-#endif
 
   if (this->ImageX != renWinSize[0] || this->ImageY != renWinSize[1] || FramebufferDirty )
   {
@@ -560,9 +537,6 @@ void vtkOSPRayRenderer::LayerRender()
     for (int i = 0; i < size; i++, s++, d++)
       *d = isinf(*s) ? 1.0 : (*s - clipMin) * clipDiv;
 
-    //disable setting the Zbuffer for now
-    //this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
-    //                                        renderPos[0] + renderSize[0] - 1, renderPos[1] + renderSize[1] - 1, this->DepthBuffer);
     if (!b)
       std::cerr << "ERROR: no depth from ospray\n";
     else
@@ -580,7 +554,7 @@ void vtkOSPRayRenderer::LayerRender()
 
       //Carson: TODO: use drawpixels if we can, setting it through the renderwindow seems to be quite slow
       this->GetRenderWindow()->SetZbufferData(renderPos[0], renderPos[1],
-                                              renderPos[0] + renWinSize[0] - 1, renderPos[1] + renWinSize[1] - 1, this->DepthBuffer);
+        renderPos[0] + renWinSize[0] - 1, renderPos[1] + renWinSize[1] - 1, this->DepthBuffer);
       glDepthFunc(gldepth);
     }
   }
@@ -605,14 +579,10 @@ void vtkOSPRayRenderer::LayerRender()
   // let layer #0 initialize GL depth buffer
   if ( this->GetLayer() == 0 )
   {
-      // this->GetRenderWindow()->SetRGBACharPixelData( renderPos[0],  renderPos[1],
-      //                      renderPos[0] + renderSize[0] - 1,
-      //                      renderPos[1] + renderSize[1] - 1,
-      //                     (unsigned char*)this->ColorBuffer, 0, ComputeDepth);
-      SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                           renderPos[0] + renderSize[0] - 1,
-                           renderPos[1] + renderSize[1] - 1,
-                          (unsigned char*)this->ColorBuffer, 0, ComputeDepth,myLeftEye==1 );
+    SetRGBACharPixelData( renderPos[0],  renderPos[1],
+     renderPos[0] + renderSize[0] - 1,
+     renderPos[1] + renderSize[1] - 1,
+     (unsigned char*)this->ColorBuffer, 0, ComputeDepth,myLeftEye==1 );
   }
   else
   {
@@ -620,21 +590,21 @@ void vtkOSPRayRenderer::LayerRender()
     unsigned char*  GLbakBuffer = NULL;
     if (myLeftEye==1){
         //GLbakBuffer = this->GetRenderWindow()->
-        GLbakBuffer = this->
-        GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renWinSize[0] - 1,
-                            renderPos[1] + renWinSize[1] - 1, 0 );
+      GLbakBuffer = this->
+      GetRGBACharPixelData( renderPos[0],  renderPos[1],
+        renderPos[0] + renWinSize[0] - 1,
+        renderPos[1] + renWinSize[1] - 1, 0 );
     } else {
         //GLbakBuffer = this->GetRenderWindow()->
-        GLbakBuffer = this->
-        GetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
-                            renderPos[0] + renWinSize[0] - 1,
-                            renderPos[1] + renWinSize[1] - 1, 0 );
+      GLbakBuffer = this->
+      GetRGBACharPixelDataRight( renderPos[0],  renderPos[1],
+        renderPos[0] + renWinSize[0] - 1,
+        renderPos[1] + renWinSize[1] - 1, 0 );
     }
     GLbakBuffer = this->GetRenderWindow()->
     GetRGBACharPixelData( renderPos[0],  renderPos[1],
-                         renderPos[0] + renWinSize[0] - 1,
-                         renderPos[1] + renWinSize[1] - 1, 0 );
+     renderPos[0] + renWinSize[0] - 1,
+     renderPos[1] + renWinSize[1] - 1, 0 );
     bool anyhit = false;
     unsigned char *optr = GLbakBuffer;
     unsigned char *iptr = (unsigned char*)this->ColorBuffer;
@@ -665,16 +635,16 @@ void vtkOSPRayRenderer::LayerRender()
         //this->GetRenderWindow()->
         this->
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renWinSize[0] - 1,
-                            renderPos[1] + renWinSize[1] - 1,
-                            GLbakBuffer, 0, 0,true );
+          renderPos[0] + renWinSize[0] - 1,
+          renderPos[1] + renWinSize[1] - 1,
+          GLbakBuffer, 0, 0,true );
       } else {
         //this->GetRenderWindow()->
         this->
         SetRGBACharPixelData( renderPos[0],  renderPos[1],
-                            renderPos[0] + renWinSize[0] - 1,
-                            renderPos[1] + renWinSize[1] - 1,
-                            GLbakBuffer, 0, 0,false );
+          renderPos[0] + renWinSize[0] - 1,
+          renderPos[1] + renWinSize[1] - 1,
+          GLbakBuffer, 0, 0,false );
       }
     }
 
@@ -795,12 +765,8 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   else
   {
-    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
-    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
-    //this->OSPRayManager->OSPRayRenderer = this->OSPRayManager->OSPRayVolumeRenderer;
     this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("raycast_volume_renderer");
     //this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("scivis");
-    // this->OSPRayManager->OSPRayRenderer = (osp::Renderer*)ospNewRenderer("obj");
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
@@ -913,9 +879,9 @@ unsigned int vtkOSPRayRenderer::GetFrontBuffer()
 }
 
 int vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
-                                                int x2, int y2,
-                                                int front,
-                                                unsigned char* data)
+  int x2, int y2,
+  int front,
+  unsigned char* data)
 {
   int     y_low, y_hi;
   int     x_low, x_hi;
@@ -927,43 +893,43 @@ int vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
 
 
   if (y1 < y2)
-    {
+  {
     y_low = y1;
     y_hi  = y2;
-    }
+  }
   else
-    {
+  {
     y_low = y2;
     y_hi  = y1;
-    }
+  }
 
 
   if (x1 < x2)
-    {
+  {
     x_low = x1;
     x_hi  = x2;
-    }
+  }
   else
-    {
+  {
     x_low = x2;
     x_hi  = x1;
-    }
+  }
 
 
   // Must clear previous errors first.
   while(glGetError() != GL_NO_ERROR)
-    {
+  {
     ;
-    }
+  }
 
   if (front)
-    {
+  {
     glReadBuffer(static_cast<GLenum>(this->GetFrontLeftBuffer()));
-    }
+  }
   else
-    {
+  {
     glReadBuffer(static_cast<GLenum>(this->GetBackLeftBuffer()));
-    }
+  }
 
   width  = abs(x_hi - x_low) + 1;
   height = abs(y_hi - y_low) + 1;
@@ -971,23 +937,23 @@ int vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
   glDisable( GL_SCISSOR_TEST );
 
   glReadPixels( x_low, y_low, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                data);
+    data);
 
   if (glGetError() != GL_NO_ERROR)
-    {
+  {
     return VTK_ERROR;
-    }
+  }
   else
-    {
+  {
     return VTK_OK;
-    }
+  }
 
 }
 
 int vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
-                                                int x2, int y2,
-                                                int front,
-                                                unsigned char* data)
+  int x2, int y2,
+  int front,
+  unsigned char* data)
 {
   int     y_low, y_hi;
   int     x_low, x_hi;
@@ -999,43 +965,43 @@ int vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
 
 
   if (y1 < y2)
-    {
+  {
     y_low = y1;
     y_hi  = y2;
-    }
+  }
   else
-    {
+  {
     y_low = y2;
     y_hi  = y1;
-    }
+  }
 
 
   if (x1 < x2)
-    {
+  {
     x_low = x1;
     x_hi  = x2;
-    }
+  }
   else
-    {
+  {
     x_low = x2;
     x_hi  = x1;
-    }
+  }
 
 
   // Must clear previous errors first.
   while(glGetError() != GL_NO_ERROR)
-    {
+  {
     ;
-    }
+  }
 
   if (front)
-    {
+  {
     glReadBuffer(static_cast<GLenum>(this->GetFrontRightBuffer()));
-    }
+  }
   else
-    {
+  {
     glReadBuffer(static_cast<GLenum>(this->GetBackRightBuffer()));
-    }
+  }
 
   width  = abs(x_hi - x_low) + 1;
   height = abs(y_hi - y_low) + 1;
@@ -1043,49 +1009,49 @@ int vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
   glDisable( GL_SCISSOR_TEST );
 
   glReadPixels( x_low, y_low, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
-                data);
+    data);
 
   if (glGetError() != GL_NO_ERROR)
-    {
+  {
     return VTK_ERROR;
-    }
+  }
   else
-    {
+  {
     return VTK_OK;
-    }
+  }
 
 }
 
 unsigned char *vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
-                                                           int x2, int y2,
-                                                           int front)
+ int x2, int y2,
+ int front)
 {
   int     y_low, y_hi;
   int     x_low, x_hi;
   int     width, height;
 
   if (y1 < y2)
-    {
+  {
     y_low = y1;
     y_hi  = y2;
-    }
+  }
   else
-    {
+  {
     y_low = y2;
     y_hi  = y1;
-    }
+  }
 
 
   if (x1 < x2)
-    {
+  {
     x_low = x1;
     x_hi  = x2;
-    }
+  }
   else
-    {
+  {
     x_low = x2;
     x_hi  = x1;
-    }
+  }
 
   width  = abs(x_hi - x_low) + 1;
   height = abs(y_hi - y_low) + 1;
@@ -1097,35 +1063,35 @@ unsigned char *vtkOSPRayRenderer::GetRGBACharPixelData(int x1, int y1,
 }
 
 unsigned char *vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
-                                                           int x2, int y2,
-                                                           int front)
+ int x2, int y2,
+ int front)
 {
   int     y_low, y_hi;
   int     x_low, x_hi;
   int     width, height;
 
   if (y1 < y2)
-    {
+  {
     y_low = y1;
     y_hi  = y2;
-    }
+  }
   else
-    {
+  {
     y_low = y2;
     y_hi  = y1;
-    }
+  }
 
 
   if (x1 < x2)
-    {
+  {
     x_low = x1;
     x_hi  = x2;
-    }
+  }
   else
-    {
+  {
     x_low = x2;
     x_hi  = x1;
-    }
+  }
 
   width  = abs(x_hi - x_low) + 1;
   height = abs(y_hi - y_low) + 1;
@@ -1137,8 +1103,8 @@ unsigned char *vtkOSPRayRenderer::GetRGBACharPixelDataRight(int x1, int y1,
 }
 
 int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
-                                                int y2, unsigned char *data,
-                                                int front, int blend, bool left)
+  int y2, unsigned char *data,
+  int front, int blend, bool left)
 {
   // set the current window
   this->GetRenderWindow()->MakeCurrent();
@@ -1146,119 +1112,119 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
   // Error checking
   // Must clear previous errors first.
   while(glGetError() != GL_NO_ERROR)
-    {
+  {
     ;
-    }
+  }
 
   GLint buffer;
   glGetIntegerv(GL_DRAW_BUFFER, &buffer);
 
   if (front)
-    {
-      if (left)
-        glDrawBuffer(this->GetFrontLeftBuffer());
-      else
-        glDrawBuffer(this->GetFrontRightBuffer());
-    }
+  {
+    if (left)
+      glDrawBuffer(this->GetFrontLeftBuffer());
+    else
+      glDrawBuffer(this->GetFrontRightBuffer());
+  }
   else
-    {
-      if (left)
-        glDrawBuffer(this->GetBackLeftBuffer());
-      else
-        glDrawBuffer(this->GetBackRightBuffer());
-    }
+  {
+    if (left)
+      glDrawBuffer(this->GetBackLeftBuffer());
+    else
+      glDrawBuffer(this->GetBackRightBuffer());
+  }
 
   // Disable writing on the z-buffer.
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
 
   #ifndef VTK_OPENGL2
-    int     y_low, y_hi;
-    int     x_low, x_hi;
-    int     width, height;
+  int     y_low, y_hi;
+  int     x_low, x_hi;
+  int     width, height;
 
      // write out a row of pixels
-    glViewport(0, 0, this->Size[0], this->Size[1]);
-    glMatrixMode( GL_MODELVIEW );
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode( GL_PROJECTION );
-    glPushMatrix();
-    glLoadIdentity();
-    glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
-                   (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
-                   -1.0 );
-    glMatrixMode( GL_PROJECTION );
-    glPopMatrix();
-    glMatrixMode( GL_MODELVIEW );
-    glPopMatrix();
+  glViewport(0, 0, this->Size[0], this->Size[1]);
+  glMatrixMode( GL_MODELVIEW );
+  glPushMatrix();
+  glLoadIdentity();
+  glMatrixMode( GL_PROJECTION );
+  glPushMatrix();
+  glLoadIdentity();
+  glRasterPos3f( (2.0 * static_cast<GLfloat>(x_low) / this->Size[0] - 1),
+   (2.0 * static_cast<GLfloat>(y_low) / this->Size[1] - 1),
+   -1.0 );
+  glMatrixMode( GL_PROJECTION );
+  glPopMatrix();
+  glMatrixMode( GL_MODELVIEW );
+  glPopMatrix();
 
-    glDisable( GL_ALPHA_TEST );
-    glDisable( GL_SCISSOR_TEST );
+  glDisable( GL_ALPHA_TEST );
+  glDisable( GL_SCISSOR_TEST );
 
     // Turn of texturing in case it is on - some drivers have a problem
     // getting / setting pixels with texturing enabled.
-    glDisable( GL_TEXTURE_2D );
+  glDisable( GL_TEXTURE_2D );
 
-    if (y1 < y2)
-      {
-      y_low = y1;
-      y_hi  = y2;
-      }
-    else
-      {
-      y_low = y2;
-      y_hi  = y1;
-      }
-
-
-    if (x1 < x2)
-      {
-      x_low = x1;
-      x_hi  = x2;
-      }
-    else
-      {
-      x_low = x2;
-      x_hi  = x1;
-      }
+  if (y1 < y2)
+  {
+    y_low = y1;
+    y_hi  = y2;
+  }
+  else
+  {
+    y_low = y2;
+    y_hi  = y1;
+  }
 
 
-    width  = abs(x_hi-x_low);
-    height = abs(y_hi-y_low);
+  if (x1 < x2)
+  {
+    x_low = x1;
+    x_hi  = x2;
+  }
+  else
+  {
+    x_low = x2;
+    x_hi  = x1;
+  }
+
+
+  width  = abs(x_hi-x_low);
+  height = abs(y_hi-y_low);
   #endif
 
   if (!blend)
-    {
+  {
     glDisable(GL_BLEND);
 
     #ifdef VTK_OPENGL2
-      ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
+    ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
     #else
            // glDrawPixels( x2, y2, GL_RGBA, GL_UNSIGNED_BYTE,
            //         data);
-     ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->SetRGBACharPixelData(x1,y1,x2,
-                                      y2, data,
-                                      front, blend);
+    ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->SetRGBACharPixelData(x1,y1,x2,
+      y2, data,
+      front, blend);
     #endif
     glEnable(GL_BLEND);
-    }
+  }
   else
-    {
+  {
       // glEnable( GL_ALPHA_TEST );
       // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       // glBlendEquation(GL_FUNC_ADD);
       // glDisable(GL_DEPTH_TEST);
       #ifdef VTK_OPENGL2
-        ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
+    ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->DrawPixels(x1,y1,x2,y2,4,VTK_UNSIGNED_CHAR,data);
       #else
            // glDrawPixels( width, height, GL_RGBA, GL_UNSIGNED_BYTE,
            //         data);
-       ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->SetRGBACharPixelData(x1,y1,x2,
-                                              y2, data,
-                                              front, blend);
+    ((vtkOpenGLRenderWindow*)this->GetRenderWindow())->SetRGBACharPixelData(x1,y1,x2,
+      y2, data,
+      front, blend);
       #endif
-    }
+  }
 
   // Renenable writing on the z-buffer.
   glDepthMask(GL_TRUE);
@@ -1270,11 +1236,11 @@ int vtkOSPRayRenderer::SetRGBACharPixelData(int x1, int y1, int x2,
   glDrawBuffer(buffer);
 
   if (glGetError() != GL_NO_ERROR)
-    {
+  {
     return VTK_ERROR;
-    }
+  }
   else
-    {
+  {
     return VTK_OK;
-    }
+  }
 }
