@@ -195,7 +195,7 @@
         else
         {
           printf("error! bytesperpixel !=4\n");
-          Assert(0);
+          assert(0);
           type = OSP_UCHAR3;
         }
 

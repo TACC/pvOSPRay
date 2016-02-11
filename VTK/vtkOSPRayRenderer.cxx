@@ -146,8 +146,8 @@ Accumulate(false)
   ospSetObject(vRenderer,"camera",oCamera);
   ospCommit(vRenderer);
 
-  Assert(oRenderer != NULL && "could not create renderer");
-  Assert(vRenderer != NULL && "could not create renderer");
+  assert(oRenderer != NULL && "could not create renderer");
+  assert(vRenderer != NULL && "could not create renderer");
 
   ospSetObject(oRenderer,"world",oModel);
   ospSetObject(oRenderer,"model",oModel);
@@ -702,14 +702,14 @@ void vtkOSPRayRenderer::SetSamples( int newval )
 
   OSPRenderer renderer = ((OSPRenderer)this->OSPRayManager->OSPRayRenderer);
 
-  Assert(renderer);
+  assert(renderer);
 
   ospSet1i(renderer,"spp",Samples);
   ospCommit(renderer);
 
   OSPRenderer vRenderer = ((OSPRenderer)this->OSPRayManager->OSPRayVolumeRenderer);
 
-  Assert(vRenderer);
+  assert(vRenderer);
 
   ospSet1i(vRenderer,"spp",Samples);
   ospCommit(vRenderer);
@@ -770,7 +770,7 @@ void vtkOSPRayRenderer::UpdateOSPRayRenderer()
   }
   OSPRenderer oRenderer = (OSPRenderer)this->OSPRayManager->OSPRayRenderer;
 
-  Assert(oRenderer != NULL && "could not create renderer");
+  assert(oRenderer != NULL && "could not create renderer");
 
   ospSetObject(oRenderer,"dynamic_model",ospNewModel());
   ospSetObject(oRenderer,"world",oModel);
