@@ -130,23 +130,23 @@ class Mesh {
 }
 
 int vtkOSPRayPolyDataMapper::timestep = 0;  // HACK!
-void* alignedMalloc(size_t size, size_t align=64)
-{
-  if (size == 0) return NULL;
-  char* base = (char*)malloc(size + align + sizeof(int));
-  if (base == NULL) throw std::bad_alloc();
+// void* alignedMalloc(size_t size, size_t align=64)
+// {
+//   if (size == 0) return NULL;
+//   char* base = (char*)malloc(size + align + sizeof(int));
+//   if (base == NULL) throw std::bad_alloc();
 
-  char* unaligned = base + sizeof(int);
-  char*   aligned = unaligned + align - ((size_t)unaligned & (align - 1));
-  ((int*)aligned)[-1] = (int)((size_t)aligned - (size_t)base);
-  return aligned;
-}
+//   char* unaligned = base + sizeof(int);
+//   char*   aligned = unaligned + align - ((size_t)unaligned & (align - 1));
+//   ((int*)aligned)[-1] = (int)((size_t)aligned - (size_t)base);
+//   return aligned;
+// }
 
-void alignedFree(const void* ptr) {
-  if (ptr == NULL) return;
-  int ofs = ((int*)ptr)[-1];
-  free((char*)ptr - ofs);
-}
+// void alignedFree(const void* ptr) {
+//   if (ptr == NULL) return;
+//   int ofs = ((int*)ptr)[-1];
+//   free((char*)ptr - ofs);
+// }
 
 //----------------------------------------------------------------------------
 // Construct empty object.
@@ -886,11 +886,11 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
       // printf("building mesh with numTriangles %d\n", numTriangles);
 
-      osp::vec3fa *vertices = (osp::vec3fa *)alignedMalloc(
+      osp::vec3fa *vertices = (osp::vec3fa *)embree::alignedMalloc(
           sizeof(osp::vec3fa) * numPositions);
-      osp::vec3i *triangles = (osp::vec3i *)alignedMalloc(
+      osp::vec3i *triangles = (osp::vec3i *)embree::alignedMalloc(
           sizeof(osp::vec3i) * numTriangles);
-      osp::vec3fa *normals = (osp::vec3fa *)alignedMalloc(
+      osp::vec3fa *normals = (osp::vec3fa *)embree::alignedMalloc(
           sizeof(osp::vec3fa) * numNormals);
 
       for (size_t i = 0; i < numPositions; i++) {
@@ -946,9 +946,9 @@ void vtkOSPRayPolyDataMapper::Draw(vtkRenderer *renderer, vtkActor *actor) {
 
       ospAddGeometry(OSPRayActor->OSPRayModel, ospMesh);
 
-			alignedFree(vertices);
-			alignedFree(triangles);
-			alignedFree(normals);
+			embree::alignedFree(vertices);
+			embree::alignedFree(triangles);
+			embree::alignedFree(normals);
 
     }
 

@@ -124,7 +124,7 @@ Accumulate(false)
   this->backgroundRGB[1] = 0.0;
   this->backgroundRGB[2] = 0.0;
   AccumCounter=0;
-  MaxAccum=1024;
+  MaxAccum=64;
   this->SetAmbient( 0.1, 0.1, 0.1 );
 
   this->OSPRayManager = vtkOSPRayManager::Singleton();
