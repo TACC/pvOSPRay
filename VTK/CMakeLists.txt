@@ -38,17 +38,17 @@ endif(BUILD_AGAINST_PARAVIEW)
 
 # Set vtkOSPRay source files.
 SET ( OSPRAY_CLASSES
-  vtkOSPRayActor.cxx
-  vtkOSPRayCamera.cxx
-  vtkOSPRayLight.cxx
-  vtkOSPRayManager.cxx
-  vtkOSPRayPolyDataMapper.cxx
-  vtkOSPRayProperty.cxx
-  vtkOSPRayRenderer.cxx
-  vtkOSPRayTestSource.cxx
-  vtkOSPRayTexture.cxx
-  vtkOSPRayVolumeRayCastMapper.h
-  vtkOSPRayVolumeRayCastMapper.cxx
+  vtkOSPRay/vtkOSPRayActor.cxx
+  vtkOSPRay/vtkOSPRayCamera.cxx
+  vtkOSPRay/vtkOSPRayLight.cxx
+  vtkOSPRay/vtkOSPRayManager.cxx
+  vtkOSPRay/vtkOSPRayPolyDataMapper.cxx
+  vtkOSPRay/vtkOSPRayProperty.cxx
+  vtkOSPRay/vtkOSPRayRenderer.cxx
+  vtkOSPRay/vtkOSPRayTestSource.cxx
+  vtkOSPRay/vtkOSPRayTexture.cxx
+  vtkOSPRay/vtkOSPRayVolumeRayCastMapper.h
+  vtkOSPRay/vtkOSPRayVolumeRayCastMapper.cxx
   vtkOSPRayPVLODVolume.cxx
   )
 
@@ -104,4 +104,13 @@ if(WIN32)
   TARGET_LINK_LIBRARIES(${PROJECT_NAME} LINK_PRIVATE Winmm)
 endif()
 
-
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++11" CXX11_SUPPORTED)
+CHECK_CXX_COMPILER_FLAG("-std=c++0x" CXX0X_SUPPORTED)
+if(CXX11_SUPPORTED)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(CXX0X_SUPPORTED)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+else()
+  message(ERROR "OSPRay requires c++11 support.  The compiler ${CMAKE_CXX_COMPILER} does not appear to support it.")
+endif()
