@@ -37,6 +37,7 @@ vtkStandardNewMacro(vtkOSPRayAMRVolumeRepresentation);
 //----------------------------------------------------------------------------
 vtkOSPRayAMRVolumeRepresentation::vtkOSPRayAMRVolumeRepresentation()
 {
+  DEBUG("");
   this->StreamingCapablePipeline = false;
   this->InStreamingUpdate = false;
 
@@ -268,6 +269,7 @@ int vtkOSPRayAMRVolumeRepresentation::RequestData(vtkInformation* rqst,
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
 {
+  DEBUG("");
   if (inputVector[0]->GetNumberOfInformationObjects() == 1)
     {
     vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);

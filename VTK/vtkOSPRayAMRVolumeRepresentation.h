@@ -24,6 +24,7 @@
 #include "vtkPVDataRepresentation.h"
 #include "vtkSmartPointer.h" // needed for vtkSmartPointer.
 #include "vtkBoundingBox.h" // needed for vtkBoundingBox.
+#include "vtkOSPRay.h"
 
 class vtkAMRStreamingPriorityQueue;
 class vtkColorTransferFunction;
@@ -43,6 +44,9 @@ public:
   static vtkOSPRayAMRVolumeRepresentation* New();
   vtkTypeMacro(vtkOSPRayAMRVolumeRepresentation, vtkPVDataRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  
+  virtual void SetRepresentation(const char*) {}
   
   enum ResamplingModes
     {
