@@ -51,7 +51,7 @@ vtkOSPRayActor::vtkOSPRayActor()
   this->SortType = DYNBVH;
   this->OSPRayModel = ospNewModel();
   LastFrame=-1;
-  Renderable = NULL;
+  //Renderable = NULL;
 }
 
 // now some OSPRay resources, ignored previously, can be de-allocated safely
@@ -159,7 +159,7 @@ void vtkOSPRayActor::UpdateObjects( vtkRenderer * ren )
   if (!this->GetVisibility())
     return;
   
-  Renderable = new vtkOSPRayRenderable(this->OSPRayModel);
-  OSPRayRenderer->AddOSPRayRenderable(Renderable);
+  //Renderable = new vtkOSPRayRenderable(this->OSPRayModel);
+  //OSPRayRenderer->AddOSPRayRenderable(Renderable);
 
 }

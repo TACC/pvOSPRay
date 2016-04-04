@@ -28,7 +28,7 @@
 #define __vtkOSPRayActor_h
 
 #include "vtkOSPRayModule.h"
-#include "vtkOSPRayRenderable.h"
+//#include "vtkOSPRayRenderable.h"
 #include "vtkActor.h"
 #include <map>
 #include <vector>
@@ -116,7 +116,7 @@ public:
   //ETX
 
   vtkOSPRayManager *OSPRayManager;
-  vtkOSPRayRenderable* Renderable;
+//  vtkOSPRayRenderable* Renderable;
 
 public:
   int LastFrame;

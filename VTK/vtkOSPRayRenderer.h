@@ -35,7 +35,7 @@
 
 #include "vtkOSPRay.h"
 
-#include "vtkOSPRayRenderable.h"
+// #include "vtkOSPRayRenderable.h"
 #include <queue>
 #include <utility>
 #include <string>
@@ -178,7 +178,7 @@ public:
     FramebufferDirty=true;
   }
 
-  void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
+  // void AddOSPRayRenderable(vtkOSPRayRenderable* inst);
 
 protected:
   vtkOSPRayRenderer();
@@ -277,7 +277,7 @@ private:
   //Description:
   // Overriden to help ensure that a OSPRay compatible class is created.
   vtkCamera * MakeCamera();
-  std::vector<vtkOSPRayRenderable*> renderables;
+  // std::vector<vtkOSPRayRenderable*> renderables;
 
   bool IsStereo;
   bool EngineInited;

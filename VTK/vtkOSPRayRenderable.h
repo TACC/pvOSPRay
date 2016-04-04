@@ -25,7 +25,7 @@ Copyright (c) 2007, Los Alamos National Security, LLC
 #include "vtkOSPRay.h"
 
 
-class vtkOSPRayRenderable
+class VTKOSPRAY_EXPORT vtkOSPRayRenderable
 {
 public:
 vtkOSPRayRenderable(OSPModel model)

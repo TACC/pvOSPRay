@@ -669,11 +669,11 @@ void vtkOSPRayRenderer::SetNumberOfWorkers( int newval )
   }
 }
 
-void vtkOSPRayRenderer::AddOSPRayRenderable(vtkOSPRayRenderable* inst)
-{
-  ospAddGeometry((OSPModel)this->OSPRayManager->OSPRayModel,inst->instance);
-  renderables.push_back(inst);
-}
+// void vtkOSPRayRenderer::AddOSPRayRenderable(vtkOSPRayRenderable* inst)
+// {
+//   ospAddGeometry((OSPModel)this->OSPRayManager->OSPRayModel,inst->instance);
+//   renderables.push_back(inst);
+// }
 
 //----------------------------------------------------------------------------
 void vtkOSPRayRenderer::SetEnableShadows( int newval )

@@ -45,6 +45,7 @@ SET ( OSPRAY_CLASSES
   vtkOSPRay/vtkOSPRayPolyDataMapper.cxx
   vtkOSPRay/vtkOSPRayProperty.cxx
   vtkOSPRay/vtkOSPRayRenderer.cxx
+  vtkOSPRay/vtkOSPRayRenderable.cxx
   vtkOSPRay/vtkOSPRayTestSource.cxx
   vtkOSPRay/vtkOSPRayTexture.cxx
   vtkOSPRay/vtkOSPRayVolumeRayCastMapper.h
